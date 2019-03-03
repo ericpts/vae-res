@@ -1,17 +1,18 @@
 import matplotlib
 matplotlib.use('Agg')
 
+import os
 import re
 import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-def get_latest_epoch() -> int:
-    p = Path('checkpoints/')
+def get_latest_epoch(model_name: str) -> int:
+    p = Path('checkpoints/{}'.format(model_name))
 
     ckpts = []
-    for x in p.glob('cp_*.ckpt.index'):
-        m = re.search(r'checkpoints/cp_(\d+).ckpt.index', str(x))
+    for x in p.glob('cp_*.ckpt.index'.format(model_name)):
+        m = re.search(r'cp_(\d+).ckpt.index'.format(model_name), str(x))
         n_ckpt = int(m.group(1))
         ckpts.append(n_ckpt)
 
@@ -21,12 +22,13 @@ def get_latest_epoch() -> int:
     ckpts = np.array(ckpts)
     return np.max(ckpts)
 
-def checkpoint_for_epoch(epoch: int) -> str:
-    p = Path('checkpoints/cp_{}.ckpt'.format(epoch))
+def checkpoint_for_epoch(model_name: str, epoch: int) -> str:
+    p = Path('checkpoints/{}/cp_{}.ckpt'.format(model_name, epoch))
     return str(p)
 
 
 def generate_pictures(model, eps, epoch=None):
+    os.makedirs('images/{}/'.format(model.name), exist_ok=True)
     pictures = model.sample(eps)
 
     fig = plt.figure(figsize=(8, 8))
@@ -36,7 +38,7 @@ def generate_pictures(model, eps, epoch=None):
         plt.axis('off')
 
     if epoch:
-        plt.savefig('image_at_epoch_{}.png'.format(epoch))
+        plt.savefig('images/{}/image_at_epoch_{}.png'.format(model.name, epoch))
     else:
         plt.show()
 

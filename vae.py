@@ -3,16 +3,16 @@ import tensorflow as tf
 import numpy as np
 
 class VAE(tf.keras.Model):
-    def __init__(self, latent_dim: int) -> None:
-        super(VAE, self).__init__()
+    def __init__(self, latent_dim: int, name: str) -> None:
+        super(VAE, self).__init__(name=name)
 
         self.latent_dim = latent_dim
 
         self.encoder = VAE.encoder_network(self.latent_dim)
         self.decoder = VAE.decoder_network(self.latent_dim)
 
-        print(self.encoder.summary())
-        print(self.decoder.summary())
+        # print(self.encoder.summary())
+        # print(self.decoder.summary())
 
     @staticmethod
     def encoder_network(latent_dim: int) -> tf.keras.Model:
