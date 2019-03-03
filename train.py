@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import tensorflow
 import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
@@ -44,7 +45,8 @@ def load_data() -> Tuple[
 
 loss_object = tf.keras.losses.BinaryCrossentropy()
 
-def compute_loss(model: tf.keras.Model, x: np.ndarray) -> float:
+@tf.function
+def compute_loss(model, x):
     mean, logvar = model.encode(x)
     z = model.reparametrize(mean, logvar)
     x_pred = model.decode(z)
@@ -61,12 +63,14 @@ def compute_loss(model: tf.keras.Model, x: np.ndarray) -> float:
     return vae_loss
 
 
-def compute_gradients(model: tf.keras.Model, x: np.ndarray) -> Tuple:
+# @tf.function
+def compute_gradients(model, x):
     with tf.GradientTape() as tape:
         loss = compute_loss(model, x)
     return tape.gradient(loss, model.trainable_variables), loss
 
 
+@tf.function
 def apply_gradients(optimizer, gradients, variables):
     optimizer.apply_gradients(zip(gradients, variables))
 
@@ -93,7 +97,7 @@ def train_model(
 
         train_loss = 0
         train_size = 0
-        for (X, y) in D_train.batch(batch_size):
+        for (X, y) in D_train.batch(batch_size, drop_remainder=True):
             gradients, loss = compute_gradients(model, X)
             apply_gradients(optimizer, gradients, model.trainable_variables)
             train_loss += loss * X.shape[0]
@@ -110,7 +114,7 @@ def train_model(
         if epoch % 5 == 0:
             test_loss = 0
             test_size = 0
-            for (X, y) in D_test.batch(batch_size * 8):
+            for (X, y) in D_test.batch(batch_size * 8, drop_remainder=True):
                 test_loss += compute_loss(model, X) * X.shape[0]
                 test_size += X.shape[0]
 
