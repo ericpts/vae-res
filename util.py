@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg')
+
 import re
 import numpy as np
 from pathlib import Path
