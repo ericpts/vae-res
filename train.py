@@ -92,7 +92,7 @@ def train_model(
         model.load_weights(checkpoint_for_epoch(model.name, start_epoch))
     start_epoch += 1
 
-    for epoch in range(start_epoch, epochs + start_epoch):
+    for epoch in range(start_epoch, epochs + 1):
         start_time = time.time()
 
         train_loss = 0
