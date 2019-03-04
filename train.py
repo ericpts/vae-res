@@ -63,7 +63,7 @@ def compute_loss(model, x):
     return vae_loss
 
 
-# @tf.function
+@tf.function
 def compute_gradients(model, x):
     with tf.GradientTape() as tape:
         loss = compute_loss(model, x)
@@ -73,6 +73,44 @@ def compute_gradients(model, x):
 @tf.function
 def apply_gradients(optimizer, gradients, variables):
     optimizer.apply_gradients(zip(gradients, variables))
+
+
+def combine_into_windows(D: tf.data.Dataset, k: int) -> tf.data.Dataset:
+    D = D.repeat(k)
+
+    D = D.shuffle(2048)
+
+    D = D.batch(k, drop_remainder=True)
+
+    rootk = int(k**0.5)
+
+    assert rootk * rootk == k
+
+    def map_fn(X, y):
+        r = []
+        at = 0
+        for i in range(rootk):
+            c = []
+            for j in range(rootk):
+                c.append(X[at])
+                at += 1
+            r.append(tf.concat(c, 0))
+        X = tf.concat(r, 1)
+        return X, y
+
+    D = D.map(map_fn)
+
+    D_samples = D.take(num_examples)
+
+    X = [ np.array(X) for (X, y) in D_samples ]
+    X = np.array(X)
+
+    make_plot(X)
+
+    os.makedirs('images', exist_ok=True)
+    plt.savefig('images/data_sample.png')
+
+    return D
 
 
 def train_model(
@@ -99,7 +137,10 @@ def train_model(
         train_size = 0
         for (X, y) in D_train.batch(batch_size, drop_remainder=True):
             gradients, loss = compute_gradients(model, X)
+
+            # optimizer.apply_gradients(zip(gradients, model.trainable_variables))
             apply_gradients(optimizer, gradients, model.trainable_variables)
+
             train_loss += loss * X.shape[0]
             train_size += X.shape[0]
 
@@ -126,9 +167,8 @@ def train_model(
             p = 'checkpoints/{}/cp_{}.ckpt'.format(model.name, epoch)
             model.save_weights(p)
 
-def main():
-    (D_train, D_test) = load_data()
 
+def train_individual_digits(D_train, D_test):
     for d in range(1, 10):
         print('Training for digit {}'.format(d))
         model = VAE(latent_dim, 'digit-{}'.format(d))
@@ -137,6 +177,20 @@ def main():
             return tf.math.equal(y, d)
 
         train_model(model, D_train.filter(filter_fn), D_test.filter(filter_fn))
+
+
+def main():
+    (D_train, D_test) = load_data()
+
+    k = rootk * rootk
+
+    D_train = combine_into_windows(D_train, k)
+    D_test = combine_into_windows(D_test, k)
+
+    model = VAE(latent_dim, 'window-of-{}'.format(k))
+    train_model(model, D_train, D_test)
+
+
 
 if __name__ == '__main__':
     main()

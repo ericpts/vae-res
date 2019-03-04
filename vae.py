@@ -2,6 +2,8 @@ import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
 
+from config import rootk
+
 class VAE(tf.keras.Model):
     def __init__(self, latent_dim: int, name: str) -> None:
         super(VAE, self).__init__(name=name)
@@ -11,31 +13,52 @@ class VAE(tf.keras.Model):
         self.encoder = VAE.encoder_network(self.latent_dim)
         self.decoder = VAE.decoder_network(self.latent_dim)
 
-        # print(self.encoder.summary())
-        # print(self.decoder.summary())
+        print(self.encoder.summary())
+        print(self.decoder.summary())
 
     @staticmethod
     def encoder_network(latent_dim: int) -> tf.keras.Model:
-        inputs = keras.Input(shape=(28, 28, 1))
+        inputs = keras.Input(shape=(28 * rootk, 28 * rootk, 1))
+
+        X = inputs
 
         X = keras.layers.Conv2D(
                 filters=32,
                 kernel_size=3,
-                strides=2,
                 padding='same',
-                activation='relu')(inputs)
+                activation='relu')(X)
+
+        X = keras.layers.MaxPooling2D(
+                2,
+                padding='same'
+                )(X)
 
         X = keras.layers.Conv2D(
                 filters=64,
                 kernel_size=3,
-                strides=2,
                 padding='same',
                 activation='relu')(X)
+
+        X = keras.layers.MaxPooling2D(
+                2,
+                padding='same'
+                )(X)
+
+        X = keras.layers.Conv2D(
+                filters=128,
+                kernel_size=3,
+                padding='same',
+                activation='relu')(X)
+
+        X = keras.layers.MaxPooling2D(
+                2,
+                padding='same'
+                )(X)
 
         X = keras.layers.Flatten()(X)
 
         # TODO(): Maybe remove this.
-        X = keras.layers.Dense(16, activation='relu')(X)
+        # X = keras.layers.Dense(16, activation='relu')(X)
 
         # Here we use 2 * latent_dim, because each of the cells will represent a Gaussian dist.
         X = keras.layers.Dense(latent_dim + latent_dim)(X)
@@ -46,17 +69,42 @@ class VAE(tf.keras.Model):
     @staticmethod
     def decoder_network(latent_dim: int) -> tf.keras.Model:
         inputs = keras.Input(shape=(latent_dim, ))
-        X = keras.layers.Dense(7 * 7 * 64, activation='relu')(inputs)
 
-        X = keras.layers.Reshape((7, 7, 64))(X)
+        X = inputs
 
-        X = keras.layers.Conv2DTranspose(filters=64, kernel_size=3, strides=2,
+        X = keras.layers.Dense(7 * 7 * 128, activation='relu')(X)
+
+        X = keras.layers.Reshape((7, 7, 128))(X)
+
+        X = keras.layers.Conv2DTranspose(
+                filters=128,
+                kernel_size=3,
                 padding='same',
                 activation='relu')(X)
 
-        X = keras.layers.Conv2DTranspose(filters=32, kernel_size=3, strides=2,
+        X = keras.layers.UpSampling2D(
+                (2, 2)
+                )(X)
+
+        X = keras.layers.Conv2DTranspose(
+                filters=64,
+                kernel_size=3,
                 padding='same',
                 activation='relu')(X)
+
+        X = keras.layers.UpSampling2D(
+                (2, 2)
+                )(X)
+
+        X = keras.layers.Conv2DTranspose(
+                filters=32,
+                kernel_size=3,
+                padding='same',
+                activation='relu')(X)
+
+        X = keras.layers.UpSampling2D(
+                (2, 2)
+                )(X)
 
         X = keras.layers.Conv2DTranspose(filters=1,
                 kernel_size=3,

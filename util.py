@@ -26,16 +26,19 @@ def checkpoint_for_epoch(model_name: str, epoch: int) -> str:
     p = Path('checkpoints/{}/cp_{}.ckpt'.format(model_name, epoch))
     return str(p)
 
+def make_plot(pictures):
+    fig = plt.figure(figsize=(16, 16))
+    for i in range(8 * 8):
+        plt.subplot(8, 8, i + 1)
+        plt.imshow(pictures[i, :, :, 0], cmap='gray')
+        plt.axis('off')
+
 
 def generate_pictures(model, eps, epoch=None):
     os.makedirs('images/{}/'.format(model.name), exist_ok=True)
     pictures = model.sample(eps)
 
-    fig = plt.figure(figsize=(8, 8))
-    for i in range(8 * 8):
-        plt.subplot(8, 8, i + 1)
-        plt.imshow(pictures[i, :, :, 0], cmap='gray')
-        plt.axis('off')
+    make_plot(pictures)
 
     if epoch:
         plt.savefig('images/{}/image_at_epoch_{}.png'.format(model.name, epoch))
