@@ -4,61 +4,70 @@ import numpy as np
 
 from config import rootk
 
+
 class VAE(tf.keras.Model):
     def __init__(self, latent_dim: int, name: str) -> None:
         super(VAE, self).__init__(name=name)
 
         self.latent_dim = latent_dim
 
-        self.encoder = VAE.encoder_network(self.latent_dim)
-        self.decoder = VAE.decoder_network(self.latent_dim)
+        self.encoder = self.encoder_network(self.latent_dim)
+        self.decoder = self.decoder_network(self.latent_dim)
 
         print(self.encoder.summary())
         print(self.decoder.summary())
 
-    @staticmethod
-    def encoder_network(latent_dim: int) -> tf.keras.Model:
+    def resnet_layers(self, transp: bool):
+        if transp:
+            conv_layer = keras.layers.Conv2DTranspose
+        else:
+            conv_layer = keras.layers.Conv2D
+
+        def fn(inputs):
+            X = inputs
+
+            base_filters = np.array([8, 8, 32])
+
+            filters = base_filters
+            # X = convolutional(filters, 2, transp=transp)(X)
+            # X = identitiy(filters, transp=transp)(X)
+
+            X = conv_layer(16, kernel_size=3, strides=2, padding='same')(X)
+            X = keras.layers.BatchNormalization(axis=3)(X)
+            X = keras.layers.Activation('relu')(X)
+
+            if transp: X = keras.layers.Cropping2D( cropping=((1, 0), (1, 0)))(X)
+
+            X = conv_layer(32, kernel_size=3, strides=2, padding='same')(X)
+            X = keras.layers.BatchNormalization(axis=3)(X)
+            X = keras.layers.Activation('relu')(X)
+
+            X = conv_layer(64, kernel_size=3, strides=2, padding='same')(X)
+            X = keras.layers.BatchNormalization(axis=3)(X)
+            X = keras.layers.Activation('relu')(X)
+
+            X = conv_layer(128, kernel_size=3, strides=2, padding='same')(X)
+
+            filters = 2 * base_filters
+            # X = convolutional(filters, 2, transp=transp)(X)
+            # X = identitiy(filters, transp=transp)(X)
+
+            filters = 4 * base_filters
+            # X = convolutional(filters, 2, transp=transp)(X)
+            # X = identitiy(filters, transp=transp)(X)
+
+            return X
+
+        return fn
+
+    def encoder_network(self, latent_dim: int) -> tf.keras.Model:
         inputs = keras.Input(shape=(28 * rootk, 28 * rootk, 1))
 
         X = inputs
 
-        X = keras.layers.Conv2D(
-                filters=32,
-                kernel_size=3,
-                padding='same',
-                activation='relu')(X)
-
-        X = keras.layers.MaxPooling2D(
-                2,
-                padding='same'
-                )(X)
-
-        X = keras.layers.Conv2D(
-                filters=64,
-                kernel_size=3,
-                padding='same',
-                activation='relu')(X)
-
-        X = keras.layers.MaxPooling2D(
-                2,
-                padding='same'
-                )(X)
-
-        X = keras.layers.Conv2D(
-                filters=128,
-                kernel_size=3,
-                padding='same',
-                activation='relu')(X)
-
-        X = keras.layers.MaxPooling2D(
-                2,
-                padding='same'
-                )(X)
+        X = self.resnet_layers(False)(X)
 
         X = keras.layers.Flatten()(X)
-
-        # TODO(): Maybe remove this.
-        # X = keras.layers.Dense(16, activation='relu')(X)
 
         # Here we use 2 * latent_dim, because each of the cells will represent a Gaussian dist.
         X = keras.layers.Dense(latent_dim + latent_dim)(X)
@@ -66,45 +75,15 @@ class VAE(tf.keras.Model):
         model = keras.models.Model(inputs=inputs, outputs=X, name='Encoder')
         return model
 
-    @staticmethod
-    def decoder_network(latent_dim: int) -> tf.keras.Model:
+    def decoder_network(self, latent_dim: int) -> tf.keras.Model:
+        first_shape = self.encoder.layers[-3].output_shape[1:]
+
         inputs = keras.Input(shape=(latent_dim, ))
-
         X = inputs
+        X = keras.layers.Dense(np.prod(first_shape), activation='relu')(X)
+        X = keras.layers.Reshape(first_shape)(X)
 
-        X = keras.layers.Dense(7 * 7 * 128, activation='relu')(X)
-
-        X = keras.layers.Reshape((7, 7, 128))(X)
-
-        X = keras.layers.Conv2DTranspose(
-                filters=128,
-                kernel_size=3,
-                padding='same',
-                activation='relu')(X)
-
-        X = keras.layers.UpSampling2D(
-                (2, 2)
-                )(X)
-
-        X = keras.layers.Conv2DTranspose(
-                filters=64,
-                kernel_size=3,
-                padding='same',
-                activation='relu')(X)
-
-        X = keras.layers.UpSampling2D(
-                (2, 2)
-                )(X)
-
-        X = keras.layers.Conv2DTranspose(
-                filters=32,
-                kernel_size=3,
-                padding='same',
-                activation='relu')(X)
-
-        X = keras.layers.UpSampling2D(
-                (2, 2)
-                )(X)
+        X = self.resnet_layers(True)(X)
 
         X = keras.layers.Conv2DTranspose(filters=1,
                 kernel_size=3,
