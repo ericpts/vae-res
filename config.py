@@ -1,4 +1,4 @@
-expand_per_width = 2
+expand_per_width = 1
 expand_per_height = 1
 latent_dim = 10
 num_examples = 64

@@ -20,7 +20,7 @@ except AttributeError:
 
 os.makedirs('checkpoints', exist_ok=True)
 
-loss_object = tf.keras.losses.BinaryCrossentropy()
+loss_object = tf.keras.losses.MeanSquaredError()
 
 @tf.function
 def compute_loss(model, x):
@@ -28,11 +28,11 @@ def compute_loss(model, x):
     z = model.reparametrize(mean, logvar)
     x_pred = model.decode(z)
 
-    cross_ent = loss_object(x, x_pred)
-    cross_ent *= 28 * 28
+    recall_loss = loss_object(x, x_pred)
+    recall_loss *= 28 * 28 * expand_per_width * expand_per_height
 
     kl_loss = model.compute_kl_loss(mean, logvar)
-    vae_loss = tf.math.reduce_mean(cross_ent + kl_loss)
+    vae_loss = tf.math.reduce_mean(recall_loss + kl_loss)
     return vae_loss
 
 
