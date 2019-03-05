@@ -5,3 +5,4 @@ num_examples = 64
 epochs = 40
 batch_size = 64
 nlayers = 2
+nvaes = 2

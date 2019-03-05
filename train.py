@@ -20,20 +20,10 @@ except AttributeError:
 
 os.makedirs('checkpoints', exist_ok=True)
 
-loss_object = tf.keras.losses.MeanSquaredError()
 
 @tf.function
 def compute_loss(model, x):
-    mean, logvar = model.encode(x)
-    z = model.reparametrize(mean, logvar)
-    x_pred = model.decode(z)
-
-    recall_loss = loss_object(x, x_pred)
-    recall_loss *= 28 * 28 * expand_per_width * expand_per_height
-
-    kl_loss = model.compute_kl_loss(mean, logvar)
-    vae_loss = tf.math.reduce_mean(recall_loss + kl_loss)
-    return vae_loss
+    return model.compute_loss(x)
 
 
 @tf.function
@@ -116,10 +106,18 @@ def train_individual_digits(D_train, D_test):
 def main():
     (D_init_train, D_init_test) = load_data()
 
-    D_train = combine_into_windows(D_init_train)
-    D_test = combine_into_windows(D_init_test)
+    def filter_fn(X, y):
+        return tf.math.logical_or(
+                tf.math.equal(y, 0),
+                tf.math.equal(y, 1))
 
-    model = VAE(latent_dim)
+    D_train = D_init_train.filter(filter_fn)
+    D_test = D_init_test.filter(filter_fn)
+
+    D_train = combine_into_windows(D_train)
+    D_test = combine_into_windows(D_test)
+
+    model = SuperVAE(latent_dim)
     model.summarize()
     train_model(model, D_train, D_test)
 

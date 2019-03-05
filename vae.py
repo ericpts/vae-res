@@ -88,12 +88,21 @@ class VAE(tf.keras.Model):
 
         X = self.convolutional_layers(True)(X)
 
-        X = keras.layers.Conv2DTranspose(filters=1,
+        img = keras.layers.Conv2DTranspose(filters=1,
                 kernel_size=3,
                 activation='sigmoid',
-                padding='same')(X)
+                padding='same',
+                name='image')(X)
 
-        model = keras.models.Model(inputs=inputs, outputs=X, name='Decoder')
+        confidence = keras.layers.Conv2DTranspose(filters=1,
+                kernel_size=3,
+                padding='same',
+                name='confidence')(X)
+
+        model = keras.models.Model(
+                inputs=inputs,
+                outputs=[img, confidence], name='Decoder')
+
         return model
 
 
@@ -106,19 +115,34 @@ class VAE(tf.keras.Model):
         (mean, logvar) = tf.split(latent_var, num_or_size_splits=2, axis=1)
         return (mean, logvar)
 
+
     def reparametrize(self, mean, logvar):
-        eps = tf.random.normal(shape=mean.shape)
+        eps = tf.random.normal(shape=tf.shape(mean))
         return eps * tf.exp(1/2 * logvar) + mean
+
 
     def decode(self, z):
         return self.decoder(z)
 
-    def compute_kl_loss(self, mean, logvar):
+
+    @staticmethod
+    def compute_kl_loss(mean, logvar):
         kl_loss = 1 + logvar - mean**2 - tf.exp(logvar)
         kl_loss = tf.math.reduce_sum(kl_loss, axis=1)
         kl_loss *= -0.5
 
         return kl_loss
+
+
+    def call(self, inputs):
+        mean, logvar = self.encode(inputs)
+
+        self.last_mean = mean
+        self.last_logvar = logvar
+
+        z = self.reparametrize(mean, logvar)
+        return self.decode(z)
+
 
     def summarize(self):
         print(self.encoder.summary())

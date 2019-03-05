@@ -1,6 +1,7 @@
 import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
+from config import *
 
 from vae import VAE
 
@@ -11,44 +12,72 @@ class SuperVAE(tf.keras.Model):
 
         self.latent_dim = latent_dim
 
-        self.nvaes = 10
+        self.nvaes = nvaes
+
+        inputs = keras.Input(
+                shape=(28 * expand_per_height, 28 * expand_per_width, 1))
 
         self.vaes = [
                 VAE(latent_dim, 'VAE-{}'.format(i))
                 for i in range(self.nvaes)]
 
-    def encode(self, x):
-        latent_vars = [
-                vae.encode(x)
-                for vae in self.vaes ]
+        vae_images = []
+        vae_confidences = []
+        for vae in self.vaes:
+            (image, confidence) = vae(inputs)
+            vae_images.append(image)
+            vae_confidences.append(confidence)
 
-        means = [lv[0] for lv in latent_vars]
-        logvars = [lv[1] for lv in latent_vars]
+        vae_confidences = tf.convert_to_tensor(vae_confidences)
+        vae_images = tf.convert_to_tensor(vae_images)
 
-        return (means, logvars)
+        softmax_confidences = tf.keras.layers.Softmax(axis=0)(vae_confidences)
 
-    def reparametrize(self, means, logvars):
-        z = []
-        for i in range(self.nvaes):
-            mean = means[i]
-            logvar = logvars[i]
-            vae = self.vaes[i]
-            z.append(vae.reparametrize(mean, logvar))
-        return z
+        self.model = keras.models.Model(
+                inputs=inputs,
+                outputs=[softmax_confidences, vae_images]
+                )
 
-    def decode(self, z):
-        xs = []
-        for i in range(self.nvaes):
-            xs.append(self.vaes[i].decode(z))
-        ret = tf.math.add_n(xs)
-        return ret
 
-    def compute_kl_loss(self, means, logvars):
-        ret = []
-        for i in range(self.nvaes):
-            ret.append(self.vaes[i].compute_kl_loss(
-                means[i], logvars[i]
-                ))
-        ret = tf.convert_to_tensor(ret)
-        ret = tf.reduce_mean(ret, axis=0)
-        return ret
+    def compute_loss(self, x):
+        (softmax_confidences, vae_images) = self.model(x)
+
+        loss_object = tf.keras.losses.MeanSquaredError()
+        recall_loss = 0
+        for i in range(nvaes):
+            recall_loss += loss_object(x, vae_images[i], sample_weight=softmax_confidences[i])
+        recall_loss /= nvaes
+        recall_loss *= 28 * 28 * expand_per_width * expand_per_height
+
+        kl_loss = 0
+        for nvae in self.vaes:
+            kl_loss += VAE.compute_kl_loss(nvae.last_mean, nvae.last_logvar)
+        kl_loss /= nvaes
+
+        vae_loss = tf.math.reduce_mean(recall_loss + kl_loss)
+        return vae_loss
+
+
+    def sample(self, eps):
+        vae_images = []
+        vae_confidences = []
+
+        for vae in self.vaes:
+            (image, confidence) = vae.decode(eps)
+            vae_images.append(image)
+            vae_confidences.append(confidence)
+
+        vae_confidences = tf.convert_to_tensor(vae_confidences)
+        vae_images = tf.convert_to_tensor(vae_images)
+
+        softmax_confidences = tf.keras.activations.softmax(vae_confidences, axis=0)
+
+        return tf.math.reduce_sum(
+                vae_images * softmax_confidences,
+                axis=0
+                )
+
+
+
+    def summarize(self):
+        self.vaes[0].summarize()
