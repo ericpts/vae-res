@@ -30,9 +30,6 @@ def compute_loss(model, x):
 
     cross_ent = loss_object(x, x_pred)
     cross_ent *= 28 * 28
-    # kl_loss = 1 + logvar - mean**2 - tf.exp(logvar)
-    # kl_loss = tf.math.reduce_sum(kl_loss, axis=1)
-    # kl_loss *= -0.5
 
     kl_loss = model.compute_kl_loss(mean, logvar)
     vae_loss = tf.math.reduce_mean(cross_ent + kl_loss)
@@ -49,6 +46,7 @@ def compute_gradients(model, x):
 @tf.function
 def apply_gradients(optimizer, gradients, variables):
     optimizer.apply_gradients(zip(gradients, variables))
+
 
 def train_model(
         model: tf.keras.Model,

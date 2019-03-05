@@ -11,6 +11,10 @@ class VAE(tf.keras.Model):
 
         self.latent_dim = latent_dim
 
+        self.layer_sizes = [
+                32 * 2**i for i in range(nlayers)
+                ]
+
         self.encoder = self.encoder_network(self.latent_dim)
         self.decoder = self.decoder_network(self.latent_dim)
 
@@ -20,16 +24,23 @@ class VAE(tf.keras.Model):
         else:
             conv_layer = keras.layers.Conv2D
 
+        layer_sizes = self.layer_sizes
+        if transp:
+            layer_sizes.reverse()
+
         def fn(inputs):
             X = inputs
 
-            nlayers = 3
             for i in range(nlayers):
                 layer_name = 'layer-{}'.format(i)
 
-                X = conv_layer(16 * 2**i, kernel_size=3, strides=2, padding='same')(X)
+                nfilters = layer_sizes[i]
+
+                X = conv_layer(nfilters, kernel_size=3, strides=2,
+                        padding='same', name=layer_name)(X)
+
                 X = keras.layers.BatchNormalization(axis=3)(X)
-                X = keras.layers.Activation('relu', name=layer_name)(X)
+                X = keras.layers.Activation('relu')(X)
 
                 if not transp:
                     continue
@@ -37,9 +48,8 @@ class VAE(tf.keras.Model):
                 transp_layer_name = 'layer-{}'.format(nlayers - i - 1)
                 X_transp = self.encoder.get_layer(transp_layer_name)
 
-
-                desired_shape = X_transp.output_shape[1:]
-                cur_shape = X.shape[1:]
+                desired_shape = X_transp.input_shape[1:-1]
+                cur_shape = X.shape[1:-1]
 
                 if desired_shape != cur_shape:
                     dx = cur_shape[0] - desired_shape[0]
@@ -47,8 +57,6 @@ class VAE(tf.keras.Model):
 
                     X = keras.layers.Cropping2D(
                             cropping=((dx, 0), (dy, 0)))(X)
-
-            X = conv_layer(32 * 2**nlayers, kernel_size=3, strides=2, padding='same')(X)
 
             return X
 
@@ -88,8 +96,10 @@ class VAE(tf.keras.Model):
         model = keras.models.Model(inputs=inputs, outputs=X, name='Decoder')
         return model
 
+
     def sample(self, eps):
         return self.decode(eps)
+
 
     def encode(self, x):
         latent_var = self.encoder(x)
