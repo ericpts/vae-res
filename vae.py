@@ -17,7 +17,7 @@ class VAE(tf.keras.Model):
         print(self.encoder.summary())
         print(self.decoder.summary())
 
-    def resnet_layers(self, transp: bool):
+    def convolutional_layers(self, transp: bool):
         if transp:
             conv_layer = keras.layers.Conv2DTranspose
         else:
@@ -65,7 +65,7 @@ class VAE(tf.keras.Model):
 
         X = inputs
 
-        X = self.resnet_layers(False)(X)
+        X = self.convolutional_layers(False)(X)
 
         X = keras.layers.Flatten()(X)
 
@@ -83,7 +83,7 @@ class VAE(tf.keras.Model):
         X = keras.layers.Dense(np.prod(first_shape), activation='relu')(X)
         X = keras.layers.Reshape(first_shape)(X)
 
-        X = self.resnet_layers(True)(X)
+        X = self.convolutional_layers(True)(X)
 
         X = keras.layers.Conv2DTranspose(filters=1,
                 kernel_size=3,
