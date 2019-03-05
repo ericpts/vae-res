@@ -2,20 +2,17 @@ import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
 
-from config import rootk
+from config import *
 
 
 class VAE(tf.keras.Model):
-    def __init__(self, latent_dim: int, name: str) -> None:
+    def __init__(self, latent_dim: int, name: str = 'VAE') -> None:
         super(VAE, self).__init__(name=name)
 
         self.latent_dim = latent_dim
 
         self.encoder = self.encoder_network(self.latent_dim)
         self.decoder = self.decoder_network(self.latent_dim)
-
-        print(self.encoder.summary())
-        print(self.decoder.summary())
 
     def convolutional_layers(self, transp: bool):
         if transp:
@@ -26,42 +23,40 @@ class VAE(tf.keras.Model):
         def fn(inputs):
             X = inputs
 
-            base_filters = np.array([8, 8, 32])
+            nlayers = 3
+            for i in range(nlayers):
+                layer_name = 'layer-{}'.format(i)
 
-            filters = base_filters
-            # X = convolutional(filters, 2, transp=transp)(X)
-            # X = identitiy(filters, transp=transp)(X)
+                X = conv_layer(16 * 2**i, kernel_size=3, strides=2, padding='same')(X)
+                X = keras.layers.BatchNormalization(axis=3)(X)
+                X = keras.layers.Activation('relu', name=layer_name)(X)
 
-            X = conv_layer(16, kernel_size=3, strides=2, padding='same')(X)
-            X = keras.layers.BatchNormalization(axis=3)(X)
-            X = keras.layers.Activation('relu')(X)
+                if not transp:
+                    continue
 
-            if transp: X = keras.layers.Cropping2D( cropping=((1, 0), (1, 0)))(X)
+                transp_layer_name = 'layer-{}'.format(nlayers - i - 1)
+                X_transp = self.encoder.get_layer(transp_layer_name)
 
-            X = conv_layer(32, kernel_size=3, strides=2, padding='same')(X)
-            X = keras.layers.BatchNormalization(axis=3)(X)
-            X = keras.layers.Activation('relu')(X)
 
-            X = conv_layer(64, kernel_size=3, strides=2, padding='same')(X)
-            X = keras.layers.BatchNormalization(axis=3)(X)
-            X = keras.layers.Activation('relu')(X)
+                desired_shape = X_transp.output_shape[1:]
+                cur_shape = X.shape[1:]
 
-            X = conv_layer(128, kernel_size=3, strides=2, padding='same')(X)
+                if desired_shape != cur_shape:
+                    dx = cur_shape[0] - desired_shape[0]
+                    dy = cur_shape[1] - desired_shape[1]
 
-            filters = 2 * base_filters
-            # X = convolutional(filters, 2, transp=transp)(X)
-            # X = identitiy(filters, transp=transp)(X)
+                    X = keras.layers.Cropping2D(
+                            cropping=((dx, 0), (dy, 0)))(X)
 
-            filters = 4 * base_filters
-            # X = convolutional(filters, 2, transp=transp)(X)
-            # X = identitiy(filters, transp=transp)(X)
+            X = conv_layer(32 * 2**nlayers, kernel_size=3, strides=2, padding='same')(X)
 
             return X
 
         return fn
 
     def encoder_network(self, latent_dim: int) -> tf.keras.Model:
-        inputs = keras.Input(shape=(28 * rootk, 28 * rootk, 1))
+        inputs = keras.Input(
+                shape=(28 * expand_per_height, 28 * expand_per_width, 1))
 
         X = inputs
 
@@ -107,3 +102,14 @@ class VAE(tf.keras.Model):
 
     def decode(self, z):
         return self.decoder(z)
+
+    def compute_kl_loss(self, mean, logvar):
+        kl_loss = 1 + logvar - mean**2 - tf.exp(logvar)
+        kl_loss = tf.math.reduce_sum(kl_loss, axis=1)
+        kl_loss *= -0.5
+
+        return kl_loss
+
+    def summarize(self):
+        print(self.encoder.summary())
+        print(self.decoder.summary())

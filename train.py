@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 from typing import List, Tuple
 from vae import VAE
+from supervae import SuperVAE
 from util import *
 from config import *
 
@@ -18,30 +19,6 @@ except AttributeError:
     pass
 
 os.makedirs('checkpoints', exist_ok=True)
-
-def load_data() -> Tuple[
-        tf.data.Dataset,
-        tf.data.Dataset
-        ]:
-    (X_train, y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
-
-    image_size = X_train.shape[1]
-    X_train = np.reshape(X_train, [-1, image_size, image_size, 1])
-    X_test = np.reshape(X_test, [-1, image_size, image_size, 1])
-    X_train = X_train.astype('float32') / 255
-    X_test = X_test.astype('float32') / 255
-
-    train_size = X_train.shape[0]
-    test_size = X_test.shape[0]
-
-    D_train = tf.data.Dataset.from_tensor_slices(
-            (X_train, y_train)).shuffle(train_size)
-
-    D_test = tf.data.Dataset.from_tensor_slices(
-            (X_test, y_test)).shuffle(test_size)
-
-    return (D_train, D_test)
-
 
 loss_object = tf.keras.losses.BinaryCrossentropy()
 
@@ -53,13 +30,12 @@ def compute_loss(model, x):
 
     cross_ent = loss_object(x, x_pred)
     cross_ent *= 28 * 28
+    # kl_loss = 1 + logvar - mean**2 - tf.exp(logvar)
+    # kl_loss = tf.math.reduce_sum(kl_loss, axis=1)
+    # kl_loss *= -0.5
 
-    kl_loss = 1 + logvar - mean**2 - tf.exp(logvar)
-    kl_loss = tf.math.reduce_sum(kl_loss, axis=1)
-    kl_loss *= -0.5
-
+    kl_loss = model.compute_kl_loss(mean, logvar)
     vae_loss = tf.math.reduce_mean(cross_ent + kl_loss)
-
     return vae_loss
 
 
@@ -73,45 +49,6 @@ def compute_gradients(model, x):
 @tf.function
 def apply_gradients(optimizer, gradients, variables):
     optimizer.apply_gradients(zip(gradients, variables))
-
-
-def combine_into_windows(D: tf.data.Dataset, k: int) -> tf.data.Dataset:
-    D = D.repeat(k)
-
-    D = D.shuffle(2048)
-
-    D = D.batch(k, drop_remainder=True)
-
-    rootk = int(k**0.5)
-
-    assert rootk * rootk == k
-
-    def map_fn(X, y):
-        r = []
-        at = 0
-        for i in range(rootk):
-            c = []
-            for j in range(rootk):
-                c.append(X[at])
-                at += 1
-            r.append(tf.concat(c, 0))
-        X = tf.concat(r, 1)
-        return X, y
-
-    D = D.map(map_fn)
-
-    D_samples = D.take(num_examples)
-
-    X = [ np.array(X) for (X, y) in D_samples ]
-    X = np.array(X)
-
-    make_plot(X)
-
-    os.makedirs('images', exist_ok=True)
-    plt.savefig('images/data_sample.png')
-
-    return D
-
 
 def train_model(
         model: tf.keras.Model,
@@ -138,7 +75,6 @@ def train_model(
         for (X, y) in D_train.batch(batch_size, drop_remainder=True):
             gradients, loss = compute_gradients(model, X)
 
-            # optimizer.apply_gradients(zip(gradients, model.trainable_variables))
             apply_gradients(optimizer, gradients, model.trainable_variables)
 
             train_loss += loss * X.shape[0]
@@ -180,14 +116,13 @@ def train_individual_digits(D_train, D_test):
 
 
 def main():
-    (D_train, D_test) = load_data()
+    (D_init_train, D_init_test) = load_data()
 
-    k = rootk * rootk
+    D_train = combine_into_windows(D_init_train)
+    D_test = combine_into_windows(D_init_test)
 
-    D_train = combine_into_windows(D_train, k)
-    D_test = combine_into_windows(D_test, k)
-
-    model = VAE(latent_dim, 'window-of-{}'.format(k))
+    model = VAE(latent_dim)
+    model.summarize()
     train_model(model, D_train, D_test)
 
 
