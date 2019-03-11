@@ -3,6 +3,10 @@
 import tensorflow
 import tensorflow.keras as keras
 import tensorflow as tf
+from tensorflow.python.ops import control_flow_util
+control_flow_util.ENABLE_CONTROL_FLOW_V2 = True
+
+
 import numpy as np
 import time
 import os
@@ -27,10 +31,10 @@ def compute_loss(model, x):
 
 
 @tf.function
-def compute_gradients(model, x):
+def compute_gradients(model, variables, x):
     with tf.GradientTape() as tape:
         loss = compute_loss(model, x)
-    return tape.gradient(loss, model.get_trainable_variables()), loss
+    return tape.gradient(loss, variables), loss
 
 
 @tf.function
@@ -50,11 +54,9 @@ def train_model(
     random_vector_for_gen = tf.random.normal((num_examples, latent_dim))
     tf.random.set_seed(time.time())
 
-    start_epoch = get_latest_epoch(model.name)
-    if start_epoch:
-        print('Resuming training from epoch {}'.format(start_epoch))
-        model.load_weights(checkpoint_for_epoch(model.name, start_epoch))
-    start_epoch += 1
+    start_epoch = get_latest_epoch(model.name) + 1
+
+    variables = model.get_trainable_variables()
 
     for epoch in range(start_epoch, epochs + 1):
         start_time = time.time()
@@ -62,10 +64,8 @@ def train_model(
         train_loss = 0
         train_size = 0
         for (X, y) in D_train.batch(batch_size, drop_remainder=True):
-            gradients, loss = compute_gradients(model, X)
-
-            apply_gradients(optimizer, gradients,
-                    model.get_trainable_variables())
+            gradients, loss = compute_gradients(model, variables, X)
+            apply_gradients(optimizer, gradients, variables)
 
             train_loss += loss * X.shape[0]
             train_size += X.shape[0]
@@ -94,15 +94,12 @@ def train_model(
             model.save_weights(p)
 
 
-def train_individual_digits(D_train, D_test):
-    for d in range(1, 10):
-        print('Training for digit {}'.format(d))
-        model = VAE(latent_dim, 'digit-{}'.format(d))
-
-        def filter_fn(X, y):
-            return tf.math.equal(y, d)
-
-        train_model(model, D_train.filter(filter_fn), D_test.filter(filter_fn))
+def maybe_load_model_weights(model):
+    start_epoch = get_latest_epoch(model.name)
+    if start_epoch:
+        print('Resuming training from epoch {}'.format(start_epoch))
+        model.load_weights(checkpoint_for_epoch(model.name, start_epoch))
+    start_epoch += 1
 
 
 def main():
@@ -133,12 +130,16 @@ def main():
     model = SuperVAE(latent_dim)
     model.summarize()
 
-    model.freeze_vae(1)
-    train_model(model, *dsets[0], epochs=100)
+    maybe_load_model_weights(model)
 
+    print('Training VAE for digit 0')
+    model.freeze_vae(1)
+    train_model(model, *dsets[0], epochs=20)
+
+    print('Training VAE for digit 1')
     model.freeze_vae(0)
     model.unfreeze_vae(1)
-    train_model(model, *dsets[1], epochs=200)
+    train_model(model, *dsets[1], epochs=40)
 
 
 
