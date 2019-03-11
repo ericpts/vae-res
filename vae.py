@@ -144,6 +144,10 @@ class VAE(tf.keras.Model):
         return self.decode(z)
 
 
+    def get_trainable_variables(self):
+        return self.trainable_variables
+
+
     def summarize(self):
-        print(self.encoder.summary())
-        print(self.decoder.summary())
+        self.encoder.summary()
+        self.decoder.summary()

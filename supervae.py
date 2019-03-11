@@ -21,6 +21,10 @@ class SuperVAE(tf.keras.Model):
                 VAE(latent_dim, 'VAE-{}'.format(i))
                 for i in range(self.nvaes)]
 
+        self.vae_status = {
+                i: True for i in range(self.nvaes)
+        }
+
         vae_images = []
         vae_confidences = []
         for vae in self.vaes:
@@ -37,6 +41,16 @@ class SuperVAE(tf.keras.Model):
                 inputs=inputs,
                 outputs=[softmax_confidences, vae_images]
                 )
+
+
+    def unfreeze_vae(self, i: int):
+        assert i in self.vae_status
+        self.vae_status[i] = True
+
+
+    def freeze_vae(self, i: int):
+        assert i in self.vae_status
+        self.vae_status[i] = False
 
 
     def compute_loss(self, x):
@@ -58,6 +72,17 @@ class SuperVAE(tf.keras.Model):
         return vae_loss
 
 
+    def get_trainable_variables(self):
+        ret = []
+        for i in range(self.nvaes):
+            if self.vae_status[i]:
+                ret.extend(self.vaes[i].get_trainable_variables())
+
+        # import pdb
+        # pdb.set_trace()
+        return ret
+
+
     def sample(self, eps):
         vae_images = []
         vae_confidences = []
@@ -76,7 +101,6 @@ class SuperVAE(tf.keras.Model):
                 vae_images * softmax_confidences,
                 axis=0
                 )
-
 
 
     def summarize(self):
