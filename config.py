@@ -6,3 +6,4 @@ epochs = 40
 batch_size = 64
 nlayers = 2
 nvaes = 2
+beta = 10.0

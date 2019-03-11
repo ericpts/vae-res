@@ -1,0 +1,6 @@
+* Tasks
+** DONE Figure out why running on two datasets causes the error.
+   CLOSED: [2019-03-11 Mon 14:35]
+`tf.function-decorated function tried to create variables on non-first call.`
+
+** TODO Implement Beta-VAE.

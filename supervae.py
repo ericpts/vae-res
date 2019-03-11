@@ -7,8 +7,8 @@ from vae import VAE
 
 
 class SuperVAE(tf.keras.Model):
-    def __init__(self, latent_dim: int) -> None:
-        super(SuperVAE, self).__init__(name='SuperVAE')
+    def __init__(self, latent_dim: int, name: str) -> None:
+        super(SuperVAE, self).__init__(name=name)
 
         self.latent_dim = latent_dim
 
@@ -68,7 +68,7 @@ class SuperVAE(tf.keras.Model):
             kl_loss += VAE.compute_kl_loss(nvae.last_mean, nvae.last_logvar)
         kl_loss /= nvaes
 
-        vae_loss = tf.math.reduce_mean(recall_loss + kl_loss)
+        vae_loss = tf.math.reduce_mean(recall_loss + beta * kl_loss)
         return vae_loss
 
 
@@ -77,9 +77,6 @@ class SuperVAE(tf.keras.Model):
         for i in range(self.nvaes):
             if self.vae_status[i]:
                 ret.extend(self.vaes[i].get_trainable_variables())
-
-        # import pdb
-        # pdb.set_trace()
         return ret
 
 

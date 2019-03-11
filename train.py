@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import tensorflow
 import tensorflow.keras as keras
 import tensorflow as tf
@@ -37,7 +38,6 @@ def compute_gradients(model, variables, x):
     return tape.gradient(loss, variables), loss
 
 
-@tf.function
 def apply_gradients(optimizer, gradients, variables):
     optimizer.apply_gradients(zip(gradients, variables))
 
@@ -103,6 +103,13 @@ def maybe_load_model_weights(model):
 
 
 def main():
+    parser = argparse.ArgumentParser(description='SuperVAE training utility')
+
+    parser.add_argument('--beta', type=float, help='Beta hyperparmeter to use.')
+    parser.add_argument('--name', type=str, help='Name of the model.', required=True)
+
+    args = parser.parse_args()
+
     (D_init_train, D_init_test) = load_data()
 
     def make_filter_fn(digits):
@@ -127,8 +134,10 @@ def main():
             with_digits([0, 1]),
             ]
 
-    model = SuperVAE(latent_dim)
-    model.summarize()
+    beta = args.beta or beta
+
+    model = SuperVAE(latent_dim, name=args.name)
+    # model.summarize()
 
     maybe_load_model_weights(model)
 

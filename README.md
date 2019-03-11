@@ -11,6 +11,12 @@ digit 0, and the other one learn to represent the digit 1.
 
 ## Project structure
 
+`hyperparam.py` -- TF2.0 is quite cumbersome with training multiple models
+in the same run. If we want to do hyperparameter search, the easiest option is
+to execute `train.py` many times, once for each hyperparameter configuration.
+
+`generate.py` -- once a model has been trained, use this to sample images.
+
 `train.py` -- run this in order to train the model.
 `vae.py` -- this is the base variational autoencoder model/
 `supervae.py` -- this is the model which contains multiple vae's inside, each of
