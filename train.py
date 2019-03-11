@@ -51,7 +51,7 @@ def train_model(
     optimizer = tf.keras.optimizers.Adam()
 
     tf.random.set_seed(10)
-    random_vector_for_gen = tf.random.normal((num_examples, latent_dim))
+    random_vector_for_gen = tf.random.normal((config.num_examples, config.latent_dim))
     tf.random.set_seed(time.time())
 
     start_epoch = get_latest_epoch(model.name) + 1
@@ -63,7 +63,7 @@ def train_model(
 
         train_loss = 0
         train_size = 0
-        for (X, y) in D_train.batch(batch_size, drop_remainder=True):
+        for (X, y) in D_train.batch(config.batch_size, drop_remainder=True):
             gradients, loss = compute_gradients(model, variables, X)
             apply_gradients(optimizer, gradients, variables)
 
@@ -81,7 +81,7 @@ def train_model(
         if epoch % 5 == 0:
             test_loss = 0
             test_size = 0
-            for (X, y) in D_test.batch(batch_size * 8, drop_remainder=True):
+            for (X, y) in D_test.batch(config.batch_size * 8, drop_remainder=True):
                 test_loss += compute_loss(model, X) * X.shape[0]
                 test_size += X.shape[0]
 
@@ -134,9 +134,9 @@ def main():
             with_digits([0, 1]),
             ]
 
-    beta = args.beta or beta
+    config.beta = args.beta or config.beta
 
-    model = SuperVAE(latent_dim, name=args.name)
+    model = SuperVAE(config.latent_dim, name=args.name)
     # model.summarize()
 
     maybe_load_model_weights(model)

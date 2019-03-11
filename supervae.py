@@ -12,10 +12,10 @@ class SuperVAE(tf.keras.Model):
 
         self.latent_dim = latent_dim
 
-        self.nvaes = nvaes
+        self.nvaes = config.nvaes
 
         inputs = keras.Input(
-                shape=(28 * expand_per_height, 28 * expand_per_width, 1))
+                shape=(28 * config.expand_per_height, 28 * config.expand_per_width, 1))
 
         self.vaes = [
                 VAE(latent_dim, 'VAE-{}'.format(i))
@@ -58,17 +58,17 @@ class SuperVAE(tf.keras.Model):
 
         loss_object = tf.keras.losses.MeanSquaredError()
         recall_loss = 0
-        for i in range(nvaes):
+        for i in range(self.nvaes):
             recall_loss += loss_object(x, vae_images[i], sample_weight=softmax_confidences[i])
-        recall_loss /= nvaes
-        recall_loss *= 28 * 28 * expand_per_width * expand_per_height
+        recall_loss /= self.nvaes
+        recall_loss *= 28 * 28 * config.expand_per_width * config.expand_per_height
 
         kl_loss = 0
         for nvae in self.vaes:
             kl_loss += VAE.compute_kl_loss(nvae.last_mean, nvae.last_logvar)
-        kl_loss /= nvaes
+        kl_loss /= self.nvaes
 
-        vae_loss = tf.math.reduce_mean(recall_loss + beta * kl_loss)
+        vae_loss = tf.math.reduce_mean(recall_loss + config.beta * kl_loss)
         return vae_loss
 
 

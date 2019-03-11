@@ -9,10 +9,11 @@ class VAE(tf.keras.Model):
     def __init__(self, latent_dim: int, name: str = 'VAE') -> None:
         super(VAE, self).__init__(name=name)
 
+        self.nlayers = config.nlayers
         self.latent_dim = latent_dim
 
         self.layer_sizes = [
-                32 * 2**i for i in range(nlayers)
+                32 * 2**i for i in range(self.nlayers)
                 ]
 
         self.encoder = self.encoder_network(self.latent_dim)
@@ -31,7 +32,7 @@ class VAE(tf.keras.Model):
         def fn(inputs):
             X = inputs
 
-            for i in range(nlayers):
+            for i in range(self.nlayers):
                 layer_name = 'layer-{}'.format(i)
 
                 nfilters = layer_sizes[i]
@@ -45,7 +46,7 @@ class VAE(tf.keras.Model):
                 if not transp:
                     continue
 
-                transp_layer_name = 'layer-{}'.format(nlayers - i - 1)
+                transp_layer_name = 'layer-{}'.format(self.nlayers - i - 1)
                 X_transp = self.encoder.get_layer(transp_layer_name)
 
                 desired_shape = X_transp.input_shape[1:-1]
@@ -64,7 +65,7 @@ class VAE(tf.keras.Model):
 
     def encoder_network(self, latent_dim: int) -> tf.keras.Model:
         inputs = keras.Input(
-                shape=(28 * expand_per_height, 28 * expand_per_width, 1))
+                shape=(28 * config.expand_per_height, 28 * config.expand_per_width, 1))
 
         X = inputs
 

@@ -74,7 +74,7 @@ def load_data() -> Tuple[
 
 
 def combine_into_windows(D: tf.data.Dataset) -> tf.data.Dataset:
-    k = expand_per_width * expand_per_height
+    k = config.expand_per_width * config.expand_per_height
     D = D.repeat(k)
     D = D.shuffle(2048)
     D = D.batch(k, drop_remainder=True)
@@ -82,9 +82,9 @@ def combine_into_windows(D: tf.data.Dataset) -> tf.data.Dataset:
     def map_fn(X, y):
         r = []
         at = 0
-        for i in range(expand_per_width):
+        for i in range(config.expand_per_width):
             c = []
-            for j in range(expand_per_height):
+            for j in range(config.expand_per_height):
                 c.append(X[at])
                 at += 1
             r.append(tf.concat(c, 0))
@@ -93,7 +93,7 @@ def combine_into_windows(D: tf.data.Dataset) -> tf.data.Dataset:
 
     D = D.map(map_fn)
 
-    D_samples = D.take(num_examples)
+    D_samples = D.take(config.num_examples)
 
     X = [ np.array(X) for (X, y) in D_samples ]
     X = np.array(X)
