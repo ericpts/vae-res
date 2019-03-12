@@ -1,6 +1,14 @@
 * Tasks
+** DONE Implement Beta-VAE.
+   CLOSED: [2019-03-12 Tue 17:49]
 ** DONE Figure out why running on two datasets causes the error.
    CLOSED: [2019-03-11 Mon 14:35]
 `tf.function-decorated function tried to create variables on non-first call.`
 
-** TODO Implement Beta-VAE.
+** TODO Implement entropy loss.
+*** Do a pixel-wise entropy function (i.e., for each pixel consider that the VAE's give a probability distribution, and compute the entropy for each pixel).
+*** Then take the sum of all entropies, and add Alpha * log(S) to the loss function, where Alpha is a hyperparameter.
+*** Keep in mind that maybe we have to normalize the Entropy term depending on the number of VAE's.
+** TODO Implement VAE's for 3 digits.
+** TODO Figure out what is the best way to freeze a VAE
+*** One way would be to make the learning rate very small, so that nothing changes.

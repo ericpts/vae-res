@@ -110,7 +110,7 @@ def main():
     train_model(model, with_digits(0), start_epoch, total_epochs=config.epochs[0])
     start_epoch += config.epochs[0]
 
-    print('Training VAE_0 and VAE_1 for digits 0, 1')
+    print('Training frozen VAE_0 and live VAE_1 for digits 0, 1')
     model.freeze_vae(0)
     model.unfreeze_vae(1)
     train_model(model, with_digits(0, 1), start_epoch, total_epochs=config.epochs[1])

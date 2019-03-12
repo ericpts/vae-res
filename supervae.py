@@ -39,8 +39,11 @@ class SuperVAE(tf.keras.Model):
 
         self.model = keras.models.Model(
             inputs=inputs, outputs=[softmax_confidences, vae_images])
+        self.set_lr(lr = 0.001)
 
-        self.lr = 0.001
+
+    def set_lr(self, lr: float):
+        self.lr = lr
 
         self.fast_optimizer = tf.keras.optimizers.Adam(
                 learning_rate=self.lr,
@@ -50,8 +53,9 @@ class SuperVAE(tf.keras.Model):
         # can still adapt, but at a much slower pace than the ones which are
         # supposed to be actively learning.
         self.slow_optimizer = tf.keras.optimizers.Adam(
-                learning_rate=self.lr / 100.0,
+                learning_rate=self.lr * 1e-5,
                 )
+
 
 
     def unfreeze_vae(self, i: int):

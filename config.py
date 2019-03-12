@@ -14,4 +14,4 @@ config.nlayers = 2
 config.nvaes = 2
 config.beta = 1.0
 
-config.epochs = [40, 80]
+config.epochs = [40, 200]
