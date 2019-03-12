@@ -1,6 +1,7 @@
 class Config:
     pass
 
+
 config = Config()
 
 config.expand_per_width = 2

@@ -10,6 +10,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from config import *
 
+
 def get_latest_epoch(model_name: str) -> int:
     p = Path('checkpoints/{}'.format(model_name))
 
@@ -25,9 +26,11 @@ def get_latest_epoch(model_name: str) -> int:
     ckpts = np.array(ckpts)
     return np.max(ckpts)
 
+
 def checkpoint_for_epoch(model_name: str, epoch: int) -> str:
     p = Path('checkpoints/{}/cp_{}.ckpt'.format(model_name, epoch))
     return str(p)
+
 
 def make_plot(pictures):
     fig = plt.figure(figsize=(16, 16))
@@ -46,10 +49,7 @@ def save_pictures(pictures, file_name=None):
     plt.savefig(file_name)
 
 
-def load_data() -> Tuple[
-        tf.data.Dataset,
-        tf.data.Dataset
-        ]:
+def load_data() -> Tuple[tf.data.Dataset, tf.data.Dataset]:
     (X_train, y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
 
     image_size = X_train.shape[1]
@@ -61,11 +61,11 @@ def load_data() -> Tuple[
     train_size = X_train.shape[0]
     test_size = X_test.shape[0]
 
-    D_train = tf.data.Dataset.from_tensor_slices(
-            (X_train, y_train)).shuffle(train_size)
+    D_train = tf.data.Dataset.from_tensor_slices((X_train,
+                                                  y_train)).shuffle(train_size)
 
-    D_test = tf.data.Dataset.from_tensor_slices(
-            (X_test, y_test)).shuffle(test_size)
+    D_test = tf.data.Dataset.from_tensor_slices((X_test,
+                                                 y_test)).shuffle(test_size)
 
     return (D_train, D_test)
 
@@ -92,7 +92,7 @@ def combine_into_windows(D: tf.data.Dataset) -> tf.data.Dataset:
 
     D_samples = D.take(config.num_examples)
 
-    X = [ np.array(X) for (X, y) in D_samples ]
+    X = [np.array(X) for (X, y) in D_samples]
     X = np.array(X)
 
     make_plot(X)
@@ -101,5 +101,3 @@ def combine_into_windows(D: tf.data.Dataset) -> tf.data.Dataset:
     plt.savefig('images/data_sample.png')
 
     return D
-
-

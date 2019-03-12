@@ -1,7 +1,8 @@
 import tensorflow.keras as keras
-import tensorflow as tf
 
-def identitiy(f, transp = False, k = 3):
+
+def identitiy(f, transp=False, k=3):
+
     def fn(input):
         [f1, f2, f3] = f
 
@@ -30,7 +31,8 @@ def identitiy(f, transp = False, k = 3):
     return fn
 
 
-def convolutional(f, s, transp = False, k = 3):
+def convolutional(f, s, transp=False, k=3):
+
     def fn(input):
         [f1, f2, f3] = f
 
@@ -56,4 +58,5 @@ def convolutional(f, s, transp = False, k = 3):
         X = keras.layers.Add()([X, X_input])
         X = keras.layers.Activation('relu')(X)
         return X
+
     return fn

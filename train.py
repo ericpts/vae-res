@@ -2,18 +2,12 @@
 
 import argparse
 import tensorflow
-import tensorflow.keras as keras
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_util
 control_flow_util.ENABLE_CONTROL_FLOW_V2 = True
 
-
-import numpy as np
 import time
 import os
-from pathlib import Path
-from typing import List, Tuple
-from vae import VAE
 from supervae import SuperVAE
 from util import *
 from config import *
@@ -42,15 +36,13 @@ def apply_gradients(optimizer, gradients, variables):
     optimizer.apply_gradients(zip(gradients, variables))
 
 
-def train_model(
-        model: tf.keras.Model,
-        D_train: tf.data.Dataset,
-        D_test: tf.data.Dataset,
-        epochs: int) -> tf.keras.Model:
+def train_model(model: tf.keras.Model, D_train: tf.data.Dataset,
+                D_test: tf.data.Dataset, epochs: int) -> tf.keras.Model:
 
     optimizer = tf.keras.optimizers.Adam()
 
-    random_vector_for_gen = tf.random.normal((config.num_examples, config.latent_dim))
+    random_vector_for_gen = tf.random.normal((config.num_examples,
+                                              config.latent_dim))
 
     start_epoch = get_latest_epoch(model.name) + 1
 
@@ -79,7 +71,8 @@ def train_model(
         if epoch % 5 == 0:
             test_loss = 0
             test_size = 0
-            for (X, y) in D_test.batch(config.batch_size * 8, drop_remainder=True):
+            for (X, y) in D_test.batch(
+                    config.batch_size * 8, drop_remainder=True):
                 test_loss += compute_loss(model, X) * X.shape[0]
                 test_size += X.shape[0]
 
@@ -108,16 +101,18 @@ def main():
     parser = argparse.ArgumentParser(description='SuperVAE training utility')
 
     parser.add_argument('--beta', type=float, help='Beta hyperparmeter to use.')
-    parser.add_argument('--name', type=str, help='Name of the model.', required=True)
+    parser.add_argument(
+        '--name', type=str, help='Name of the model.', required=True)
 
     args = parser.parse_args()
 
     (D_init_train, D_init_test) = load_data()
 
     def make_filter_fn(digits):
+
         def filter_fn(X, y):
-            return tf.math.reduce_any(
-                    [tf.math.equal(y, d) for d in digits])
+            return tf.math.reduce_any([tf.math.equal(y, d) for d in digits])
+
         return filter_fn
 
     def with_digits(*digits):
