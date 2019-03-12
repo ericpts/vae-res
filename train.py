@@ -50,9 +50,7 @@ def train_model(
 
     optimizer = tf.keras.optimizers.Adam()
 
-    tf.random.set_seed(10)
     random_vector_for_gen = tf.random.normal((config.num_examples, config.latent_dim))
-    tf.random.set_seed(time.time())
 
     start_epoch = get_latest_epoch(model.name) + 1
 
@@ -119,7 +117,7 @@ def main():
                     [tf.math.equal(y, d) for d in digits])
         return filter_fn
 
-    def with_digits(digits):
+    def with_digits(*digits):
         filter_fn = make_filter_fn(digits)
 
         D_train = D_init_train.filter(filter_fn)
@@ -130,11 +128,6 @@ def main():
 
         return D_train, D_test
 
-    dsets = [
-            with_digits([0]),
-            with_digits([0, 1]),
-            ]
-
     config.beta = args.beta or config.beta
 
     model = SuperVAE(config.latent_dim, name=args.name)
@@ -143,14 +136,19 @@ def main():
     maybe_load_model_weights(model)
 
     print('Training VAE for digit 0')
+    model.unfreeze_vae(0)
     model.freeze_vae(1)
-    train_model(model, *dsets[0], epochs=20)
+    train_model(model, *with_digits(0), epochs=1)
 
     print('Training VAE for digit 1')
     model.freeze_vae(0)
     model.unfreeze_vae(1)
-    train_model(model, *dsets[1], epochs=40)
+    train_model(model, *with_digits(1), epochs=2)
 
+    print('Training VAEs for both digits')
+    model.unfreeze_vae(0)
+    model.unfreeze_vae(1)
+    train_model(model, *with_digits(0, 1), epochs=3)
 
 
 if __name__ == '__main__':

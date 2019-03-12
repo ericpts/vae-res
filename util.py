@@ -37,7 +37,7 @@ def make_plot(pictures):
         plt.axis('off')
 
 
-def save_pictures(pictures, *, file_name=None):
+def save_pictures(pictures, file_name=None):
     make_plot(pictures)
 
     file_name = Path(file_name)
