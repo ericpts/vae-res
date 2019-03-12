@@ -86,7 +86,8 @@ def train_model(
                 test_size += X.shape[0]
 
             print('\t Test loss: {}'.format(test_loss / test_size))
-            generate_pictures(model, random_vector_for_gen, epoch)
+            fname = 'images/{}/image_at_epoch_{}.png'.format(model.name, epoch)
+            save_pictures(model.sample(random_vector_for_gen), fname)
 
         if epoch % 20 == 0:
             print('Saving weights...')

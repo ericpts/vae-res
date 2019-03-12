@@ -37,16 +37,13 @@ def make_plot(pictures):
         plt.axis('off')
 
 
-def generate_pictures(model, eps, epoch=None):
-    os.makedirs('images/{}/'.format(model.name), exist_ok=True)
-    pictures = model.sample(eps)
-
+def save_pictures(pictures, *, file_name=None):
     make_plot(pictures)
 
-    if epoch:
-        plt.savefig('images/{}/image_at_epoch_{}.png'.format(model.name, epoch))
-    else:
-        plt.show()
+    file_name = Path(file_name)
+    file_name.parent.mkdir(parents=True, exist_ok=True)
+
+    plt.savefig(file_name)
 
 
 def load_data() -> Tuple[

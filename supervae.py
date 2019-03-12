@@ -80,11 +80,16 @@ class SuperVAE(tf.keras.Model):
         return ret
 
 
-    def sample(self, eps):
+    def sample(self, eps, vaes_to_use=None):
         vae_images = []
         vae_confidences = []
 
-        for vae in self.vaes:
+        if vaes_to_use is None:
+            vaes_to_use = list(range(self.nvaes))
+
+        for i, vae in enumerate(self.vaes):
+            if i not in vaes_to_use:
+                continue
             (image, confidence) = vae.decode(eps)
             vae_images.append(image)
             vae_confidences.append(confidence)
