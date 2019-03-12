@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from typing import Tuple
 import argparse
 import tensorflow
 import tensorflow as tf
@@ -20,70 +21,42 @@ except AttributeError:
 os.makedirs('checkpoints', exist_ok=True)
 
 
-@tf.function
-def compute_loss(model, x):
-    return model.compute_loss(x)
+def train_model(
+        model: tf.keras.Model,
+        D: Tuple[tf.data.Dataset, tf.data.Dataset],
+        start_epoch: int,
+        total_epochs: int) -> tf.keras.Model:
 
-
-@tf.function
-def compute_gradients(model, variables, x):
-    with tf.GradientTape() as tape:
-        loss = compute_loss(model, x)
-    return tape.gradient(loss, variables), loss
-
-
-def apply_gradients(optimizer, gradients, variables):
-    optimizer.apply_gradients(zip(gradients, variables))
-
-
-def train_model(model: tf.keras.Model, D_train: tf.data.Dataset,
-                D_test: tf.data.Dataset, epochs: int) -> tf.keras.Model:
+    D_train, D_test = D
 
     optimizer = tf.keras.optimizers.Adam()
 
-    random_vector_for_gen = tf.random.normal((config.num_examples,
-                                              config.latent_dim))
-
-    start_epoch = get_latest_epoch(model.name) + 1
-
     variables = model.get_trainable_variables()
 
-    for epoch in range(start_epoch, epochs + 1):
-        start_time = time.time()
+    bar = tf.keras.utils.Progbar(total_epochs)
+    bar.update(start_epoch)
+    for epoch in range(start_epoch, total_epochs + 1):
+        train_loss = model.train_on_dataset(D_train, epoch)
 
-        train_loss = 0
-        train_size = 0
-        for (X, y) in D_train.batch(config.batch_size, drop_remainder=True):
-            gradients, loss = compute_gradients(model, variables, X)
-            apply_gradients(optimizer, gradients, variables)
+        test_loss = None
+        if epoch % 10 == 0:
+            test_loss = model.evaluate_on_dataset(D_test)
 
-            train_loss += loss * X.shape[0]
-            train_size += X.shape[0]
-
-        end_time = time.time()
-
-        delta_time = end_time - start_time
-
-        print('Stats for epoch {}'.format(epoch))
-        print('\t Time: {}'.format(delta_time))
-        print('\t Train loss: {}'.format(train_loss / train_size))
-
-        if epoch % 5 == 0:
-            test_loss = 0
-            test_size = 0
-            for (X, y) in D_test.batch(
-                    config.batch_size * 8, drop_remainder=True):
-                test_loss += compute_loss(model, X) * X.shape[0]
-                test_size += X.shape[0]
-
-            print('\t Test loss: {}'.format(test_loss / test_size))
-            fname = 'images/{}/image_at_epoch_{}.png'.format(model.name, epoch)
-            save_pictures(model.sample(random_vector_for_gen), fname)
+            for (X, y) in D_test.take(config.num_examples).batch(config.num_examples):
+                (softmax_confidences, vae_images) = model.run_on_input(X)
+                X_output = tf.reduce_sum(softmax_confidences * vae_images, axis=0)
+                fname = 'images/{}/image_at_epoch_{}.png'.format(model.name, epoch)
+                save_pictures(X, softmax_confidences, vae_images, X_output, fname)
 
         if epoch % 20 == 0:
-            print('Saving weights...')
             p = 'checkpoints/{}/cp_{}.ckpt'.format(model.name, epoch)
             model.save_weights(p)
+
+        if test_loss:
+            bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
+        else:
+            bar.add(1, values=[("train_loss", train_loss)])
+
 
 
 def maybe_load_model_weights(model):
@@ -109,10 +82,8 @@ def main():
     (D_init_train, D_init_test) = load_data()
 
     def make_filter_fn(digits):
-
         def filter_fn(X, y):
             return tf.math.reduce_any([tf.math.equal(y, d) for d in digits])
-
         return filter_fn
 
     def with_digits(*digits):
@@ -129,24 +100,21 @@ def main():
     config.beta = args.beta or config.beta
 
     model = SuperVAE(config.latent_dim, name=args.name)
-    # model.summarize()
 
+    start_epoch = get_latest_epoch(model.name) + 1
     maybe_load_model_weights(model)
 
-    print('Training VAE for digit 0')
+    print('Training VAE_0 for digit 0')
     model.unfreeze_vae(0)
     model.freeze_vae(1)
-    train_model(model, *with_digits(0), epochs=40)
+    train_model(model, with_digits(0), start_epoch, total_epochs=config.epochs[0])
+    start_epoch += config.epochs[0]
 
-    print('Training VAE for digit 1')
+    print('Training VAE_0 and VAE_1 for digits 0, 1')
     model.freeze_vae(0)
     model.unfreeze_vae(1)
-    train_model(model, *with_digits(1), epochs=80)
-
-    print('Training VAEs for both digits')
-    model.unfreeze_vae(0)
-    model.unfreeze_vae(1)
-    train_model(model, *with_digits(0, 1), epochs=200)
+    train_model(model, with_digits(0, 1), start_epoch, total_epochs=config.epochs[1])
+    start_epoch += config.epochs[1]
 
 
 if __name__ == '__main__':

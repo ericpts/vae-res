@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 import tensorflow as tf
 from typing import Tuple
@@ -40,13 +40,47 @@ def make_plot(pictures):
         plt.axis('off')
 
 
-def save_pictures(pictures, file_name=None):
-    make_plot(pictures)
+def save_pictures(
+        X_input,
+        vae_softmax_confidences,
+        vae_images,
+        X_output,
+        file_name: str):
+
+    assert vae_softmax_confidences.shape[0] == config.nvaes
+    assert vae_softmax_confidences.shape[1] == config.num_examples
+
+    assert vae_images.shape[0] == config.nvaes
+    assert vae_images.shape[1] == config.num_examples
+
+    # import ipdb; ipdb.set_trace()
+    fig = plt.figure(figsize=(16, 32))
+    plt.subplots_adjust(
+        wspace = 0.4,
+        hspace = 0.4,
+    )
+    for i in range(8 * 8):
+
+        plt.subplot(8, 8, i + 1)
+
+        to_show = np.vstack([
+            X_input[i, :, :, 0],
+            vae_softmax_confidences[0, i, :, :, 0],
+            vae_images[0, i, :,  :, 0],
+            vae_softmax_confidences[1, i, :, :, 0],
+            vae_images[1, i, :, :, 0],
+            X_output[i, :, :, 0],
+        ])
+
+        plt.imshow(to_show, cmap='gray')
+
+        plt.axis('off')
 
     file_name = Path(file_name)
     file_name.parent.mkdir(parents=True, exist_ok=True)
 
     plt.savefig(file_name)
+    plt.close()
 
 
 def load_data() -> Tuple[tf.data.Dataset, tf.data.Dataset]:

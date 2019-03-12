@@ -21,8 +21,6 @@ def main():
         help='Which VAE\'s to sample from.')
     args = parser.parse_args()
 
-    random_vector_for_gen = tf.random.normal((config.num_examples,
-                                              config.latent_dim))
     model = SuperVAE(config.latent_dim, name=args.name)
     model.load_weights(
         checkpoint_for_epoch(model.name, get_latest_epoch(model.name)))

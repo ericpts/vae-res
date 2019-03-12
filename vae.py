@@ -107,20 +107,25 @@ class VAE(tf.keras.Model):
 
         return model
 
+
     def sample(self, eps):
         return self.decode(eps)
+
 
     def encode(self, x):
         latent_var = self.encoder(x)
         (mean, logvar) = tf.split(latent_var, num_or_size_splits=2, axis=1)
         return (mean, logvar)
 
+
     def reparametrize(self, mean, logvar):
         eps = tf.random.normal(shape=tf.shape(mean))
         return eps * tf.exp(1 / 2 * logvar) + mean
 
+
     def decode(self, z):
         return self.decoder(z)
+
 
     @staticmethod
     def compute_kl_loss(mean, logvar):
@@ -129,6 +134,7 @@ class VAE(tf.keras.Model):
         kl_loss *= -0.5
 
         return kl_loss
+
 
     def call(self, inputs):
         mean, logvar = self.encode(inputs)
@@ -139,8 +145,10 @@ class VAE(tf.keras.Model):
         z = self.reparametrize(mean, logvar)
         return self.decode(z)
 
+
     def get_trainable_variables(self):
         return self.trainable_variables
+
 
     def summarize(self):
         self.encoder.summary()

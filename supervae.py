@@ -1,5 +1,6 @@
 import tensorflow.keras as keras
 import tensorflow as tf
+import time
 from config import *
 
 from vae import VAE
@@ -22,7 +23,7 @@ class SuperVAE(tf.keras.Model):
             VAE(latent_dim, 'VAE-{}'.format(i)) for i in range(self.nvaes)
         ]
 
-        self.vae_status = {i: True for i in range(self.nvaes)}
+        self.vae_is_learning = {i: True for i in range(self.nvaes)}
 
         vae_images = []
         vae_confidences = []
@@ -39,14 +40,30 @@ class SuperVAE(tf.keras.Model):
         self.model = keras.models.Model(
             inputs=inputs, outputs=[softmax_confidences, vae_images])
 
+        self.lr = 0.001
+
+        self.fast_optimizer = tf.keras.optimizers.Adam(
+                learning_rate=self.lr,
+                )
+
+        # This optimizer has a very small learning rate, so that frozen VAE's
+        # can still adapt, but at a much slower pace than the ones which are
+        # supposed to be actively learning.
+        self.slow_optimizer = tf.keras.optimizers.Adam(
+                learning_rate=self.lr / 100.0,
+                )
+
+
     def unfreeze_vae(self, i: int):
-        assert i in self.vae_status
-        self.vae_status[i] = True
+        assert i in self.vae_is_learning
+        self.vae_is_learning[i] = True
 
     def freeze_vae(self, i: int):
-        assert i in self.vae_status
-        self.vae_status[i] = False
+        assert i in self.vae_is_learning
+        self.vae_is_learning[i] = False
 
+
+    @tf.function
     def compute_loss(self, x):
         (softmax_confidences, vae_images) = self.model(x)
 
@@ -66,34 +83,79 @@ class SuperVAE(tf.keras.Model):
         vae_loss = tf.math.reduce_mean(recall_loss + config.beta * kl_loss)
         return vae_loss
 
+
     def get_trainable_variables(self):
-        ret = []
+        return self.model.trainable_variables
+
+
+    def apply_gradients(self, grads_per_vae):
         for i in range(self.nvaes):
-            if self.vae_status[i]:
-                ret.extend(self.vaes[i].get_trainable_variables())
-        return ret
+            optimizer = None
+            if self.vae_is_learning[i]:
+                optimizer = self.fast_optimizer
+            else:
+                optimizer = self.slow_optimizer
+            optimizer.apply_gradients(
+                    zip(
+                        grads_per_vae[i],
+                        self.vaes[i].get_trainable_variables()
+                        )
+                    )
 
-    def sample(self, eps, vaes_to_use=None):
-        vae_images = []
-        vae_confidences = []
 
-        if vaes_to_use is None:
-            vaes_to_use = list(range(self.nvaes))
+    @tf.function
+    def compute_gradients(self, X):
+        variables = self.get_trainable_variables()
+        with tf.GradientTape() as tape:
+            loss = self.compute_loss(X)
+        return tape.gradient(loss, variables), loss
 
-        for i, vae in enumerate(self.vaes):
-            if i not in vaes_to_use:
-                continue
-            (image, confidence) = vae.decode(eps)
-            vae_images.append(image)
-            vae_confidences.append(confidence)
 
-        vae_confidences = tf.convert_to_tensor(vae_confidences)
-        vae_images = tf.convert_to_tensor(vae_images)
+    def train_on_dataset(self, D_train: tf.data.Dataset, epoch: int):
+        def partition_gradients(grads):
+            """ Returns the gradients for each VAE.
+            """
+            ret = []
+            at = 0
+            for i in range(self.nvaes):
+                nvars = len(self.vaes[i].get_trainable_variables())
+                cur_grads = grads[at : at + nvars]
+                ret.append(cur_grads)
+                at += nvars
 
-        softmax_confidences = tf.keras.activations.softmax(
-            vae_confidences, axis=0)
+            assert len(grads) == len(self.get_trainable_variables())
+            assert at == len(grads)
+            assert len(ret) == self.nvaes
+            return ret
 
-        return tf.math.reduce_sum(vae_images * softmax_confidences, axis=0)
+        train_loss = 0
+        train_size = 0
 
-    def summarize(self):
-        self.vaes[0].summarize()
+        for (X, y) in D_train.batch(config.batch_size, drop_remainder=True):
+            gradients, loss = self.compute_gradients(X)
+
+            grads_per_vae = partition_gradients(gradients)
+
+            self.apply_gradients(grads_per_vae)
+
+            train_loss += loss * X.shape[0]
+            train_size += X.shape[0]
+
+        return train_loss / train_size
+
+
+    def evaluate_on_dataset(self, D_test):
+        test_loss = 0
+        test_size = 0
+        for (X, y) in D_test.batch(
+                config.batch_size * 8, drop_remainder=True):
+            test_loss += self.compute_loss(X) * X.shape[0]
+            test_size += X.shape[0]
+
+        return test_loss / test_size
+
+    def run_on_input(self, X):
+        (softmax_confidences, vae_images) = self.model(X)
+        return (softmax_confidences, vae_images) 
+
+

@@ -12,4 +12,6 @@ config.epochs = 40
 config.batch_size = 64
 config.nlayers = 2
 config.nvaes = 2
-config.beta = 10.0
+config.beta = 1.0
+
+config.epochs = [40, 80]
