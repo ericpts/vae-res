@@ -102,6 +102,9 @@ def maybe_load_model_weights(model):
 
 
 def main():
+
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
     parser = argparse.ArgumentParser(description='SuperVAE training utility')
 
     parser.add_argument('--beta', type=float, help='Beta hyperparmeter to use.')
@@ -138,17 +141,17 @@ def main():
     print('Training VAE for digit 0')
     model.unfreeze_vae(0)
     model.freeze_vae(1)
-    train_model(model, *with_digits(0), epochs=1)
+    train_model(model, *with_digits(0), epochs=40)
 
     print('Training VAE for digit 1')
     model.freeze_vae(0)
     model.unfreeze_vae(1)
-    train_model(model, *with_digits(1), epochs=2)
+    train_model(model, *with_digits(1), epochs=80)
 
     print('Training VAEs for both digits')
     model.unfreeze_vae(0)
     model.unfreeze_vae(1)
-    train_model(model, *with_digits(0, 1), epochs=3)
+    train_model(model, *with_digits(0, 1), epochs=200)
 
 
 if __name__ == '__main__':
