@@ -53,7 +53,7 @@ class SuperVAE(tf.keras.Model):
         # can still adapt, but at a much slower pace than the ones which are
         # supposed to be actively learning.
         self.slow_optimizer = tf.keras.optimizers.Adam(
-                learning_rate=self.lr * 1e-5,
+                learning_rate=self.lr * 1e-9,
                 )
 
 
@@ -68,23 +68,36 @@ class SuperVAE(tf.keras.Model):
 
 
     @tf.function
+    def entropy_loss(self, softmax_confidences):
+        entropy = - tf.math.xlogy(softmax_confidences, softmax_confidences)
+        entropy = tf.math.reduce_sum(entropy, axis=0)
+        entropy /= tf.math.log(float(self.nvaes))
+        entropy = -tf.math.log(entropy)
+        entropy = tf.math.reduce_sum(entropy, axis=[1, 2])
+        return entropy
+
+
+    @tf.function
     def compute_loss(self, x):
         (softmax_confidences, vae_images) = self.model(x)
 
         loss_object = tf.keras.losses.MeanSquaredError()
-        recall_loss = 0
+        recall_loss = 0.0
         for i in range(self.nvaes):
             recall_loss += loss_object(
                 x, vae_images[i], sample_weight=softmax_confidences[i])
         recall_loss /= self.nvaes
         recall_loss *= 28 * 28 * config.expand_per_width * config.expand_per_height
 
-        kl_loss = 0
+        kl_loss = 0.0
         for nvae in self.vaes:
             kl_loss += VAE.compute_kl_loss(nvae.last_mean, nvae.last_logvar)
         kl_loss /= self.nvaes
 
-        vae_loss = tf.math.reduce_mean(recall_loss + config.beta * kl_loss)
+        ent_loss = self.entropy_loss(softmax_confidences)
+
+        vae_loss = tf.math.reduce_mean(
+            recall_loss + config.beta * kl_loss + config.gamma * ent_loss)
         return vae_loss
 
 
@@ -160,6 +173,6 @@ class SuperVAE(tf.keras.Model):
 
     def run_on_input(self, X):
         (softmax_confidences, vae_images) = self.model(X)
-        return (softmax_confidences, vae_images) 
+        return (softmax_confidences, vae_images)
 
 

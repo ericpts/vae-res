@@ -74,6 +74,7 @@ def main():
     parser = argparse.ArgumentParser(description='SuperVAE training utility')
 
     parser.add_argument('--beta', type=float, help='Beta hyperparmeter to use.')
+    parser.add_argument('--gamma', type=float, help='Gamma hyperparmeter to use.')
     parser.add_argument(
         '--name', type=str, help='Name of the model.', required=True)
 
@@ -98,6 +99,7 @@ def main():
         return D_train, D_test
 
     config.beta = args.beta or config.beta
+    config.gamma = args.gamma or config.gamma
 
     model = SuperVAE(config.latent_dim, name=args.name)
 
