@@ -5,10 +5,23 @@
    CLOSED: [2019-03-11 Mon 14:35]
 `tf.function-decorated function tried to create variables on non-first call.`
 
-** TODO Implement entropy loss.
+** DONE Implement entropy loss.
+   CLOSED: [2019-03-15 Fri 18:26]
 *** Do a pixel-wise entropy function (i.e., for each pixel consider that the VAE's give a probability distribution, and compute the entropy for each pixel).
 *** Then take the sum of all entropies, and add Alpha * log(S) to the loss function, where Alpha is a hyperparameter.
 *** Keep in mind that maybe we have to normalize the Entropy term depending on the number of VAE's.
 ** TODO Implement VAE's for 3 digits.
-** TODO Figure out what is the best way to freeze a VAE
+** DONE Figure out what is the best way to freeze a VAE
+   CLOSED: [2019-03-15 Fri 18:25]
 *** One way would be to make the learning rate very small, so that nothing changes.
+
+* Current issues
+** VAE_1 learns both 0 and 1.
+   This seems to be unavoidable, as encoding the digit iself takes only 1 bit.
+   However, the information regarding the digit's shape should take a lot more than that.
+** The confidences for both models always look like coffee beans.
+   Is this ok?
+
+* Outstanding ideas
+** Make VAE_1 learn a residual between the input picture and what VAE_0 predicts.
+   This should have the effect that it does not even have the chance to learn what a 0 is.
