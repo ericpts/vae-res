@@ -15,10 +15,12 @@
    CLOSED: [2019-03-15 Fri 18:25]
 *** One way would be to make the learning rate very small, so that nothing changes.
 
+
 * Current issues
 ** VAE_1 learns both 0 and 1.
    This seems to be unavoidable, as encoding the digit iself takes only 1 bit.
-   However, the information regarding the digit's shape should take a lot more than that.
+*** Maybe an idea would be to make the models so weak, that they are unable to
+    learn two digits at the same time.
 ** The confidences for both models always look like coffee beans.
    Is this ok?
 

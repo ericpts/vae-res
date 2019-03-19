@@ -1,8 +1,23 @@
 #!/usr/bin/env python3
 import subprocess
 
-betas = [1/8, 1/4, 1/2, 1, 2, 4, 8]
-gammas = [1/8, 1/4, 1/2, 1, 2, 4, 8]
+
+# TODO(): Why are these bad? Is it because of the training, or because of an inherent balance?
+bad_combos = [
+    (1, 0.25),
+    (2, 2),
+    (1, 2),
+    (2, 1),
+    (2, 0.5),
+    (1, 1),
+    (0.125, 1),
+    (2, 0.25),
+    (0.5, 2),
+    (0.5, 0.125),
+]
+
+betas = [1/8, 1/4, 1/2, 1, 2]
+gammas = [1/8, 1/4, 1/2, 1, 2]
 
 for beta in betas:
     for gamma in gammas:
