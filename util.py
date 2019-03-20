@@ -83,10 +83,12 @@ def save_pictures(
     plt.close()
 
 
-def load_data() -> Tuple[tf.data.Dataset, tf.data.Dataset]:
+def load_data() -> Tuple[tf.data.Dataset, tf.data.Dataset,
+                         int, int, int]:
     (X_train, y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
 
     image_size = X_train.shape[1]
+
     X_train = np.reshape(X_train, [-1, image_size, image_size, 1])
     X_test = np.reshape(X_test, [-1, image_size, image_size, 1])
     X_train = X_train.astype('float32') / 255
@@ -101,13 +103,24 @@ def load_data() -> Tuple[tf.data.Dataset, tf.data.Dataset]:
     D_test = tf.data.Dataset.from_tensor_slices((X_test,
                                                  y_test)).shuffle(test_size)
 
-    return (D_train, D_test)
+    return (D_train, D_test, image_size, train_size, test_size)
 
 
-def combine_into_windows(D: tf.data.Dataset) -> tf.data.Dataset:
+def make_empty_windows(img_size: int,
+                       n: int) -> tf.data.Dataset:
+
+    X = np.zeros((n, img_size, img_size, 1), dtype=np.float32)
+    y = np.array([-1] * n, dtype=np.uint8)
+    D = tf.data.Dataset.from_tensor_slices((X, y))
+    return D
+
+
+def combine_into_windows(
+        D: tf.data.Dataset,
+        img_name: str) -> tf.data.Dataset:
     k = config.expand_per_width * config.expand_per_height
     D = D.repeat(k)
-    D = D.shuffle(2048)
+    D = D.shuffle(2**20)
     D = D.batch(k, drop_remainder=True)
 
     def map_fn(X, y):
@@ -132,6 +145,6 @@ def combine_into_windows(D: tf.data.Dataset) -> tf.data.Dataset:
     make_plot(X)
 
     os.makedirs('images', exist_ok=True)
-    plt.savefig('images/data_sample.png')
+    plt.savefig(f'images/{img_name}.png')
 
     return D

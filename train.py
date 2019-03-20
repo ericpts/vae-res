@@ -71,16 +71,16 @@ def main():
 
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-    parser = argparse.ArgumentParser(description='SuperVAE training utility')
+    parser = argparse.ArgumentParser(description='SuperVAE training.')
 
-    parser.add_argument('--beta', type=float, help='Beta hyperparmeter to use.')
-    parser.add_argument('--gamma', type=float, help='Gamma hyperparmeter to use.')
+    parser.add_argument('--beta', type=float, help='Weight of the KL loss.')
+    parser.add_argument('--gamma', type=float, help='Weight of the entropy loss.')
     parser.add_argument(
         '--name', type=str, help='Name of the model.', required=True)
 
     args = parser.parse_args()
 
-    (D_init_train, D_init_test) = load_data()
+    (D_init_train, D_init_test, image_size, train_size, test_size) = load_data()
 
     def make_filter_fn(digits):
         def filter_fn(X, y):
@@ -93,8 +93,14 @@ def main():
         D_train = D_init_train.filter(filter_fn)
         D_test = D_init_test.filter(filter_fn)
 
-        D_train = combine_into_windows(D_train)
-        D_test = combine_into_windows(D_test)
+        D_train_0 = make_empty_windows(image_size, train_size * len(digits) // 10)
+        D_test_0 = make_empty_windows(image_size, test_size * len(digits) // 10)
+
+        D_train = D_train.concatenate(D_train_0)
+        D_test = D_test.concatenate(D_test_0)
+
+        D_train = combine_into_windows(D_train, 'data_sample_train.png')
+        D_test = combine_into_windows(D_test, 'data_sample_test.png')
 
         return D_train, D_test
 
