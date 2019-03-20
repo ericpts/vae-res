@@ -99,8 +99,8 @@ def main():
         D_train = D_train.concatenate(D_train_0)
         D_test = D_test.concatenate(D_test_0)
 
-        D_train = combine_into_windows(D_train, 'data_sample_train.png')
-        D_test = combine_into_windows(D_test, 'data_sample_test.png')
+        D_train = combine_into_windows(D_train, 'data_sample_train')
+        D_test = combine_into_windows(D_test, 'data_sample_test')
 
         return D_train, D_test
 
