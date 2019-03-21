@@ -44,7 +44,6 @@ def train_model(
     def test_step():
         test_loss = model.evaluate_on_dataset(D_test)
 
-
         for (X, y) in D_test.take(config.num_examples).batch(config.num_examples):
             (softmax_confidences, vae_images) = model.run_on_input(X)
             X_output = tf.reduce_sum(softmax_confidences * vae_images, axis=0)

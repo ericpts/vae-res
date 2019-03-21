@@ -124,7 +124,6 @@ class SuperVAE(tf.keras.Model):
         return self.model.trainable_variables
 
 
-    @tf.function
     def apply_gradients(self, grads_per_vae):
         for i in range(self.nvaes):
             optimizer = None
@@ -149,7 +148,6 @@ class SuperVAE(tf.keras.Model):
 
 
     def fit(self, D_train: tf.data.Dataset):
-        @tf.function
         def partition_gradients(grads):
             """ Returns the gradients for each VAE.
             """
