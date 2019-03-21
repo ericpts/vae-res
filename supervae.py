@@ -90,11 +90,21 @@ class SuperVAE(tf.keras.Model):
         recall_loss *= 28 * 28 * config.expand_per_width * config.expand_per_height
 
         kl_loss = 0.0
-        for nvae in self.vaes:
-            kl_loss += VAE.compute_kl_loss(nvae.last_mean, nvae.last_logvar)
+        for ivae, nvae in enumerate(self.vaes):
+            cur_loss = VAE.compute_kl_loss(nvae.last_mean, nvae.last_logvar)
+            tf.summary.scalar(f'kl-loss-vae-{ivae}',
+                              tf.math.reduce_mean(config.beta * cur_loss),
+                              step=None)
+            kl_loss += cur_loss
         kl_loss /= self.nvaes
 
         ent_loss = self.entropy_loss(softmax_confidences)
+
+        tf.summary.scalar('ent_loss', tf.math.reduce_mean(config.gamma * ent_loss),
+                          step=None)
+
+        tf.summary.scalar('recall_loss', recall_loss,
+                          step=None)
 
         vae_loss = tf.math.reduce_mean(
             recall_loss + config.beta * kl_loss + config.gamma * ent_loss)

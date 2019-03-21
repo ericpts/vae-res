@@ -57,32 +57,38 @@ def train_model(
 
     bar = tf.keras.utils.Progbar(total_epochs)
     bar.update(start_epoch)
+
+    step_var = tf.Variable(tf.constant(start_epoch, dtype=tf.int64))
+
     for epoch in range(start_epoch, total_epochs + 1):
-        train_loss = train_step()
-        test_loss, test_imgs = test_step()
+        step_var.assign(epoch)
+        tf.summary.experimental.set_step(step_var)
 
         with train_summary_writer.as_default():
-            tf.summary.scalar('loss', train_loss, step=epoch)
+            train_loss = train_step()
+            tf.summary.scalar('loss', train_loss, step=None)
 
         with test_summary_writer.as_default():
-            tf.summary.scalar('loss', test_loss, step=epoch)
+
+            test_loss, test_imgs = test_step()
+            tf.summary.scalar('loss', test_loss, step=None)
 
             (X, softmax_confidences, vae_images, X_output) = test_imgs
 
             max_outputs = 8
-            tf.summary.image('Input', X, step=epoch, max_outputs=max_outputs)
+            tf.summary.image('Input', X, max_outputs=max_outputs, step=None)
 
             for ivae in range(config.nvaes):
                 tf.summary.image(f'VAE_{ivae}_softmax_confidences',
                                  softmax_confidences[ivae],
-                                 step=epoch,
+                                 step=None,
                                  max_outputs=max_outputs)
                 tf.summary.image(f'VAE_{ivae}_images',
                                  vae_images[ivae],
-                                 step=epoch,
+                                 step=None,
                                  max_outputs=max_outputs)
 
-            tf.summary.image('Output', X_output, step=epoch, max_outputs=max_outputs)
+            tf.summary.image('Output', X_output, max_outputs=max_outputs, step=None)
 
         bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
 
