@@ -43,25 +43,42 @@ def train_model(
     def test_step():
         test_loss = model.evaluate_on_dataset(D_test)
 
+
         for (X, y) in D_test.take(config.num_examples).batch(config.num_examples):
             (softmax_confidences, vae_images) = model.run_on_input(X)
             X_output = tf.reduce_sum(softmax_confidences * vae_images, axis=0)
             fname = 'images/{}/image_at_epoch_{}.png'.format(model.name, epoch)
+
+            imgs = (X, softmax_confidences, vae_images, X_output)
             save_pictures(X, softmax_confidences, vae_images, X_output, fname)
-        return test_loss
+
+        return test_loss, imgs
 
 
     bar = tf.keras.utils.Progbar(total_epochs)
     bar.update(start_epoch)
     for epoch in range(start_epoch, total_epochs + 1):
         train_loss = train_step()
-        test_loss = test_step()
+        test_loss, test_imgs = test_step()
 
         with train_summary_writer.as_default():
             tf.summary.scalar('loss', train_loss, step=epoch)
 
         with test_summary_writer.as_default():
             tf.summary.scalar('loss', test_loss, step=epoch)
+
+            (X, softmax_confidences, vae_images, X_output) = test_imgs
+            tf.summary.image('Input', X, step=epoch)
+
+            for ivae in range(config.nvaes):
+                tf.summary.image(f'VAE_{ivae}_softmax_confidences',
+                                 softmax_confidences[ivae],
+                                 step=epoch)
+                tf.summary.image(f'VAE_{ivae}_images',
+                                 vae_images[ivae],
+                                 step=epoch)
+
+            tf.summary.image('Output', X_output, step=epoch)
 
         bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
 
