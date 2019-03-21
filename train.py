@@ -106,6 +106,7 @@ def main():
     parser.add_argument('--gamma', type=float, help='Weight of the entropy loss.')
     parser.add_argument(
         '--name', type=str, help='Name of the model.', required=True)
+    parser.add_argument('--epochs', type=int, nargs='+', help='Sequence of how much to train VAE_0, and then VAE_1 for.')
 
     args = parser.parse_args()
 
@@ -133,6 +134,7 @@ def main():
 
         return D_train, D_test
 
+    config.epochs = args.epochs or config.epochs
     config.beta = args.beta or config.beta
     config.gamma = args.gamma or config.gamma
 
