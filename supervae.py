@@ -149,7 +149,10 @@ class SuperVAE(tf.keras.Model):
         train_loss = 0
         train_size = 0
 
-        for (X, y) in D_train.batch(config.batch_size, drop_remainder=True):
+        for (X, y) in D_train.batch(
+                config.batch_size, drop_remainder=True).prefetch(
+                    4 * config.batch_size
+                ):
             gradients, loss = self.compute_gradients(X)
 
             grads_per_vae = partition_gradients(gradients)
