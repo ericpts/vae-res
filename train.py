@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import datetime
 from typing import Tuple
 import argparse
 import tensorflow
@@ -29,33 +30,44 @@ def train_model(
 
     D_train, D_test = D
 
-    optimizer = tf.keras.optimizers.Adam()
+    current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
+    test_log_dir = 'logs/gradient_tape/' + current_time + '/test'
+    train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+    test_summary_writer = tf.summary.create_file_writer(test_log_dir)
 
-    variables = model.get_trainable_variables()
+    def train_step():
+        train_loss = model.fit(D_train)
+        return train_loss
+
+    def test_step():
+        test_loss = model.evaluate_on_dataset(D_test)
+
+        for (X, y) in D_test.take(config.num_examples).batch(config.num_examples):
+            (softmax_confidences, vae_images) = model.run_on_input(X)
+            X_output = tf.reduce_sum(softmax_confidences * vae_images, axis=0)
+            fname = 'images/{}/image_at_epoch_{}.png'.format(model.name, epoch)
+            save_pictures(X, softmax_confidences, vae_images, X_output, fname)
+        return test_loss
+
 
     bar = tf.keras.utils.Progbar(total_epochs)
     bar.update(start_epoch)
     for epoch in range(start_epoch, total_epochs + 1):
-        train_loss = model.fit(D_train)
+        train_loss = train_step()
+        test_loss = test_step()
 
-        test_loss = None
-        if epoch % 10 == 0:
-            test_loss = model.evaluate_on_dataset(D_test)
+        with train_summary_writer.as_default():
+            tf.summary.scalar('loss', train_loss, step=epoch)
 
-            for (X, y) in D_test.take(config.num_examples).batch(config.num_examples):
-                (softmax_confidences, vae_images) = model.run_on_input(X)
-                X_output = tf.reduce_sum(softmax_confidences * vae_images, axis=0)
-                fname = 'images/{}/image_at_epoch_{}.png'.format(model.name, epoch)
-                save_pictures(X, softmax_confidences, vae_images, X_output, fname)
+        with test_summary_writer.as_default():
+            tf.summary.scalar('loss', test_loss, step=epoch)
+
+        bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
 
         if epoch % 20 == 0:
             p = 'checkpoints/{}/cp_{}.ckpt'.format(model.name, epoch)
             model.save_weights(p)
-
-        if test_loss:
-            bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
-        else:
-            bar.add(1, values=[("train_loss", train_loss)])
 
 
 

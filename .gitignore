@@ -5,3 +5,4 @@ keras/
 
 .ipynb_checkpoints/
 .mypy_cache/
+logs/
