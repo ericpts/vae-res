@@ -68,17 +68,21 @@ def train_model(
             tf.summary.scalar('loss', test_loss, step=epoch)
 
             (X, softmax_confidences, vae_images, X_output) = test_imgs
-            tf.summary.image('Input', X, step=epoch)
+
+            max_outputs = 4
+            tf.summary.image('Input', X, step=epoch, max_outputs=max_outputs)
 
             for ivae in range(config.nvaes):
                 tf.summary.image(f'VAE_{ivae}_softmax_confidences',
                                  softmax_confidences[ivae],
-                                 step=epoch)
+                                 step=epoch,
+                                 max_outputs=max_outputs)
                 tf.summary.image(f'VAE_{ivae}_images',
                                  vae_images[ivae],
-                                 step=epoch)
+                                 step=epoch,
+                                 max_outputs=max_outputs)
 
-            tf.summary.image('Output', X_output, step=epoch)
+            tf.summary.image('Output', X_output, step=epoch, max_outputs=max_outputs)
 
         bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
 
