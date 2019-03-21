@@ -105,6 +105,7 @@ class SuperVAE(tf.keras.Model):
         return self.model.trainable_variables
 
 
+    @tf.function
     def apply_gradients(self, grads_per_vae):
         for i in range(self.nvaes):
             optimizer = None
