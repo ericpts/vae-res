@@ -14,10 +14,10 @@ config.nvaes = 2
 
 
 # How many epochs to train VAE_0 for, and then VAE_1 for.
-config.epochs = [20, 60]
+config.epochs = [60, 200]
 
 # KL-loss coefficient.
 config.beta = 1.0
 
 # Entropy loss coefficient.
-config.gamma = 10.0
+config.gamma = 1.0

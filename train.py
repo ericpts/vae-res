@@ -36,7 +36,7 @@ def train_model(
     bar = tf.keras.utils.Progbar(total_epochs)
     bar.update(start_epoch)
     for epoch in range(start_epoch, total_epochs + 1):
-        train_loss = model.train_on_dataset(D_train, epoch)
+        train_loss = model.fit(D_train)
 
         test_loss = None
         if epoch % 10 == 0:
