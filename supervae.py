@@ -129,6 +129,7 @@ class SuperVAE(tf.keras.Model):
 
 
     def train_on_dataset(self, D_train: tf.data.Dataset, epoch: int):
+        @tf.function
         def partition_gradients(grads):
             """ Returns the gradients for each VAE.
             """
