@@ -71,9 +71,18 @@ class SuperVAE(tf.keras.Model):
     def entropy_loss(self, softmax_confidences):
         entropy = - tf.math.xlogy(softmax_confidences, softmax_confidences)
         entropy = tf.math.reduce_sum(entropy, axis=0)
+
+        # Bring the entropy to a term between 0 and 1.
         entropy /= tf.math.log(float(self.nvaes))
+
+        # Heavily penalize entropies close to 0, since we want the information
+        # to be shared.
         entropy = -tf.math.log(entropy)
+
+        # Sum across all pixels of a given image.
         entropy = tf.math.reduce_sum(entropy, axis=[1, 2])
+
+        # This now has shape (batch_size, 1).
         return entropy
 
 
@@ -84,8 +93,8 @@ class SuperVAE(tf.keras.Model):
         loss_object = tf.keras.losses.MeanSquaredError()
         recall_loss = 0.0
         for i in range(self.nvaes):
-            recall_loss += loss_object(
-                x, vae_images[i], sample_weight=softmax_confidences[i])
+            cur_loss = loss_object(x, vae_images[i], sample_weight=softmax_confidences[i])
+            recall_loss += cur_loss
         recall_loss /= self.nvaes
         recall_loss *= 28 * 28 * config.expand_per_width * config.expand_per_height
 
@@ -115,6 +124,7 @@ class SuperVAE(tf.keras.Model):
         return self.model.trainable_variables
 
 
+    @tf.function
     def apply_gradients(self, grads_per_vae):
         for i in range(self.nvaes):
             optimizer = None
@@ -139,6 +149,7 @@ class SuperVAE(tf.keras.Model):
 
 
     def fit(self, D_train: tf.data.Dataset):
+        @tf.function
         def partition_gradients(grads):
             """ Returns the gradients for each VAE.
             """
@@ -160,7 +171,7 @@ class SuperVAE(tf.keras.Model):
 
         for (X, y) in D_train.batch(
                 config.batch_size, drop_remainder=True).prefetch(
-                    4 * config.batch_size
+                    16 * config.batch_size
                 ):
             gradients, loss = self.compute_gradients(X)
 

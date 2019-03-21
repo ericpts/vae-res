@@ -21,6 +21,13 @@ except AttributeError:
 
 os.makedirs('checkpoints', exist_ok=True)
 
+step_var = tf.Variable(tf.constant(0, dtype=tf.int64))
+current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
+test_log_dir = 'logs/gradient_tape/' + current_time + '/test'
+train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+test_summary_writer = tf.summary.create_file_writer(test_log_dir)
+
 
 def train_model(
         model: tf.keras.Model,
@@ -29,12 +36,6 @@ def train_model(
         total_epochs: int) -> tf.keras.Model:
 
     D_train, D_test = D
-
-    current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
-    test_log_dir = 'logs/gradient_tape/' + current_time + '/test'
-    train_summary_writer = tf.summary.create_file_writer(train_log_dir)
-    test_summary_writer = tf.summary.create_file_writer(test_log_dir)
 
     def train_step():
         train_loss = model.fit(D_train)
@@ -57,8 +58,6 @@ def train_model(
 
     bar = tf.keras.utils.Progbar(total_epochs)
     bar.update(start_epoch)
-
-    step_var = tf.Variable(tf.constant(start_epoch, dtype=tf.int64))
 
     for epoch in range(start_epoch, total_epochs + 1):
         step_var.assign(epoch)
