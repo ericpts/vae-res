@@ -69,7 +69,7 @@ def train_model(
 
             (X, softmax_confidences, vae_images, X_output) = test_imgs
 
-            max_outputs = 4
+            max_outputs = 8
             tf.summary.image('Input', X, step=epoch, max_outputs=max_outputs)
 
             for ivae in range(config.nvaes):
