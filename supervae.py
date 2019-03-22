@@ -210,6 +210,7 @@ class SuperVAE(tf.keras.Model):
 
         return test_loss / test_size
 
+    @tf.function
     def run_on_input(self, X):
         (softmax_confidences, vae_images) = self.model(X)
         return (softmax_confidences, vae_images)
