@@ -16,14 +16,43 @@
 *** One way would be to make the learning rate very small, so that nothing changes.
 
 
-* Current issues
+
+* Solved issues
+** The confidences for both models always look like coffee beans.
+   Is this ok?
+   A: If you decrease the entropy loss coefficient, the confidences start becoming more descriptive.
 ** VAE_1 learns both 0 and 1.
    This seems to be unavoidable, as encoding the digit iself takes only 1 bit.
 *** Maybe an idea would be to make the models so weak, that they are unable to
     learn two digits at the same time.
-** The confidences for both models always look like coffee beans.
-   Is this ok?
-
-* Outstanding ideas
+    A: This does not work, because weak models just split the work of drawing a 0.
 ** Make VAE_1 learn a residual between the input picture and what VAE_0 predicts.
    This should have the effect that it does not even have the chance to learn what a 0 is.
+   A: This is not that useful, because residuals impose a sequence-dependence on the order of learning.
+
+* Current issues
+*** The idea should be balancing \Gamma, \Beta and the latent dimension, so that each model
+    learns exactly what it is optimal to do.
+
+    One issue: depending on \Beta, maybe VAE_0 "gobbles up" all of the available information.
+    This way, when VAE_1 starts learning, it cannot learn anything because doing so would
+    incur a pretty hefty KL-loss penalty.
+
+* Outstanding ideas
+** Decrease Gamma and increase the KL-loss while training VAE_1, in order to encourage it to
+   learn one single thing, and learn it well.
+** After VAE_0 has learned its digit, find out the KL loss. Then try to force VAE_1 to have
+   a similar KL loss, by using the Beta-VAE paper trick.
+
+
+
+* Current observations:
+** Model almost working!
+   For params
+   ~! python3 train.py --name colab --beta 1 --gamma 0.005 --epochs 40 80 --latent_dim 8 --nlayers 3~
+   VAE_1 seems to 'barely' learn anything about zeroes, in that it draws much in a much uglier way than the 1's.
+   Furthermore, the confidences of VAE_1 for the zeroes are very very low (almost black).
+   This might mean two things:
+   1) The entropy loss is a little bit too high, and so VAE_1 is forced to learn about zeroes only to insure that
+      there is not too much entropy loss incurred.
+   2) VAE_1 has to much available entropy, and decided to spend some of it on the wrong digit.
