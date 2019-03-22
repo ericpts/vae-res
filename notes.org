@@ -56,3 +56,6 @@
    1) The entropy loss is a little bit too high, and so VAE_1 is forced to learn about zeroes only to insure that
       there is not too much entropy loss incurred.
    2) VAE_1 has to much available entropy, and decided to spend some of it on the wrong digit.
+   #+CAPTION: Initial progress
+   #+attr_html: :width 700px
+   [[file:./_org_res/init_progress.png]]
