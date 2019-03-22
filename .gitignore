@@ -1,7 +1,6 @@
 images/
 checkpoints/
 keras/
-*.png
 
 .ipynb_checkpoints/
 .mypy_cache/
