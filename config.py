@@ -69,6 +69,13 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
         type=float,
         parser=parser)
 
+    add_config_argument(
+        'nlayers',
+        1,
+        help='How many CNN layers the model should have.',
+        type=int,
+        parser=parser)
+
 
 def update_config_from_parsed_args(args):
     for field_name in _config_argparse_fields:
@@ -80,5 +87,4 @@ def update_config_from_parsed_args(args):
 # These options probably don't need to be set often.
 config.num_examples = 64
 config.batch_size = 64
-config.nlayers = 1
 config.nvaes = 2
