@@ -147,7 +147,30 @@ class SuperVAE(tf.keras.Model):
         return tape.gradient(loss, variables), loss
 
 
-    def fit(self, D_train: tf.data.Dataset):
+    @tf.function
+    def fit(self, X):
+        def partition_gradients(grads):
+            """ Returns the gradients for each VAE.
+            """
+            ret = []
+            at = 0
+            for i in range(self.nvaes):
+                nvars = len(self.vaes[i].get_trainable_variables())
+                cur_grads = grads[at : at + nvars]
+                ret.append(cur_grads)
+                at += nvars
+
+            assert len(grads) == len(self.get_trainable_variables())
+            assert at == len(grads)
+            assert len(ret) == self.nvaes
+            return ret
+        gradients, loss = self.compute_gradients(X)
+        grads_per_vae = partition_gradients(gradients)
+        self.apply_gradients(grads_per_vae)
+        return loss
+
+
+    def fit_on_dataset(self, D_train: tf.data.Dataset):
         def partition_gradients(grads):
             """ Returns the gradients for each VAE.
             """
@@ -171,12 +194,7 @@ class SuperVAE(tf.keras.Model):
                 config.batch_size, drop_remainder=True).prefetch(
                     16 * config.batch_size
                 ):
-            gradients, loss = self.compute_gradients(X)
-
-            grads_per_vae = partition_gradients(gradients)
-
-            self.apply_gradients(grads_per_vae)
-
+            loss = self.fit(X)
             train_loss += loss * X.shape[0]
             train_size += X.shape[0]
 

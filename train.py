@@ -38,7 +38,7 @@ def train_model(
     D_train, D_test = D
 
     def train_step():
-        train_loss = model.fit(D_train)
+        train_loss = model.fit_on_dataset(D_train)
         return train_loss
 
     def test_step():
