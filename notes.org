@@ -68,14 +68,22 @@
 
 * Current observations:
 ** Model almost working!
-   For params
-   ~! python3 train.py --name colab --beta 1 --gamma 0.005 --epochs 40 80 --latent_dim 8 --nlayers 3~
-   VAE_1 seems to 'barely' learn anything about zeroes, in that it draws much in a much uglier way than the 1's.
-   Furthermore, the confidences of VAE_1 for the zeroes are very very low (almost black).
-   This might mean two things:
-   1) The entropy loss is a little bit too high, and so VAE_1 is forced to learn about zeroes only to insure that
-      there is not too much entropy loss incurred.
-   2) VAE_1 has to much available entropy, and decided to spend some of it on the wrong digit.
-   #+CAPTION: Initial progress
-   #+attr_html: :width 700px
-   [[file:./_org_res/init_progress.png]]
+*** Gamma=0.005
+    ~! python3 train.py --name colab --beta 1 --gamma 0.005 --epochs 40 80 --latent_dim 8 --nlayers 3~
+    VAE_1 seems to 'barely' learn anything about zeroes, in that it draws much in a much uglier way than the 1's.
+    Furthermore, the confidences of VAE_1 for the zeroes are very very low (almost black).
+    This might mean two things:
+    1) The entropy loss is a little bit too high, and so VAE_1 is forced to learn about zeroes only to insure that
+       there is not too much entropy loss incurred.
+    2) VAE_1 has to much available entropy, and decided to spend some of it on the wrong digit.
+    #+CAPTION: Initial progress
+    #+attr_html: :width 700px
+    [[file:./_org_res/init_progress.png]]
+*** Gamma=0.0002
+    When gamma is too small, VAE_0 has very high confidences where there is a 0, as well as where there is nothing.
+    In accordance, VAE_1 either predicts 1's where they actually exist, or it puts a very low confidence very generic 0
+    everywhere else.
+    ~! python3 train.py --name colab --beta 1 --gamma 0.0002 --epochs 40 80 --latent_dim 8 --nlayers 3~
+    #+CAPTION: Gamma too small
+    #+attr_html: :width 700px
+    [[file:./_org_res/big_gamma_init_progress.png]]
