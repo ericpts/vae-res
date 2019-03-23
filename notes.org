@@ -63,7 +63,9 @@
    learn one single thing, and learn it well.
 ** After VAE_0 has learned its digit, find out the KL loss. Then try to force VAE_1 to have
    a similar KL loss, by using the Beta-VAE paper trick.
-
+** Add loss for generating images: if you decide to output a non-trivial pixel, then you should
+   be very confident in your prediction.
+   Another idea in a similar fashion: if you output an image but you have low confidence, don't even bother.
 
 
 * Current observations:
