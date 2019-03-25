@@ -44,7 +44,7 @@ class VAE(tf.keras.Model):
                     name=layer_name)(X)
 
                 X = keras.layers.BatchNormalization(axis=3)(X)
-                X = keras.layers.Activation('relu')(X)
+                X = keras.layers.Activation('selu')(X)
 
                 if not transp:
                     continue
@@ -74,20 +74,25 @@ class VAE(tf.keras.Model):
 
         X = self.convolutional_layers(False)(X)
 
-        X = keras.layers.Flatten()(X)
+        X = keras.layers.Flatten(name='flatten')(X)
 
-        # Here we use 2 * latent_dim, because each of the cells will represent a Gaussian dist.
-        X = keras.layers.Dense(latent_dim + latent_dim)(X)
+        X = keras.layers.Dense(64)(X)
 
-        model = keras.models.Model(inputs=inputs, outputs=X, name='Encoder')
+        mean = keras.layers.Dense(latent_dim)(X)
+        logvar = keras.layers.Dense(latent_dim)(X)
+
+        model = keras.models.Model(
+            inputs=inputs,
+            outputs=[mean, logvar],
+            name='Encoder')
         return model
 
     def decoder_network(self, latent_dim: int) -> tf.keras.Model:
-        first_shape = self.encoder.layers[-3].output_shape[1:]
+        first_shape = self.encoder.get_layer('flatten').input_shape[1:]
 
         inputs = keras.Input(shape=(latent_dim,))
         X = inputs
-        X = keras.layers.Dense(np.prod(first_shape), activation='relu')(X)
+        X = keras.layers.Dense(np.prod(first_shape), activation='selu')(X)
         X = keras.layers.Reshape(first_shape)(X)
 
         X = self.convolutional_layers(True)(X)
@@ -113,8 +118,7 @@ class VAE(tf.keras.Model):
 
 
     def encode(self, x):
-        latent_var = self.encoder(x)
-        (mean, logvar) = tf.split(latent_var, num_or_size_splits=2, axis=1)
+        (mean, logvar) = self.encoder(x)
         return (mean, logvar)
 
 

@@ -148,6 +148,11 @@ def main():
 
     model = SuperVAE(config.latent_dim, name=args.name)
 
+    model.model.summary()
+
+    model.vaes[0].encoder.summary()
+    model.vaes[0].decoder.summary()
+
     start_epoch = get_latest_epoch(model.name) + 1
     maybe_load_model_weights(model)
 
