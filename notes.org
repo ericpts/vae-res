@@ -73,6 +73,9 @@
    Another idea in a similar fashion: if you output an image but you have low confidence, don't even bother.
 ** Divide the KL-loss by the number of active VAE's.
    This way, when we active more of them, the new ones still have leftover capacity.
+** Add FC to end of encoder.
+   It seems that most models for CNN's have two FC's at the end: one with arbitrary size and one for the latent dimension.
+   It might be wise to also augment our model with two FC's instead of a single one.
 
 
 * Current observations:
