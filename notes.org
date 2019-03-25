@@ -66,6 +66,8 @@
 ** Add loss for generating images: if you decide to output a non-trivial pixel, then you should
    be very confident in your prediction.
    Another idea in a similar fashion: if you output an image but you have low confidence, don't even bother.
+** Sometimes models get stuck.
+   Occasionally, VAE_1 will not learn anything. As soon as it starts training, its KL-loss becomes 0 and stays 0.
 
 
 * Current observations:
