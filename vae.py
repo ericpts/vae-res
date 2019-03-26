@@ -44,7 +44,7 @@ class VAE(tf.keras.Model):
                     name=layer_name)(X)
 
                 X = keras.layers.BatchNormalization(axis=3)(X)
-                X = keras.layers.Activation('selu')(X)
+                X = keras.layers.Activation('relu')(X)
 
                 if not transp:
                     continue
@@ -92,7 +92,7 @@ class VAE(tf.keras.Model):
 
         inputs = keras.Input(shape=(latent_dim,))
         X = inputs
-        X = keras.layers.Dense(np.prod(first_shape), activation='selu')(X)
+        X = keras.layers.Dense(np.prod(first_shape), activation='relu')(X)
         X = keras.layers.Reshape(first_shape)(X)
 
         X = self.convolutional_layers(True)(X)
