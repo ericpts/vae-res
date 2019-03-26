@@ -34,8 +34,8 @@ def checkpoint_for_epoch(model_name: str, epoch: int) -> str:
 
 def make_plot(pictures):
     fig = plt.figure(figsize=(16, 16))
-    for i in range(8 * 8):
-        plt.subplot(8, 8, i + 1)
+    for i in range(4 * 4):
+        plt.subplot(4, 4, i + 1)
         plt.imshow(pictures[i, :, :, 0], cmap='gray')
         plt.axis('off')
 
@@ -56,21 +56,23 @@ def save_pictures(
     # import ipdb; ipdb.set_trace()
     fig = plt.figure(figsize=(16, 32))
     plt.subplots_adjust(
-        wspace = 0.4,
-        hspace = 0.4,
+        wspace=0.4,
+        hspace=0.4,
     )
-    for i in range(8 * 8):
+    for i in range(4 * 4):
 
-        plt.subplot(8, 8, i + 1)
+        plt.subplot(4, 4, i + 1)
 
-        to_show = np.vstack([
-            X_input[i, :, :, 0],
-            vae_softmax_confidences[0, i, :, :, 0],
-            vae_images[0, i, :,  :, 0],
-            vae_softmax_confidences[1, i, :, :, 0],
-            vae_images[1, i, :, :, 0],
-            X_output[i, :, :, 0],
-        ])
+        to_stack = []
+        to_stack.append(X_input[i, :, :, 0])
+
+        for v in range(config.nvaes):
+            to_stack.append(vae_softmax_confidences[v, i, :, :, 0])
+            to_stack.append(vae_images[v, i, :, :, 0])
+
+        to_stack.append(X_output[i, :, :, 0])
+
+        to_show = np.vstack(to_stack)
 
         plt.imshow(to_show, cmap='gray')
 

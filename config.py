@@ -42,15 +42,15 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'latent_dim',
-        2,
+        16,
         help='Size of the latent dimension.',
         type=int,
         parser=parser)
 
     add_config_argument(
         'epochs',
-        [20, 60],
-        help='How many epochs to train VAE_0 and VAE_1 for.',
+        [20, 60, 160],
+        help='How many epochs to train VAE_i for.',
         type=int,
         parser=parser,
         nargs='+')
@@ -64,14 +64,14 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'gamma',
-        1.0,
+        0.005,
         help='Entropy loss weight.',
         type=float,
         parser=parser)
 
     add_config_argument(
         'nlayers',
-        1,
+        2,
         help='How many CNN layers the model should have.',
         type=int,
         parser=parser)
@@ -85,6 +85,8 @@ def update_config_from_parsed_args(args):
 
 
 # These options probably don't need to be set often.
-config.num_examples = 64
+config.num_examples = 16
+
 config.batch_size = 64
-config.nvaes = 2
+
+config.nvaes = 3

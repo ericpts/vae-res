@@ -5,3 +5,5 @@ keras/
 .ipynb_checkpoints/
 .mypy_cache/
 logs/
+
+model_summary.txt

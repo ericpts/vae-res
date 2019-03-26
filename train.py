@@ -127,7 +127,7 @@ def main():
             return tf.math.reduce_any([tf.math.equal(y, d) for d in digits])
         return filter_fn
 
-    def with_digits(*digits):
+    def with_digits(digits):
         filter_fn = make_filter_fn(digits)
 
         D_train = D_init_train.filter(filter_fn)
@@ -148,25 +148,25 @@ def main():
 
     model = SuperVAE(config.latent_dim, name=args.name)
 
-    model.model.summary()
-
-    model.vaes[0].encoder.summary()
-    model.vaes[0].decoder.summary()
+    with open('model_summary.txt', 'wt') as f:
+        print_fn = lambda x : f.write(x + '\n')
+        model.model.summary(print_fn=print_fn)
+        model.vaes[0].encoder.summary(print_fn=print_fn)
+        model.vaes[0].decoder.summary(print_fn=print_fn)
 
     start_epoch = get_latest_epoch(model.name) + 1
     maybe_load_model_weights(model)
 
-    print('Training VAE_0 for digit 0')
-    model.unfreeze_vae(0)
-    model.freeze_vae(1)
-    train_model(model, with_digits(0), start_epoch, total_epochs=config.epochs[0])
-    start_epoch += config.epochs[0]
+    for i in range(config.nvaes):
+        model.freeze_vae(i)
 
-    print('Training frozen VAE_0 and live VAE_1 for digits 0, 1')
-    model.freeze_vae(0)
-    model.unfreeze_vae(1)
-    train_model(model, with_digits(0, 1), start_epoch, total_epochs=config.epochs[1])
-    start_epoch += config.epochs[1]
+    for i in range(config.nvaes):
+        print(f'Trainig VAE_{i} for digits up to {i}')
+        model.unfreeze_vae(i)
+        digits = list(range(i + 1))
+        train_model(model, with_digits(digits), start_epoch, total_epochs=config.epochs[i])
+        model.freeze_vae(i)
+        start_epoch += config.epochs[i]
 
 
 if __name__ == '__main__':
