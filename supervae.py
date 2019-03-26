@@ -2,6 +2,7 @@ import tensorflow.keras as keras
 import tensorflow as tf
 import time
 from config import *
+import numpy as np
 
 from vae import VAE
 
@@ -23,7 +24,7 @@ class SuperVAE(tf.keras.Model):
             VAE(latent_dim, 'VAE-{}'.format(i)) for i in range(self.nvaes)
         ]
 
-        self.vae_is_learning = {i: True for i in range(self.nvaes)}
+        self.vae_is_learning = np.array([True for i in range(self.nvaes)])
 
         vae_images = []
         vae_confidences = []
@@ -59,11 +60,11 @@ class SuperVAE(tf.keras.Model):
 
 
     def unfreeze_vae(self, i: int):
-        assert i in self.vae_is_learning
+        assert 0 <= i and i < self.nvaes
         self.vae_is_learning[i] = True
 
     def freeze_vae(self, i: int):
-        assert i in self.vae_is_learning
+        assert 0 <= i and i < self.nvaes
         self.vae_is_learning[i] = False
 
 
@@ -124,19 +125,15 @@ class SuperVAE(tf.keras.Model):
         return self.model.trainable_variables
 
 
-    def apply_gradients(self, grads_per_vae):
+    @tf.function
+    def apply_gradients(self, vae_is_learning, grads_per_vae):
         for i in range(self.nvaes):
-            optimizer = None
-            if self.vae_is_learning[i]:
-                optimizer = self.fast_optimizer
+            grads = grads_per_vae[i]
+            vars = self.vaes[i].get_trainable_variables()
+            if vae_is_learning[i]:
+                self.fast_optimizer.apply_gradients(zip(grads, vars))
             else:
-                optimizer = self.slow_optimizer
-            optimizer.apply_gradients(
-                    zip(
-                        grads_per_vae[i],
-                        self.vaes[i].get_trainable_variables()
-                        )
-                    )
+                self.slow_optimizer.apply_gradients(zip(grads, vars))
 
 
     @tf.function
@@ -147,7 +144,8 @@ class SuperVAE(tf.keras.Model):
         return tape.gradient(loss, variables), loss
 
 
-    def fit(self, X):
+    @tf.function
+    def fit(self, X, vae_is_learning):
         def partition_gradients(grads):
             """ Returns the gradients for each VAE.
             """
@@ -165,7 +163,7 @@ class SuperVAE(tf.keras.Model):
             return ret
         gradients, loss = self.compute_gradients(X)
         grads_per_vae = partition_gradients(gradients)
-        self.apply_gradients(grads_per_vae)
+        self.apply_gradients(vae_is_learning, grads_per_vae)
         return loss
 
 
@@ -193,7 +191,7 @@ class SuperVAE(tf.keras.Model):
                 config.batch_size, drop_remainder=True).prefetch(
                     16 * config.batch_size
                 ):
-            loss = self.fit(X)
+            loss = self.fit(X, self.vae_is_learning)
             train_loss += loss * X.shape[0]
             train_size += X.shape[0]
 
