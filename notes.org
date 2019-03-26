@@ -50,37 +50,6 @@
    This should have the effect that it does not even have the chance to learn what a 0 is.
    A: This is not that useful, because residuals impose a sequence-dependence on the order of learning.
 
-* Current issues
-** VAE_1 may collapse.
-   Occasionally, VAE_1 will not learn anything. As soon as it starts training, its KL-loss becomes 0 and stays 0.
-   This may be because the KL loss for VAE_0 will be fixed and cannot change, and hence maybe not much is left
-   over for VAE_1.
-
-   One issue: depending on \Beta, maybe VAE_0 "gobbles up" all of the available information.
-   This way, when VAE_1 starts learning, it cannot learn anything because doing so would
-   incur a pretty hefty KL-loss penalty.
-
-   See this paper https://arxiv.org/pdf/1808.04947.pdf for possible solutions.
-
-
-
-* Outstanding ideas
-** Decrease Gamma and increase the KL-loss while training VAE_1, in order to encourage it to
-   learn one single thing, and learn it well.
-   However, since VAE_0 is not learning anything anymore, maybe we should also decrease the KL-loss weight.
-** After VAE_0 has learned its digit, find out the KL loss. Then try to force VAE_1 to have
-   a similar KL loss, by using the Beta-VAE paper trick.
-** Add loss for generating images: if you decide to output a non-trivial pixel, then you should
-   be very confident in your prediction.
-   Another idea in a similar fashion: if you output an image but you have low confidence, don't even bother.
-** Divide the KL-loss by the number of active VAE's.
-   This way, when we active more of them, the new ones still have leftover capacity.
-** Add FC to end of encoder.
-   It seems that most models for CNN's have two FC's at the end: one with arbitrary size and one for the latent dimension.
-   It might be wise to also augment our model with two FC's instead of a single one.
-
-
-* Current observations:
 ** Model almost working!
 *** Gamma=0.005
     ~! python3 train.py --name colab --beta 1 --gamma 0.005 --epochs 40 80 --latent_dim 8 --nlayers 3~
@@ -101,3 +70,42 @@
     #+CAPTION: Gamma too small
     #+attr_html: :width 700px
     [[file:./_org_res/big_gamma_init_progress.png]]
+
+
+* Current issues
+** VAE_1 may collapse.
+   Occasionally, VAE_1 will not learn anything. As soon as it starts training, its KL-loss becomes 0 and stays 0.
+   This may be because the KL loss for VAE_0 will be fixed and cannot change, and hence maybe not much is left
+   over for VAE_1.
+
+   One issue: depending on \Beta, maybe VAE_0 "gobbles up" all of the available information.
+   This way, when VAE_1 starts learning, it cannot learn anything because doing so would
+   incur a pretty hefty KL-loss penalty.
+
+   See this paper https://arxiv.org/pdf/1808.04947.pdf for possible solutions.
+
+
+
+* Stashed ideas
+** Decrease Gamma and increase the KL-loss while training VAE_1,
+   in order to encourage it to learn one single thing, and learn it well.
+   However, since VAE_0 is not learning anything anymore, maybe we should also decrease the KL-loss weight.
+** After VAE_0 has learned its digit, find out the KL loss. Then try to force VAE_1 to have
+   a similar KL loss, by using the Beta-VAE paper trick.
+** Add loss for generating images: if you decide to output a non-trivial pixel, then you should
+   be very confident in your prediction.
+   Another idea in a similar fashion: if you output an image but you have low confidence, don't even bother.
+** Divide the KL-loss by the number of active VAE's.
+   This way, when we active more of them, the new ones still have leftover capacity.
+** Add FC to end of encoder.
+   It seems that most models for CNN's have two FC's at the end: one with arbitrary size and one for the latent dimension.
+   It might be wise to also augment our model with two FC's instead of a single one.
+
+
+* Outstanding ideas
+
+
+* Next issues
+** Plot KL for fixed image, to see if it activated or not.
+** Scale to harder problems:
+*** Have more digits.
