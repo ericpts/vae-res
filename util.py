@@ -53,7 +53,6 @@ def save_pictures(
     assert vae_images.shape[0] == config.nvaes
     assert vae_images.shape[1] == config.num_examples
 
-    # import ipdb; ipdb.set_trace()
     fig = plt.figure(figsize=(16, 32))
     plt.subplots_adjust(
         wspace=0.4,
@@ -122,7 +121,6 @@ def combine_into_windows(
         img_name: str) -> tf.data.Dataset:
     k = config.expand_per_width * config.expand_per_height
     D = D.repeat(k)
-    D = D.shuffle(2**20)
     D = D.batch(k, drop_remainder=True)
 
     def map_fn(X, y):
