@@ -49,7 +49,7 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'epochs',
-        [20, 60, 160],
+        None,
         help='How many epochs to train VAE_i for.',
         type=int,
         parser=parser,
@@ -89,4 +89,4 @@ config.num_examples = 16
 
 config.batch_size = 64
 
-config.nvaes = 3
+config.nvaes = 6

@@ -146,6 +146,14 @@ def main():
 
     update_config_from_parsed_args(args)
 
+    if config.epochs is None:
+        config.epochs =[
+            60 * (i + 1)
+            for i in range(config.nvaes)
+        ]
+
+    print(f'Using {config.nvaes} VAEs')
+
     model = SuperVAE(config.latent_dim, name=args.name)
 
     with open('model_summary.txt', 'wt') as f:

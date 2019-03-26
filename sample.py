@@ -15,20 +15,18 @@ def main():
         required=True,
         help='Name of the model to sample from.')
     parser.add_argument(
-        '--sample-from-vaes',
+        '--digits',
         type=int,
         nargs='+',
-        help='Which VAE\'s to sample from.')
+        help='Digits the picture should contain.')
+
     args = parser.parse_args()
 
     model = SuperVAE(config.latent_dim, name=args.name)
     model.load_weights(
         checkpoint_for_epoch(model.name, get_latest_epoch(model.name)))
 
-    vaes_to_use = args.sample_from_vaes
-
-    pictures = model.sample(random_vector_for_gen, vaes_to_use=vaes_to_use)
-    save_pictures(pictures, file_name='sample_from_{}.png'.format(model.name))
+    (D_init_train, D_init_test, image_size, train_size, test_size) = load_data()
 
 
 if __name__ == '__main__':
