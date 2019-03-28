@@ -174,7 +174,7 @@ def main():
         digits = list(range(i + 1))
         train_model(model, with_digits(digits), start_epoch, total_epochs=config.epochs[i])
         model.freeze_vae(i)
-        start_epoch += config.epochs[i]
+        start_epoch = max(start_epoch, config.epochs[i] + 1)
 
 
 if __name__ == '__main__':
