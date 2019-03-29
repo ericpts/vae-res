@@ -89,4 +89,4 @@ config.num_examples = 16
 
 config.batch_size = 64
 
-config.nvaes = 6
+config.nvaes = 3
