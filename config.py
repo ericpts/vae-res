@@ -76,6 +76,13 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
         type=int,
         parser=parser)
 
+    add_config_argument(
+        'nvaes',
+        3,
+        help='How many VAEs the module should include.',
+        type=int,
+        parser=parser)
+
 
 def update_config_from_parsed_args(args):
     for field_name in _config_argparse_fields:
@@ -88,5 +95,3 @@ def update_config_from_parsed_args(args):
 config.num_examples = 16
 
 config.batch_size = 64
-
-config.nvaes = 3
