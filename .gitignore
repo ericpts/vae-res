@@ -6,4 +6,4 @@ keras/
 .mypy_cache/
 logs/
 
-model_summary.txt
+_others/

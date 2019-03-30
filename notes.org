@@ -85,6 +85,9 @@
    See this paper https://arxiv.org/pdf/1808.04947.pdf for possible solutions.
 
 
+** Vanishing gradients
+   It seems that when training multiple VAE's, eventually we run into the problem of vanishing gradients.
+   Possible solutions: different activations?
 
 * Stashed ideas
 ** Decrease Gamma and increase the KL-loss while training VAE_1,
