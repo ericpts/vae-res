@@ -45,10 +45,10 @@ class VAE(tf.keras.Model):
                     strides=2,
                     padding='same',
                     name=layer_name,
-                    activation='selu',
+                    activation='relu',
                 )(X)
 
-                # X = keras.layers.BatchNormalization(axis=3)(X)
+                X = keras.layers.BatchNormalization(axis=3)(X)
 
                 if not transp:
                     continue
