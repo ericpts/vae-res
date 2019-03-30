@@ -146,9 +146,11 @@ def main():
 
     update_config_from_parsed_args(args)
 
+    # We want the epochs to look like
+    # 30, 50, 70, and so on.
     if config.epochs is None:
         config.epochs =[
-            60 * (i + 1)
+            30 + 20 * i
             for i in range(config.nvaes)
         ]
 
@@ -168,13 +170,20 @@ def main():
     for i in range(config.nvaes):
         model.freeze_vae(i)
 
+    epochs_so_far = 0
     for i in range(config.nvaes):
         print(f'Trainig VAE_{i} for digits up to {i}')
         model.unfreeze_vae(i)
         digits = list(range(i + 1))
-        train_model(model, with_digits(digits), start_epoch, total_epochs=config.epochs[i])
+        train_model(
+            model,
+            with_digits(digits),
+            start_epoch,
+            total_epochs=epochs_so_far + config.epochs[i]
+        )
         model.freeze_vae(i)
         start_epoch = max(start_epoch, config.epochs[i] + 1)
+        epochs_so_far += config.epochs[i]
 
 
 if __name__ == '__main__':
