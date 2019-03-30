@@ -93,8 +93,16 @@ class SuperVAE(tf.keras.Model):
 
         loss_object = tf.keras.losses.MeanSquaredError()
         recall_loss = 0.0
+
         for i in range(self.nvaes):
             cur_loss = loss_object(x, vae_images[i], sample_weight=softmax_confidences[i])
+
+            tf.summary.scalar(
+                f'recall_loss_vae_{i}',
+                cur_loss,
+                step=None
+            )
+
             recall_loss += cur_loss
         recall_loss /= self.nvaes
         recall_loss *= 28 * 28 * config.expand_per_width * config.expand_per_height
@@ -110,10 +118,17 @@ class SuperVAE(tf.keras.Model):
 
         ent_loss = self.entropy_loss(softmax_confidences)
 
+        # for i in range(self.nvaes):
+        #     tf.summary.histogram(
+        #         f'softmax_confidences_vae_{i}',
+        #         softmax_confidences[i],
+        #         step=None
+        #     )
+
         tf.summary.scalar('ent_loss', tf.math.reduce_mean(config.gamma * ent_loss),
                           step=None)
 
-        tf.summary.scalar('recall_loss', recall_loss,
+        tf.summary.scalar('total_recall_loss', recall_loss,
                           step=None)
 
         vae_loss = tf.math.reduce_mean(
@@ -161,6 +176,14 @@ class SuperVAE(tf.keras.Model):
             return ret
         gradients, loss = self.compute_gradients(X)
         grads_per_vae = partition_gradients(gradients)
+
+        # for i in range(self.nvaes):
+        #     tf.summary.histogram(
+        #         f'grads_per_vae_{i}'.
+        #         grads_per_vae[i],
+        #         step=None
+        #     )
+
         self.apply_gradients(vae_is_learning, grads_per_vae)
         return loss
 

@@ -32,7 +32,10 @@ class VAE(tf.keras.Model):
             X = inputs
 
             for i in range(self.nlayers):
-                layer_name = 'layer-{}'.format(i)
+                if not transp:
+                    layer_name = f'conv-layer-{i}'
+                else:
+                    layer_name = f'transp-conv-layer-{i}'
 
                 nfilters = layer_sizes[i]
 
@@ -41,15 +44,16 @@ class VAE(tf.keras.Model):
                     kernel_size=3,
                     strides=2,
                     padding='same',
-                    name=layer_name)(X)
+                    name=layer_name,
+                    activation='selu',
+                )(X)
 
-                X = keras.layers.Activation('relu')(X)
-                X = keras.layers.BatchNormalization(axis=3)(X)
+                # X = keras.layers.BatchNormalization(axis=3)(X)
 
                 if not transp:
                     continue
 
-                transp_layer_name = 'layer-{}'.format(self.nlayers - i - 1)
+                transp_layer_name = 'conv-layer-{}'.format(self.nlayers - i - 1)
                 X_transp = self.encoder.get_layer(transp_layer_name)
 
                 desired_shape = X_transp.input_shape[1:-1]
@@ -74,9 +78,9 @@ class VAE(tf.keras.Model):
 
         X = self.convolutional_layers(False)(X)
 
-        X = keras.layers.Flatten(name='flatten')(X)
+        X = keras.layers.Flatten(name='encoder-flatten')(X)
 
-        X = keras.layers.Dense(64)(X)
+        X = keras.layers.Dense(32, name='encoder-last-fc')(X)
 
         mean = keras.layers.Dense(latent_dim)(X)
         logvar = keras.layers.Dense(latent_dim)(X)
@@ -84,15 +88,18 @@ class VAE(tf.keras.Model):
         model = keras.models.Model(
             inputs=inputs,
             outputs=[mean, logvar],
-            name='Encoder')
+            name='encoder')
         return model
 
     def decoder_network(self, latent_dim: int) -> tf.keras.Model:
-        first_shape = self.encoder.get_layer('flatten').input_shape[1:]
+        first_shape = self.encoder.get_layer('encoder-flatten').input_shape[1:]
 
         inputs = keras.Input(shape=(latent_dim,))
         X = inputs
-        X = keras.layers.Dense(np.prod(first_shape), activation='relu')(X)
+        X = keras.layers.Dense(
+            np.prod(first_shape),
+            activation='relu',
+            name='decoder-first-fc')(X)
         X = keras.layers.Reshape(first_shape)(X)
 
         X = self.convolutional_layers(True)(X)
@@ -102,13 +109,16 @@ class VAE(tf.keras.Model):
             kernel_size=3,
             activation='sigmoid',
             padding='same',
-            name='image')(X)
+            name='decoder-image')(X)
 
         confidence = keras.layers.Conv2DTranspose(
-            filters=1, kernel_size=3, padding='same', name='confidence')(X)
+            filters=1,
+            kernel_size=3,
+            padding='same',
+            name='decoder-raw-confidence')(X)
 
         model = keras.models.Model(
-            inputs=inputs, outputs=[img, confidence], name='Decoder')
+            inputs=inputs, outputs=[img, confidence], name='decoder')
 
         return model
 
