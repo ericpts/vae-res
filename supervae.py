@@ -118,12 +118,12 @@ class SuperVAE(tf.keras.Model):
 
         ent_loss = self.entropy_loss(softmax_confidences)
 
-        # for i in range(self.nvaes):
-        #     tf.summary.histogram(
-        #         f'softmax_confidences_vae_{i}',
-        #         softmax_confidences[i],
-        #         step=None
-        #     )
+        for i in range(self.nvaes):
+            tf.summary.histogram(
+                f'softmax_confidences_vae_{i}',
+                softmax_confidences[i],
+                step=None
+            )
 
         tf.summary.scalar('ent_loss', tf.math.reduce_mean(config.gamma * ent_loss),
                           step=None)
@@ -177,12 +177,22 @@ class SuperVAE(tf.keras.Model):
         gradients, loss = self.compute_gradients(X)
         grads_per_vae = partition_gradients(gradients)
 
-        # for i in range(self.nvaes):
-        #     tf.summary.histogram(
-        #         f'grads_per_vae_{i}'.
-        #         grads_per_vae[i],
-        #         step=None
-        #     )
+        for i in range(self.nvaes):
+            for (grad, var) in zip(
+                    grads_per_vae[i],
+                    self.vaes[i].get_trainable_variables()):
+
+                tf.summary.histogram(
+                    f'grads_per_vae_{i}_weight_{var.name}',
+                    grad,
+                    step=None
+                )
+
+                tf.summary.histogram(
+                    f'gvae_{i}_weight_{var.name}',
+                    var,
+                    step=None
+                )
 
         self.apply_gradients(vae_is_learning, grads_per_vae)
         return loss
