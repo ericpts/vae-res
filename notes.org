@@ -97,6 +97,15 @@
    VAE's who get a chance to up their confidences really really high.
 
 
+** Network architecture wild variations
+  | Exp. no. | ReLU / SeLU | Before/After BN | FC at end | Collapse? | Folder |
+  |----------+-------------+-----------------+-----------+-----------+--------|
+  |        1 | ReLU        | After           | No        | Yes       | [[file:/home/ericpts/research/cluster/home/ericst/experiment_1/vae-res-relu_after_bn_no_fc_2_vaes-31-03-2019=11-28-07][here]]   |
+  |        1 | ReLU        | After           | Yes       | Yes       | [[file:/home/ericpts/research/cluster/home/ericst/experiment_1/vae-res-relu_after_bn_sanity_check-31-03-2019=11-21-05][here]]   |
+  |        1 | ReLU        | Before          | Yes       | No        | [[file:/home/ericpts/research/cluster/home/ericst/experiment_1/vae-res-relu_before_bn_consistency-31-03-2019=11-24-59][here]]   |
+  |        1 | ReLU        | Before          | No        | Yes       | [[file:/home/ericpts/research/cluster/home/ericst/experiment_1/vae-res-relu_before_bn_no_fc_at_end-31-03-2019=11-25-55][here]]   |
+
+
 * Stashed ideas
 ** Decrease Gamma and increase the KL-loss while training VAE_1,
    in order to encourage it to learn one single thing, and learn it well.

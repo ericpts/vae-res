@@ -9,7 +9,7 @@ read -p "Enter experiment description: " desc
 
 remote_dir="vae-res-${expname}-${dt}"
 
-rsync -rav -R **/*py preq.sh ericst@login.leonhard.ethz.ch:~/${remote_dir}
+rsync -rav -R **/*py *sh ericst@login.leonhard.ethz.ch:~/${remote_dir}
 
 ssh ericst@login.leonhard.ethz.ch <<EOF
 cd ${remote_dir}
