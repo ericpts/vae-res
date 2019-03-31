@@ -77,14 +77,16 @@
 ** Network Architecture results
     | ReLU / SeLU | Act. before/after BN | FC at end | Works?      |
     |-------------+----------------------+-----------+-------------|
-    | ReLU        | Before               | No        | Yes         |
-    | ReLU        | Before               | Yes       | 1 Yes, 1 No |
+    | ReLU        | Before               | No        | 5 Yes, 0 No |
+    | ReLU        | Before               | Yes       | 3 Yes, 1 No |
     | SeLU        | No BN                | Yes       | Yes         |
     | SeLU        | No BN                | No        | Yes         |
     | ReLU        | After                | No        | No          |
     | ReLU        | After                | Yes       | No          |
     | ReLU        | No                   | ?         | No          |
 
+    As a result, there is a single architecture which seems most likely to work:
+    ReLU, act. before BN, no FC at the end.
 
 
 ** VAE_1 may collapse.
