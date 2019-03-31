@@ -89,6 +89,14 @@
    It seems that when training multiple VAE's, eventually we run into the problem of vanishing gradients.
    Possible solutions: different activations?
 
+** Collapsing becomes a big issue when training with multiple VAE's.
+   Since it happens randomly also with only 2, that should hopefully be solved before we start doing anything else.
+
+** Add batch normalization to the confidence values for each VAE.
+   This way all VAE's will produce confidences within the same ballpark values, so there is no more overpowering by the early
+   VAE's who get a chance to up their confidences really really high.
+
+
 * Stashed ideas
 ** Decrease Gamma and increase the KL-loss while training VAE_1,
    in order to encourage it to learn one single thing, and learn it well.
