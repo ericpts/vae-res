@@ -2,19 +2,64 @@
 
 shopt -s globstar
 
-dt=$(date '+%d-%m-%Y=%H-%M-%S')
+runs=1
 
-read -p "Enter experiment name: " expname
-read -p "Enter experiment description: " desc
+function print_help() {
+    echo "Usage: $0 [args]"
+    echo "-r|--run runs: specify how many times to rerun the model. This is useful for consistency checking."
+}
 
-remote_dir="vae-res-${expname}-${dt}"
+function parse_args() {
+    while [ $# -gt 0 ]; do
+        key="$1"
+        shift
+        case "$key" in
+            -h|--help)
+                print_help
+                exit 0
+                ;;
+            -r|--runs)
+                runs="$1"
+                shift
+                ;;
+            *)
+                echo "Unrecognized option: ${key}"
+                print_help
+                exit -1
+        esac
+    done
+}
 
-rsync -rav -R **/*py preq.sh ericst@login.leonhard.ethz.ch:~/${remote_dir}
+function get_experiment_data() {
+    dt=$(date '+%d-%m-%Y=%H-%M-%S')
 
-ssh ericst@login.leonhard.ethz.ch <<EOF
+    read -p "Enter experiment name: " expname
+    read -p "Enter experiment description: " desc
+}
+
+function load_files_onto_remote() {
+    rsync -rav -R **/*py *.sh ericst@login.leonhard.ethz.ch:~/${remote_dir}
+}
+
+
+function run_experiment() {
+    load_files_onto_remote
+
+    ssh ericst@login.leonhard.ethz.ch <<EOF
 cd ${remote_dir}
 echo "${expname}" > experiment_name.txt
 echo "${desc}$" > experiment_desc.txt
 bsub -W 8:00 -n 4 -R "rusage[mem=4000,ngpus_excl_p=1]" "python3 train.py --name leonhard"
 EOF
+}
 
+parse_args $@
+
+get_experiment_data
+
+for r in $(seq 1 ${runs}); do
+    remote_dir="${expname}-exp-run-${r}-${dt}"
+    echo $r;
+done
+
+run_experiment

@@ -73,6 +73,21 @@
 
 
 * Current issues
+
+** Network Architecture results
+    | ReLU / SeLU | Act. before/after BN | FC at end | Works?      |
+    |-------------+----------------------+-----------+-------------|
+    | ReLU        | Before               | No        | Yes         |
+    | ReLU        | Before               | Yes       | 1 Yes, 1 No |
+    | SeLU        | No BN                | Yes       | Yes         |
+    | SeLU        | No BN                | No        | Yes         |
+    | ReLU        | After                | No        | No          |
+    | ReLU        | After                | Yes       | No          |
+    | ReLU        | Before               |           |             |
+    | ReLU        | No                   | ?         | No          |
+
+
+
 ** VAE_1 may collapse.
    Occasionally, VAE_1 will not learn anything. As soon as it starts training, its KL-loss becomes 0 and stays 0.
    This may be because the KL loss for VAE_0 will be fixed and cannot change, and hence maybe not much is left
