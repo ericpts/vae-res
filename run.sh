@@ -2,7 +2,7 @@
 
 shopt -s globstar
 
-dt=$(date '+%d-%m-%Y=%H-%M-%S')
+dt=$(date '+%d-%m-%Y-%H-%M-%S')
 
 read -p "Enter experiment name: " expname
 read -p "Enter experiment description: " desc
