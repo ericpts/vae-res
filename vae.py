@@ -45,10 +45,10 @@ class VAE(tf.keras.Model):
                     strides=2,
                     padding='same',
                     name=layer_name,
-                    activation='relu',
+                    activation='selu',
                 )(X)
 
-                X = keras.layers.BatchNormalization(axis=3)(X)
+                # X = keras.layers.BatchNormalization(axis=3)(X)
 
                 if not transp:
                     continue
@@ -80,7 +80,7 @@ class VAE(tf.keras.Model):
 
         X = keras.layers.Flatten(name='encoder-flatten')(X)
 
-        X = keras.layers.Dense(32, name='encoder-last-fc')(X)
+        # X = keras.layers.Dense(32, name='encoder-last-fc')(X)
 
         mean = keras.layers.Dense(latent_dim)(X)
         logvar = keras.layers.Dense(latent_dim)(X)
