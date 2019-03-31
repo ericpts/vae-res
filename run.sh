@@ -57,6 +57,6 @@ get_experiment_data
 
 for r in $(seq 1 ${runs}); do
     echo "Launching run nr. ${r}"
-    remote_dir="${expname}_run-${r}"
+    remote_dir="experiments/${expname}_run-${r}"
     run_experiment
 done
