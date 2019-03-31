@@ -78,7 +78,7 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'nvaes',
-        3,
+        2,
         help='How many VAEs the module should include.',
         type=int,
         parser=parser)
