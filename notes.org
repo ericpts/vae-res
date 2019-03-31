@@ -83,7 +83,6 @@
     | SeLU        | No BN                | No        | Yes         |
     | ReLU        | After                | No        | No          |
     | ReLU        | After                | Yes       | No          |
-    | ReLU        | Before               |           |             |
     | ReLU        | No                   | ?         | No          |
 
 
