@@ -31,8 +31,6 @@ function parse_args() {
 }
 
 function get_experiment_data() {
-    dt=$(date '+%d-%m-%Y=%H-%M-%S')
-
     read -p "Enter experiment name: " expname
     read -p "Enter experiment description: " desc
 }
@@ -58,8 +56,7 @@ parse_args $@
 get_experiment_data
 
 for r in $(seq 1 ${runs}); do
-    remote_dir="${expname}-exp-run-${r}-${dt}"
-    echo $r;
+    echo "Launching run nr. ${r}"
+    remote_dir="${expname}_run-${r}"
+    run_experiment
 done
-
-run_experiment
