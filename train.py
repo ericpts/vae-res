@@ -175,15 +175,17 @@ def main():
         print(f'Trainig VAE_{i} for digits up to {i}')
         model.unfreeze_vae(i)
         digits = list(range(i + 1))
+
+        end_epoch = epochs_so_far + config.epochs[i]
         train_model(
             model,
             with_digits(digits),
             start_epoch,
-            total_epochs=epochs_so_far + config.epochs[i]
+            total_epochs=end_epoch
         )
         model.freeze_vae(i)
-        start_epoch = max(start_epoch, config.epochs[i] + 1)
-        epochs_so_far += config.epochs[i]
+        start_epoch = max(start_epoch, end_epoch + 1)
+        epochs_so_far = end_epoch
 
 
 if __name__ == '__main__':
