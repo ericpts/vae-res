@@ -57,14 +57,14 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'beta',
-        1.0,
+        2.0,
         help='KL loss weight.',
         type=float,
         parser=parser)
 
     add_config_argument(
         'gamma',
-        0.005,
+        0.002,
         help='Entropy loss weight.',
         type=float,
         parser=parser)

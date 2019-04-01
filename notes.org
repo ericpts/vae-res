@@ -78,14 +78,14 @@
    These are all done with ReLU before BN, with no FC.
   | Beta |  Gamma | Good?         | Obs.                     |
   |------+--------+---------------+--------------------------|
-  |  1.0 | 0.0001 | 2 bad         | All white.               |
   |  1.0 | 0.0005 | 1 good, 1 bad | In bad, VAE_0 dominates. |
+  |  2.0 |  0.001 | 1 good, 1 bad | In bad, VAE_0 dominates. |
+  |  2.0 |  0.005 | 1 good, 1 bad | In bad, VAE_1 collapses. |
+  |  1.0 | 0.0001 | 2 bad         | All white.               |
   |  1.0 |  0.001 | 2 bad         |                          |
   |  1.0 |  0.005 | 2 bad         |                          |
   |  2.0 | 0.0001 | 2 bad         | All white.               |
   |  2.0 | 0.0005 | 2 bad         | VAE_0 too confident      |
-  |  2.0 |  0.001 | 1 good, 1 bad | In bad, VAE_0 dominates. |
-  |  2.0 |  0.005 | 1 good, 1 bad | In bad, VAE_1 collapses. |
 
 
 ** Network Architecture results
