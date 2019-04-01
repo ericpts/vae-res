@@ -81,7 +81,7 @@ class VAE(tf.keras.Model):
         X = keras.layers.Flatten(name='encoder-flatten')(X)
 
         # Empirically, having a FC at the end has given very bad performance.
-        # X = keras.layers.Dense(32, name='encoder-last-fc')(X)
+        X = keras.layers.Dense(64, name='encoder-last-fc')(X)
 
         mean = keras.layers.Dense(latent_dim)(X)
         logvar = keras.layers.Dense(latent_dim)(X)
