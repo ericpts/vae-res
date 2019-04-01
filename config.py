@@ -64,7 +64,7 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'gamma',
-        0.002,
+        0.001,
         help='Entropy loss weight.',
         type=float,
         parser=parser)

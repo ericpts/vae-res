@@ -94,18 +94,17 @@ class SuperVAE(tf.keras.Model):
         loss_object = tf.keras.losses.MeanSquaredError()
         recall_loss = 0.0
 
-        for i in range(self.nvaes):
-            cur_loss = loss_object(x, vae_images[i], sample_weight=softmax_confidences[i])
+        recall_loss_coef = 28 * 28 * config.expand_per_width * config.expand_per_height
 
+        for i in range(self.nvaes):
+            cur_loss = loss_object(x, vae_images[i], sample_weight=softmax_confidences[i]) * recall_loss_coef
             tf.summary.scalar(
                 f'recall_loss_vae_{i}',
                 cur_loss,
                 step=None
             )
-
             recall_loss += cur_loss
         recall_loss /= self.nvaes
-        recall_loss *= 28 * 28 * config.expand_per_width * config.expand_per_height
 
         kl_loss = 0.0
         for ivae, nvae in enumerate(self.vaes):
