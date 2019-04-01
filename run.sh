@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+set -e
 shopt -s globstar
 
 runs=1
@@ -58,6 +60,10 @@ function load_files_onto_remote() {
 
 
 function run_experiment() {
+    ssh ericst@login.leonhard.ethz.ch <<EOF
+mkdir -p ${remote_dir}
+EOF
+
     load_files_onto_remote
 
     ssh ericst@login.leonhard.ethz.ch <<EOF
