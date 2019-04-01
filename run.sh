@@ -3,10 +3,14 @@
 shopt -s globstar
 
 runs=1
+expname=""
+desc=""
 
 function print_help() {
     echo "Usage: $0 [args]"
     echo "-r|--run runs: specify how many times to rerun the model. This is useful for consistency checking."
+    echo "-n|--name expname: specify the name of the experiment."
+    echo "-d|--desc desc: specify a description for the experiment"
 }
 
 function parse_args() {
@@ -22,6 +26,14 @@ function parse_args() {
                 runs="$1"
                 shift
                 ;;
+            -n|--name)
+                expname="$1"
+                shift
+                ;;
+            -d|--desc)
+                desc="$1"
+                shift
+                ;;
             *)
                 echo "Unrecognized option: ${key}"
                 print_help
@@ -31,8 +43,13 @@ function parse_args() {
 }
 
 function get_experiment_data() {
-    read -p "Enter experiment name: " expname
-    read -p "Enter experiment description: " desc
+    if [ "$expname" = "" ]; then
+        read -p "Enter experiment name: " expname
+    fi
+
+    if [ "$desc" = "" ]; then
+        read -p "Enter experiment description: " desc
+    fi
 }
 
 function load_files_onto_remote() {
@@ -57,6 +74,6 @@ get_experiment_data
 
 for r in $(seq 1 ${runs}); do
     echo "Launching run nr. ${r}"
-    remote_dir="experiments/${expname}_run-${r}"
+    remote_dir="experiments/${expname}/run-${r}"
     run_experiment
 done
