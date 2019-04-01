@@ -50,12 +50,31 @@ def train_model(
                         config.num_examples):
             (softmax_confidences, vae_images) = model.run_on_input(X)
             X_output = tf.reduce_sum(softmax_confidences * vae_images, axis=0)
-            fname = 'images/{}/image_at_epoch_{}.png'.format(model.name, epoch)
-
             imgs = (X, softmax_confidences, vae_images, X_output)
-            save_pictures(X, softmax_confidences, vae_images, X_output, fname)
 
         return test_loss, imgs
+
+    def save_test_pictures(test_imgs, epoch):
+        (X, softmax_confidences, vae_images, X_output) = test_imgs
+        fname = 'images/{}/image_at_epoch_{}.png'.format(model.name, epoch)
+
+        imgs = (X, softmax_confidences, vae_images, X_output)
+        save_pictures(X, softmax_confidences, vae_images, X_output, fname)
+
+        max_outputs = 4
+        tf.summary.image('Input', X, max_outputs=max_outputs, step=None)
+
+        for ivae in range(config.nvaes):
+            tf.summary.image(f'VAE_{ivae}_softmax_confidences',
+                            softmax_confidences[ivae],
+                            step=None,
+                            max_outputs=max_outputs)
+            tf.summary.image(f'VAE_{ivae}_images',
+                            vae_images[ivae],
+                            step=None,
+                            max_outputs=max_outputs)
+
+        tf.summary.image('Output', X_output, max_outputs=max_outputs, step=None)
 
 
     bar = tf.keras.utils.Progbar(total_epochs)
@@ -75,22 +94,7 @@ def train_model(
             tf.summary.scalar('loss', test_loss, step=None)
 
             if epoch % 10 == 0:
-                (X, softmax_confidences, vae_images, X_output) = test_imgs
-
-                max_outputs = 4
-                tf.summary.image('Input', X, max_outputs=max_outputs, step=None)
-
-                for ivae in range(config.nvaes):
-                    tf.summary.image(f'VAE_{ivae}_softmax_confidences',
-                                    softmax_confidences[ivae],
-                                    step=None,
-                                    max_outputs=max_outputs)
-                    tf.summary.image(f'VAE_{ivae}_images',
-                                    vae_images[ivae],
-                                    step=None,
-                                    max_outputs=max_outputs)
-
-                tf.summary.image('Output', X_output, max_outputs=max_outputs, step=None)
+                save_test_pictures(test_imgs, epoch)
 
         bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
 
