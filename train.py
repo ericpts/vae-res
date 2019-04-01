@@ -74,22 +74,23 @@ def train_model(
             test_loss, test_imgs = test_step()
             tf.summary.scalar('loss', test_loss, step=None)
 
-            (X, softmax_confidences, vae_images, X_output) = test_imgs
+            if epoch % 10 == 0:
+                (X, softmax_confidences, vae_images, X_output) = test_imgs
 
-            max_outputs = 4
-            tf.summary.image('Input', X, max_outputs=max_outputs, step=None)
+                max_outputs = 4
+                tf.summary.image('Input', X, max_outputs=max_outputs, step=None)
 
-            for ivae in range(config.nvaes):
-                tf.summary.image(f'VAE_{ivae}_softmax_confidences',
-                                 softmax_confidences[ivae],
-                                 step=None,
-                                 max_outputs=max_outputs)
-                tf.summary.image(f'VAE_{ivae}_images',
-                                 vae_images[ivae],
-                                 step=None,
-                                 max_outputs=max_outputs)
+                for ivae in range(config.nvaes):
+                    tf.summary.image(f'VAE_{ivae}_softmax_confidences',
+                                    softmax_confidences[ivae],
+                                    step=None,
+                                    max_outputs=max_outputs)
+                    tf.summary.image(f'VAE_{ivae}_images',
+                                    vae_images[ivae],
+                                    step=None,
+                                    max_outputs=max_outputs)
 
-            tf.summary.image('Output', X_output, max_outputs=max_outputs, step=None)
+                tf.summary.image('Output', X_output, max_outputs=max_outputs, step=None)
 
         bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
 
