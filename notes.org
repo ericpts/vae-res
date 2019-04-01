@@ -76,16 +76,25 @@
 
 ** Network params results
    These are all done with ReLU before BN, with no FC.
-  | Beta |  Gamma | Good?         | Obs.                     |
-  |------+--------+---------------+--------------------------|
-  |  1.0 | 0.0005 | 1 good, 1 bad | In bad, VAE_0 dominates. |
-  |  2.0 |  0.001 | 1 good, 1 bad | In bad, VAE_0 dominates. |
-  |  2.0 |  0.005 | 1 good, 1 bad | In bad, VAE_1 collapses. |
-  |  1.0 | 0.0001 | 2 bad         | All white.               |
-  |  1.0 |  0.001 | 2 bad         |                          |
-  |  1.0 |  0.005 | 2 bad         |                          |
-  |  2.0 | 0.0001 | 2 bad         | All white.               |
-  |  2.0 | 0.0005 | 2 bad         | VAE_0 too confident      |
+  | Beta |  Gamma | Good/(Good+Bad) | Obs.                     |
+  |------+--------+-----------------+--------------------------|
+  |  1.0 | 0.0005 | 1/2             | In bad, VAE_0 dominates. |
+  |  2.0 |  0.001 | 2/5             | In bad, VAE_0 dominates. |
+  |  2.0 |  0.002 | 1/4             |                          |
+  |  2.0 |  0.005 | 3/6             | In bad, VAE_1 collapses. |
+  |  1.0 | 0.0001 | 0/2 bad         | All white.               |
+  |  1.0 |  0.001 | 0/2 bad         |                          |
+  |  1.0 |  0.005 | 0/2 bad         |                          |
+  |  2.0 | 0.0001 | 0/2 bad         | All white.               |
+  |  2.0 | 0.0005 | 0/2 bad         | VAE_0 too confident      |
+
+  ReLU before BN, with FC (but no activation):
+ | Beta | Gamma | Good/(Good+Bad) | Obs.                       |
+ |------+-------+-----------------+----------------------------|
+ |    2 | 0.001 | 3/4             | When bad, VAE_0 dominates. |
+ |    2 | 0.002 | 0/4             |                            |
+ |    2 | 0.005 | 3/4             |                            |
+
 
 
 ** Network Architecture results
