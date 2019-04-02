@@ -76,7 +76,7 @@ class VAE(tf.keras.Model):
 
         X = keras.layers.Flatten(name='flatten')(X)
 
-        X = keras.layers.Dense(64)(X)
+        X = keras.layers.Dense(64, activation='relu')(X)
 
         mean = keras.layers.Dense(latent_dim)(X)
         logvar = keras.layers.Dense(latent_dim)(X)

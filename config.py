@@ -57,21 +57,21 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'beta',
-        1.0,
+        2.0,
         help='KL loss weight.',
         type=float,
         parser=parser)
 
     add_config_argument(
         'gamma',
-        1.0,
+        0.001,
         help='Entropy loss weight.',
         type=float,
         parser=parser)
 
     add_config_argument(
         'nlayers',
-        1,
+        2,
         help='How many CNN layers the model should have.',
         type=int,
         parser=parser)
