@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
-from typing import Tuple
+from typing import Tuple, List
 import argparse
 import tensorflow
 import tensorflow as tf
@@ -31,11 +31,10 @@ test_summary_writer = tf.summary.create_file_writer(test_log_dir)
 
 def train_model(
         model: tf.keras.Model,
-        D: Tuple[tf.data.Dataset, tf.data.Dataset],
+        D_train: tf.data.Dataset,
+        D_test: tf.data.Dataset,
         start_epoch: int,
         total_epochs: int) -> tf.keras.Model:
-
-    D_train, D_test = D
 
     def train_step():
         train_loss = model.fit_on_dataset(D_train)
@@ -113,13 +112,9 @@ def maybe_load_model_weights(model):
 
 
 def main():
-
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
     parser = argparse.ArgumentParser(description='SuperVAE training.')
-
     setup_arg_parser(parser)
-
     parser.add_argument(
         '--name', type=str, help='Name of the model.', required=True)
 
@@ -132,22 +127,23 @@ def main():
             return tf.math.reduce_any([tf.math.equal(y, d) for d in digits])
         return filter_fn
 
-    def with_digits(digits):
+    def with_digits(
+            digits: List[int],
+            D_init: tf.data.Dataset,
+            D_init_size: int,
+    ):
         filter_fn = make_filter_fn(digits)
 
-        D_train = D_init_train.filter(filter_fn)
-        D_test = D_init_test.filter(filter_fn)
+        D_empty_size = D_init_size * len(digits) // 10
+        D = D_init
+        D = D.filter(filter_fn)
+        D_empty = make_empty_windows(image_size, D_empty_size)
 
-        D_train_0 = make_empty_windows(image_size, train_size * len(digits) // 10)
-        D_test_0 = make_empty_windows(image_size, test_size * len(digits) // 10)
+        D = D.concatenate(D_empty)
+        D = D.shuffle(D_init_size + D_empty_size)
+        D = combine_into_windows(D)
 
-        D_train = D_train.concatenate(D_train_0)
-        D_test = D_test.concatenate(D_test_0)
-
-        D_train = combine_into_windows(D_train, 'data_sample_train')
-        D_test = combine_into_windows(D_test, 'data_sample_test')
-
-        return D_train, D_test
+        return D
 
     update_config_from_parsed_args(args)
 
@@ -178,11 +174,14 @@ def main():
         print(f'Trainig VAE_{i} for digits up to {i}')
         model.unfreeze_vae(i)
         digits = list(range(i + 1))
+        D_train = with_digits(digits, D_init_train, train_size)
+        D_test = with_digits(digits + [i + 1], D_init_test, test_size)
 
         end_epoch = epochs_so_far + config.epochs[i]
         train_model(
             model,
-            with_digits(digits),
+            D_train,
+            D_test,
             start_epoch,
             total_epochs=end_epoch
         )

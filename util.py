@@ -116,9 +116,21 @@ def make_empty_windows(img_size: int,
     return D
 
 
+def plot_dataset_sample(D: tf.data.Dataset, img_name: str):
+    D_samples = D.take(config.num_examples)
+
+    X = [np.array(X) for (X, y) in D_samples]
+    X = np.array(X)
+
+    make_plot(X)
+
+    os.makedirs('images', exist_ok=True)
+    plt.savefig(f'images/{img_name}.png')
+
+
 def combine_into_windows(
         D: tf.data.Dataset,
-        img_name: str) -> tf.data.Dataset:
+) -> tf.data.Dataset:
     k = config.expand_per_width * config.expand_per_height
     D = D.repeat(k)
     D = D.batch(k, drop_remainder=True)
@@ -136,15 +148,5 @@ def combine_into_windows(
         return X, y
 
     D = D.map(map_fn)
-
-    D_samples = D.take(config.num_examples)
-
-    X = [np.array(X) for (X, y) in D_samples]
-    X = np.array(X)
-
-    make_plot(X)
-
-    os.makedirs('images', exist_ok=True)
-    plt.savefig(f'images/{img_name}.png')
 
     return D
