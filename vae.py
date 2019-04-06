@@ -13,7 +13,7 @@ class VAE(tf.keras.Model):
         self.nlayers = config.nlayers
         self.latent_dim = latent_dim
 
-        self.layer_sizes = [32 * 2**i for i in range(self.nlayers)]
+        self.layer_sizes = [4 * 2**i for i in range(self.nlayers)]
 
         self.encoder = self.encoder_network(self.latent_dim)
         self.decoder = self.decoder_network(self.latent_dim)
