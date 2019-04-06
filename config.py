@@ -42,7 +42,7 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'latent_dim',
-        16,
+        32,
         help='Size of the latent dimension.',
         type=int,
         parser=parser)
@@ -57,7 +57,7 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'beta',
-        2.0,
+        1.0,
         help='KL loss weight.',
         type=float,
         parser=parser)

@@ -151,11 +151,9 @@ def main():
 
     update_config_from_parsed_args(args)
 
-    # We want the epochs to look like
-    # 30, 50, 70, and so on.
     if config.epochs is None:
         config.epochs =[
-            30 + 20 * i
+            100 + 20 * i
             for i in range(config.nvaes)
         ]
 
