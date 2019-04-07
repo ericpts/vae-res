@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 class Config:
     pass
@@ -95,3 +96,5 @@ def update_config_from_parsed_args(args):
 config.num_examples = 16
 
 config.batch_size = 64
+
+config.checkpoint_dir = Path('checkpoints')

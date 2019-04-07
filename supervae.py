@@ -68,7 +68,7 @@ class SuperVAE(tf.keras.Model):
         self.vae_is_learning[i] = False
 
 
-    @tf.function
+    # @tf.function
     def entropy_loss(self, softmax_confidences):
         entropy = - tf.math.xlogy(softmax_confidences, softmax_confidences)
         entropy = tf.math.reduce_sum(entropy, axis=0)
@@ -87,7 +87,7 @@ class SuperVAE(tf.keras.Model):
         return entropy
 
 
-    @tf.function
+    # @tf.function
     def compute_loss(self, x):
         (softmax_confidences, vae_images) = self.model(x)
 
@@ -148,7 +148,7 @@ class SuperVAE(tf.keras.Model):
         self.fast_optimizer.apply_gradients(zip(grads, vars))
 
 
-    @tf.function
+    # @tf.function
     def compute_gradients(self, X, variables):
         with tf.GradientTape() as tape:
             loss = self.compute_loss(X)
@@ -188,7 +188,7 @@ class SuperVAE(tf.keras.Model):
 
         return test_loss / test_size
 
-    @tf.function
+    # @tf.function
     def run_on_input(self, X):
         (softmax_confidences, vae_images) = self.model(X)
         return (softmax_confidences, vae_images)

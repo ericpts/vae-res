@@ -2,7 +2,7 @@ import matplotlib
 # matplotlib.use('Agg')
 
 import tensorflow as tf
-from typing import Tuple
+from typing import Tuple, Optional
 import os
 import re
 import numpy as np
@@ -12,7 +12,9 @@ from config import *
 
 
 def get_latest_epoch(model_name: str) -> int:
-    p = Path('checkpoints/{}'.format(model_name))
+    p = config.checkpoint_dir / f'{model_name}'
+
+    assert p.exists()
 
     ckpts = []
     for x in p.glob('cp_*.ckpt.index'.format(model_name)):
@@ -28,7 +30,7 @@ def get_latest_epoch(model_name: str) -> int:
 
 
 def checkpoint_for_epoch(model_name: str, epoch: int) -> str:
-    p = Path('checkpoints/{}/cp_{}.ckpt'.format(model_name, epoch))
+    p = config.checkpoint_dir / f'{model_name}/cp_{epoch}.ckpt'
     return str(p)
 
 
@@ -45,7 +47,7 @@ def save_pictures(
         vae_softmax_confidences,
         vae_images,
         X_output,
-        file_name: str):
+        file_name: Optional[str]):
 
     assert vae_softmax_confidences.shape[0] == config.nvaes
     assert vae_softmax_confidences.shape[1] == config.num_examples
@@ -58,9 +60,13 @@ def save_pictures(
         wspace=0.4,
         hspace=0.4,
     )
-    for i in range(4 * 4):
 
-        plt.subplot(4, 4, i + 1)
+    k = int(config.num_examples ** .5)
+    assert k * k == config.num_examples # They should display in a nice square grid.
+
+    for i in range(k * k):
+
+        plt.subplot(k, k, i + 1)
 
         to_stack = []
         to_stack.append(X_input[i, :, :, 0])
@@ -77,10 +83,14 @@ def save_pictures(
 
         plt.axis('off')
 
-    file_name = Path(file_name)
-    file_name.parent.mkdir(parents=True, exist_ok=True)
+    if file_name:
+        file_name = Path(file_name)
+        file_name.parent.mkdir(parents=True, exist_ok=True)
 
-    plt.savefig(file_name)
+        plt.savefig(file_name)
+    else:
+        plt.show()
+
     plt.close()
 
 
