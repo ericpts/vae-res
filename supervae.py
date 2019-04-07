@@ -136,86 +136,34 @@ class SuperVAE(tf.keras.Model):
         return vae_loss
 
 
-    def get_trainable_variables(self):
-        return self.model.trainable_variables
-
-
-    def apply_gradients(self, vae_is_learning, grads_per_vae):
+    def get_trainable_variables(self, vae_is_learning):
+        ret = []
         for i in range(self.nvaes):
-            grads = grads_per_vae[i]
-            vars = self.vaes[i].get_trainable_variables()
             if vae_is_learning[i]:
-                self.fast_optimizer.apply_gradients(zip(grads, vars))
-            else:
-                self.slow_optimizer.apply_gradients(zip(grads, vars))
+                ret.extend(self.vaes[i].get_trainable_variables())
+        return ret
+
+
+    def apply_gradients(self, vars, grads):
+        self.fast_optimizer.apply_gradients(zip(grads, vars))
 
 
     @tf.function
-    def compute_gradients(self, X):
-        variables = self.get_trainable_variables()
+    def compute_gradients(self, X, variables):
         with tf.GradientTape() as tape:
             loss = self.compute_loss(X)
         return tape.gradient(loss, variables), loss
 
 
     def fit(self, X, vae_is_learning):
-        def partition_gradients(grads):
-            """ Returns the gradients for each VAE.
-            """
-            ret = []
-            at = 0
-            for i in range(self.nvaes):
-                nvars = len(self.vaes[i].get_trainable_variables())
-                cur_grads = grads[at : at + nvars]
-                ret.append(cur_grads)
-                at += nvars
+        vars = self.get_trainable_variables(self.vae_is_learning)
+        gradients, loss = self.compute_gradients(X, vars)
 
-            assert len(grads) == len(self.get_trainable_variables())
-            assert at == len(grads)
-            assert len(ret) == self.nvaes
-            return ret
-        gradients, loss = self.compute_gradients(X)
-        grads_per_vae = partition_gradients(gradients)
-
-        if tf.summary.experimental.get_step() % 20 == 0:
-            for i in range(self.nvaes):
-                for (grad, var) in zip(
-                        grads_per_vae[i],
-                        self.vaes[i].get_trainable_variables()):
-
-                    tf.summary.histogram(
-                        f'grads_per_vae_{i}_weight_{var.name}',
-                        grad,
-                        step=None
-                    )
-
-                    tf.summary.histogram(
-                        f'gvae_{i}_weight_{var.name}',
-                        var,
-                        step=None
-                    )
-
-        self.apply_gradients(vae_is_learning, grads_per_vae)
+        self.apply_gradients(vars, gradients)
         return loss
 
 
     def fit_on_dataset(self, D_train: tf.data.Dataset):
-        def partition_gradients(grads):
-            """ Returns the gradients for each VAE.
-            """
-            ret = []
-            at = 0
-            for i in range(self.nvaes):
-                nvars = len(self.vaes[i].get_trainable_variables())
-                cur_grads = grads[at : at + nvars]
-                ret.append(cur_grads)
-                at += nvars
-
-            assert len(grads) == len(self.get_trainable_variables())
-            assert at == len(grads)
-            assert len(ret) == self.nvaes
-            return ret
-
         train_loss = 0
         train_size = 0
 
