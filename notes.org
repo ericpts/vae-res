@@ -73,6 +73,14 @@
 
 ** Make ReLU after BN and fix on this architecture.
 
+** Try to fully freeze models.
+   I.e., not apply any training at all.
+
+** Try to let VAE_0 train for longer.
+   Also plot how it fares when dealing with pictures of 0 and 1, to see what happens.
+** Try to see if there are bugs.
+   Maybe VAE_0 is not properly frozen.
+
 
 * Current issues
 
@@ -155,13 +163,6 @@
 
 
 * Outstanding ideas
-** Try to let VAE_0 train for longer.
-   Also plot how it fares when dealing with pictures of 0 and 1, to see what happens.
-** Try to see if there are bugs.
-   Maybe VAE_0 is not properly frozen.
-** Try to fully freeze models.
-   I.e., not apply any training at all.
-
 
 * Next issues
 ** Plot KL for fixed image, to see if it activated or not.
