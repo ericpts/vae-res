@@ -14,8 +14,6 @@ from config import *
 def get_latest_epoch(model_name: str) -> int:
     p = config.checkpoint_dir / f'{model_name}'
 
-    assert p.exists()
-
     ckpts = []
     for x in p.glob('cp_*.ckpt.index'.format(model_name)):
         m = re.search(r'cp_(\d+).ckpt.index'.format(model_name), str(x))
