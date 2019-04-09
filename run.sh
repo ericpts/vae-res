@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-set -e
+set -euxo pipefail
 shopt -s globstar
 
 runs=1
@@ -55,7 +55,7 @@ function get_experiment_data() {
 }
 
 function load_files_onto_remote() {
-    rsync -rav -R **/*py *.sh ericst@login.leonhard.ethz.ch:~/${remote_dir}
+    rsync -rav -R **/*py *.sh cfg.yaml ericst@login.leonhard.ethz.ch:~/${remote_dir}
 }
 
 
@@ -70,11 +70,16 @@ EOF
 cd ${remote_dir}
 echo "${expname}" > experiment_name.txt
 echo "${desc}$" > experiment_desc.txt
-bsub -W 3:00 -n 4 -R "rusage[mem=4000,ngpus_excl_p=1]" "python3 train.py --name leonhard"
+bsub -W 3:00 -n 4 -R "rusage[mem=4000,ngpus_excl_p=1]" "python3 train.py --name leonhard --config cfg.yaml"
 EOF
 }
 
 parse_args "$@"
+
+if [ ! -e cfg.yaml ]; then
+    echo "Could not find cfg.yaml file"
+    exit -1
+fi
 
 get_experiment_data
 
