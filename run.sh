@@ -74,7 +74,7 @@ bsub -W 8:00 -n 4 -R "rusage[mem=4000,ngpus_excl_p=1]" "python3 train.py --name 
 EOF
 }
 
-parse_args $@
+parse_args "$@"
 
 get_experiment_data
 
