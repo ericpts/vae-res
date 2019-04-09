@@ -47,15 +47,9 @@ class SuperVAE(tf.keras.Model):
         self.lr = lr
 
         self.fast_optimizer = tf.keras.optimizers.Adam(
-                learning_rate=self.lr,
-                )
-
-        # This optimizer has a very small learning rate, so that frozen VAE's
-        # can still adapt, but at a much slower pace than the ones which are
-        # supposed to be actively learning.
-        self.slow_optimizer = tf.keras.optimizers.Adam(
-                learning_rate=self.lr * 1e-9,
-                )
+            learning_rate=self.lr,
+            epsilon=0.1,
+        )
 
 
 
