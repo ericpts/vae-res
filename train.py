@@ -111,41 +111,55 @@ def maybe_load_model_weights(model):
     start_epoch += 1
 
 
+def make_filter_fn(digits: List[int]):
+    def filter_fn(X, y):
+        return tf.math.reduce_any([tf.math.equal(y, d) for d in digits])
+    return filter_fn
+
+def with_digits(
+        digits: List[int],
+        D_init: tf.data.Dataset,
+        D_init_size: int,
+):
+    filter_fn = make_filter_fn(digits)
+
+    D_empty_size = D_init_size * len(digits) // 10
+    D = D_init
+    D = D.filter(filter_fn)
+
+    image_size = 28
+    D_empty = make_empty_windows(image_size, D_empty_size)
+
+    D = D.concatenate(D_empty)
+    D = D.shuffle(D_init_size + D_empty_size)
+    D = combine_into_windows(D)
+    return D
+
+
 def main():
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
     parser = argparse.ArgumentParser(description='SuperVAE training.')
+
     setup_arg_parser(parser)
+
     parser.add_argument(
         '--name', type=str, help='Name of the model.', required=True)
 
+    parser.add_argument(
+        '--config',
+        type=str,
+        help='Extra yaml config file to use. It will override command line values.',
+        required=False,
+    )
+
     args = parser.parse_args()
 
-    (D_init_train, D_init_test, image_size, train_size, test_size) = load_data()
-
-    def make_filter_fn(digits):
-        def filter_fn(X, y):
-            return tf.math.reduce_any([tf.math.equal(y, d) for d in digits])
-        return filter_fn
-
-    def with_digits(
-            digits: List[int],
-            D_init: tf.data.Dataset,
-            D_init_size: int,
-    ):
-        filter_fn = make_filter_fn(digits)
-
-        D_empty_size = D_init_size * len(digits) // 10
-        D = D_init
-        D = D.filter(filter_fn)
-        D_empty = make_empty_windows(image_size, D_empty_size)
-
-        D = D.concatenate(D_empty)
-        D = D.shuffle(D_init_size + D_empty_size)
-        D = combine_into_windows(D)
-
-        return D
-
     update_config_from_parsed_args(args)
+
+    if args.config:
+        cfg = Path(args.config)
+        assert cfg.exists()
+        update_config_from_yaml(cfg)
 
     if config.epochs is None:
         config.epochs =[
@@ -154,6 +168,8 @@ def main():
         ]
 
     print(f'Using {config.nvaes} VAEs')
+
+    (D_init_train, D_init_test, image_size, train_size, test_size) = load_data()
 
     model = SuperVAE(config.latent_dim, name=args.name)
 

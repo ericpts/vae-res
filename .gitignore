@@ -7,3 +7,5 @@ keras/
 logs/
 
 _others/
+
+cfg.yaml

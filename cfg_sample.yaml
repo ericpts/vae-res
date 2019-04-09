@@ -1,0 +1,27 @@
+## Uncomment options to override command line values.
+
+
+# How many blocks to concatenate per width.
+# expand_per_width: 2
+
+# How many blocks to concatenate per height.
+# expand_per_height: 1
+
+# Size of the latent dimension.
+# latent_dim: 32
+
+# How many epochs to train VAE_i for.
+# epochs: None
+
+# KL loss weight.
+# beta: 2.0
+
+# Entropy loss weight.
+# gamma: 0.05
+
+# How many CNN layers the model should have.
+# nlayers: 2
+
+# How many VAEs the module should include.
+# nvaes: 2
+
