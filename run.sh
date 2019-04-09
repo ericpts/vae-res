@@ -70,7 +70,7 @@ EOF
 cd ${remote_dir}
 echo "${expname}" > experiment_name.txt
 echo "${desc}$" > experiment_desc.txt
-bsub -W 8:00 -n 4 -R "rusage[mem=4000,ngpus_excl_p=1]" "python3 train.py --name leonhard"
+bsub -W 3:00 -n 4 -R "rusage[mem=4000,ngpus_excl_p=1]" "python3 train.py --name leonhard"
 EOF
 }
 
