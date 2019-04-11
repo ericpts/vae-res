@@ -1,7 +1,4 @@
 ## Uncomment options to override command line values.
-##
-## If you want to use run.sh, then you have to create a separate file
-## called cfg.yaml, where you include only the options that you want overriden.
 
 
 # How many blocks to concatenate per width.

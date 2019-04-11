@@ -2,6 +2,8 @@ import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
 
+from coord_conv import CoordConv2D
+
 from config import *
 
 
@@ -19,10 +21,6 @@ class VAE(tf.keras.Model):
         self.decoder = self.decoder_network(self.latent_dim)
 
     def convolutional_layers(self, transp: bool):
-        if transp:
-            conv_layer = keras.layers.Conv2DTranspose
-        else:
-            conv_layer = keras.layers.Conv2D
 
         layer_sizes = self.layer_sizes
         if transp:
@@ -39,8 +37,9 @@ class VAE(tf.keras.Model):
 
                 nfilters = layer_sizes[i]
 
-                X = conv_layer(
-                    nfilters,
+                X = CoordConv2D(
+                    transp,
+                    filters=nfilters,
                     kernel_size=3,
                     strides=2,
                     padding='same',
@@ -106,14 +105,16 @@ class VAE(tf.keras.Model):
 
         X = self.convolutional_layers(True)(X)
 
-        img = keras.layers.Conv2DTranspose(
+        img = CoordConv2D(
+            transp=True,
             filters=1,
             kernel_size=3,
             activation='sigmoid',
             padding='same',
             name='decoder-image')(X)
 
-        confidence = keras.layers.Conv2DTranspose(
+        confidence = CoordConv2D(
+            transp=True,
             filters=1,
             kernel_size=3,
             padding='same',
