@@ -57,10 +57,10 @@ def run_once(cfg: dict):
 
     name = '_'.join([
         f'{key}={value}' for (key, value) in cfg.items()
-    ])
+    ]) + '-coordconv'
 
     proc = subprocess.run(
-        ['./run.sh', '--runs', '20',
+        ['./run.sh', '--runs', '4',
          '--name', name,
          '--desc', 'test',
         ],
