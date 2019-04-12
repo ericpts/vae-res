@@ -12,7 +12,8 @@ import time
 import os
 from supervae import SuperVAE
 from util import *
-from config import *
+from config import global_config
+import config
 
 try:
     tf.config.gpu.set_per_process_memory_growth(True)
@@ -45,8 +46,8 @@ def train_model(
 
         for (X, y) in D_test.shuffle(
                 2**10).take(
-                    config.num_examples).batch(
-                        config.num_examples):
+                    global_config.num_examples).batch(
+                        global_config.num_examples):
             (softmax_confidences, vae_images) = model.run_on_input(X)
             X_output = tf.reduce_sum(softmax_confidences * vae_images, axis=0)
             imgs = (X, softmax_confidences, vae_images, X_output)
@@ -63,7 +64,7 @@ def train_model(
         max_outputs = 4
         tf.summary.image('Input', X, max_outputs=max_outputs, step=None)
 
-        for ivae in range(config.nvaes):
+        for ivae in range(global_config.nvaes):
             tf.summary.image(f'VAE_{ivae}_softmax_confidences',
                             softmax_confidences[ivae],
                             step=None,
@@ -92,14 +93,13 @@ def train_model(
             test_loss, test_imgs = test_step()
             tf.summary.scalar('loss', test_loss, step=None)
 
-            if epoch % 10 == 0:
+            if epoch % 20 == 0:
                 save_test_pictures(test_imgs, epoch)
 
         bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
 
-        if epoch % 20 == 0:
-            p = 'checkpoints/{}/cp_{}.ckpt'.format(model.name, epoch)
-            model.save_weights(p)
+    p = 'checkpoints/{}/cp_{}.ckpt'.format(model.name, total_epochs)
+    model.save_weights(p)
 
 
 
@@ -140,7 +140,7 @@ def main():
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
     parser = argparse.ArgumentParser(description='SuperVAE training.')
 
-    setup_arg_parser(parser)
+    config.setup_arg_parser(parser)
 
     parser.add_argument(
         '--name', type=str, help='Name of the model.', required=True)
@@ -154,24 +154,24 @@ def main():
 
     args = parser.parse_args()
 
-    update_config_from_parsed_args(args)
+    config.update_config_from_parsed_args(args)
 
     if args.config:
         cfg = Path(args.config)
         assert cfg.exists()
-        update_config_from_yaml(cfg)
+        config.update_config_from_yaml(cfg)
 
-    if config.epochs is None:
-        config.epochs =[
+    if global_config.epochs is None:
+        global_config.epochs =[
             100 + 20 * i
-            for i in range(config.nvaes)
+            for i in range(global_config.nvaes)
         ]
 
-    print(f'Using {config.nvaes} VAEs')
+    print(f'Using {global_config.nvaes} VAEs')
 
     (D_init_train, D_init_test, image_size, train_size, test_size) = load_data()
 
-    model = SuperVAE(config.latent_dim, name=args.name)
+    model = SuperVAE(global_config.latent_dim, name=args.name)
 
     with open('model_summary.txt', 'wt') as f:
         print_fn = lambda x : f.write(x + '\n')
@@ -182,18 +182,18 @@ def main():
     start_epoch = get_latest_epoch(model.name) + 1
     maybe_load_model_weights(model)
 
-    for i in range(config.nvaes):
+    for i in range(global_config.nvaes):
         model.freeze_vae(i)
 
     epochs_so_far = 0
-    for i in range(config.nvaes):
+    for i in range(global_config.nvaes):
         print(f'Trainig VAE_{i} for digits up to {i}')
         model.unfreeze_vae(i)
         digits = list(range(i + 1))
         D_train = with_digits(digits, D_init_train, train_size)
         D_test = with_digits(digits + [i + 1], D_init_test, test_size)
 
-        end_epoch = epochs_so_far + config.epochs[i]
+        end_epoch = epochs_so_far + global_config.epochs[i]
         train_model(
             model,
             D_train,

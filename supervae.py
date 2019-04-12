@@ -1,7 +1,7 @@
 import tensorflow.keras as keras
 import tensorflow as tf
 import time
-from config import *
+from config import global_config
 import numpy as np
 
 from vae import VAE
@@ -14,10 +14,10 @@ class SuperVAE(tf.keras.Model):
 
         self.latent_dim = latent_dim
 
-        self.nvaes = config.nvaes
+        self.nvaes = global_config.nvaes
 
         inputs = keras.Input(
-            shape=(28 * config.expand_per_height, 28 * config.expand_per_width,
+            shape=(28 * global_config.expand_per_height, 28 * global_config.expand_per_width,
                    1))
 
         self.vaes = [
@@ -88,7 +88,7 @@ class SuperVAE(tf.keras.Model):
         loss_object = tf.keras.losses.MeanSquaredError()
         recall_loss = 0.0
 
-        recall_loss_coef = 28 * 28 * config.expand_per_width * config.expand_per_height
+        recall_loss_coef = 28 * 28 * global_config.expand_per_width * global_config.expand_per_height
 
         for i in range(self.nvaes):
             cur_loss = loss_object(x, vae_images[i], sample_weight=softmax_confidences[i]) * recall_loss_coef
@@ -104,7 +104,7 @@ class SuperVAE(tf.keras.Model):
         for ivae, nvae in enumerate(self.vaes):
             cur_loss = VAE.compute_kl_loss(nvae.last_mean, nvae.last_logvar)
             tf.summary.scalar(f'kl-loss-vae-{ivae}',
-                              tf.math.reduce_mean(config.beta * cur_loss),
+                              tf.math.reduce_mean(global_config.beta * cur_loss),
                               step=None)
             kl_loss += cur_loss
         kl_loss /= self.nvaes
@@ -119,14 +119,14 @@ class SuperVAE(tf.keras.Model):
                     step=None
                 )
 
-        tf.summary.scalar('ent_loss', tf.math.reduce_mean(config.gamma * ent_loss),
+        tf.summary.scalar('ent_loss', tf.math.reduce_mean(global_config.gamma * ent_loss),
                           step=None)
 
         tf.summary.scalar('total_recall_loss', recall_loss,
                           step=None)
 
         vae_loss = tf.math.reduce_mean(
-            recall_loss + config.beta * kl_loss + config.gamma * ent_loss)
+            recall_loss + global_config.beta * kl_loss + global_config.gamma * ent_loss)
         return vae_loss
 
 
@@ -162,8 +162,8 @@ class SuperVAE(tf.keras.Model):
         train_size = 0
 
         for (X, y) in D_train.batch(
-                config.batch_size, drop_remainder=True).prefetch(
-                    16 * config.batch_size
+                global_config.batch_size, drop_remainder=True).prefetch(
+                    16 * global_config.batch_size
                 ):
             loss = self.fit(X, self.vae_is_learning)
             train_loss += loss * X.shape[0]
@@ -176,7 +176,7 @@ class SuperVAE(tf.keras.Model):
         test_loss = 0
         test_size = 0
         for (X, y) in D_test.batch(
-                config.batch_size * 8, drop_remainder=True):
+                global_config.batch_size * 8, drop_remainder=True):
             test_loss += self.compute_loss(X) * X.shape[0]
             test_size += X.shape[0]
 

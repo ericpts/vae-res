@@ -4,7 +4,7 @@ import numpy as np
 
 from coord_conv import CoordConv2D
 
-from config import *
+from config import global_config
 
 
 class VAE(tf.keras.Model):
@@ -12,7 +12,7 @@ class VAE(tf.keras.Model):
     def __init__(self, latent_dim: int, name: str = 'VAE') -> None:
         super(VAE, self).__init__(name=name)
 
-        self.nlayers = config.nlayers
+        self.nlayers = global_config.nlayers
         self.latent_dim = latent_dim
 
         self.layer_sizes = [4 * 2**i for i in range(self.nlayers)]
@@ -72,7 +72,7 @@ class VAE(tf.keras.Model):
 
     def encoder_network(self, latent_dim: int) -> tf.keras.Model:
         inputs = keras.Input(
-            shape=(28 * config.expand_per_height, 28 * config.expand_per_width,
+            shape=(28 * global_config.expand_per_height, 28 * global_config.expand_per_width,
                    1))
 
         X = inputs

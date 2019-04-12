@@ -6,7 +6,7 @@ class Config:
     pass
 
 
-config = Config()
+global_config = Config()
 
 _config_argparse_fields = []
 
@@ -24,7 +24,7 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
         _config_argparse_fields.append(argname)
 
-        setattr(config, argname, default_value)
+        setattr(global_config, argname, default_value)
         parser.add_argument(
             f'--{argname}',
             type=type,
@@ -102,19 +102,17 @@ def update_config_from_parsed_args(args):
     for field_name in _config_argparse_fields:
         val = getattr(args, field_name)
         if val:
-            setattr(config, field_name, val)
+            setattr(global_config, field_name, val)
 
 
 def update_config_from_yaml(cfg: Path):
     doc = yaml.load(cfg.read_text())
     for (k, v) in doc.items():
-        assert hasattr(config, k)
-        setattr(config, k, v)
+        assert hasattr(global_config, k)
+        setattr(global_config, k, v)
 
 
 # These options probably don't need to be set often.
-config.num_examples = 16
-
-config.batch_size = 64
-
-config.checkpoint_dir = Path('checkpoints')
+global_config.num_examples = 16
+global_config.batch_size = 64
+global_config.checkpoint_dir = Path('checkpoints')

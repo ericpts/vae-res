@@ -8,11 +8,11 @@ import re
 import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
-from config import *
+from config import global_config
 
 
 def get_latest_epoch(model_name: str) -> int:
-    p = config.checkpoint_dir / f'{model_name}'
+    p = global_config.checkpoint_dir / f'{model_name}'
 
     ckpts = []
     for x in p.glob('cp_*.ckpt.index'.format(model_name)):
@@ -28,7 +28,7 @@ def get_latest_epoch(model_name: str) -> int:
 
 
 def checkpoint_for_epoch(model_name: str, epoch: int) -> str:
-    p = config.checkpoint_dir / f'{model_name}/cp_{epoch}.ckpt'
+    p = global_config.checkpoint_dir / f'{model_name}/cp_{epoch}.ckpt'
     return str(p)
 
 
@@ -47,11 +47,11 @@ def save_pictures(
         X_output,
         file_name: Optional[str]):
 
-    assert vae_softmax_confidences.shape[0] == config.nvaes
-    assert vae_softmax_confidences.shape[1] == config.num_examples
+    assert vae_softmax_confidences.shape[0] == global_config.nvaes
+    assert vae_softmax_confidences.shape[1] == global_config.num_examples
 
-    assert vae_images.shape[0] == config.nvaes
-    assert vae_images.shape[1] == config.num_examples
+    assert vae_images.shape[0] == global_config.nvaes
+    assert vae_images.shape[1] == global_config.num_examples
 
     fig = plt.figure(figsize=(16, 32))
     plt.subplots_adjust(
@@ -59,8 +59,8 @@ def save_pictures(
         hspace=0.4,
     )
 
-    k = int(config.num_examples ** .5)
-    assert k * k == config.num_examples # They should display in a nice square grid.
+    k = int(global_config.num_examples ** .5)
+    assert k * k == global_config.num_examples # They should display in a nice square grid.
 
     for i in range(k * k):
 
@@ -69,7 +69,7 @@ def save_pictures(
         to_stack = []
         to_stack.append(X_input[i, :, :, 0])
 
-        for v in range(config.nvaes):
+        for v in range(global_config.nvaes):
             to_stack.append(vae_softmax_confidences[v, i, :, :, 0])
             to_stack.append(vae_images[v, i, :, :, 0])
 
@@ -125,7 +125,7 @@ def make_empty_windows(img_size: int,
 
 
 def plot_dataset_sample(D: tf.data.Dataset, img_name: str):
-    D_samples = D.take(config.num_examples)
+    D_samples = D.take(global_config.num_examples)
 
     X = [np.array(X) for (X, y) in D_samples]
     X = np.array(X)
@@ -139,16 +139,16 @@ def plot_dataset_sample(D: tf.data.Dataset, img_name: str):
 def combine_into_windows(
         D: tf.data.Dataset,
 ) -> tf.data.Dataset:
-    k = config.expand_per_width * config.expand_per_height
+    k = global_config.expand_per_width * global_config.expand_per_height
     D = D.repeat(k)
     D = D.batch(k, drop_remainder=True)
 
     def map_fn(X, y):
         r = []
         at = 0
-        for i in range(config.expand_per_width):
+        for i in range(global_config.expand_per_width):
             c = []
-            for j in range(config.expand_per_height):
+            for j in range(global_config.expand_per_height):
                 c.append(X[at])
                 at += 1
             r.append(tf.concat(c, 0))

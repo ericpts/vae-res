@@ -5,9 +5,11 @@ from pathlib import Path
 import tensorflow as tf
 from supervae import SuperVAE
 import util
-from config import config
+import config
+from config import global_config
 from vae import VAE
 
+tf.random.set_seed(1337)
 
 def sample_digit(D_init: tf.data.Dataset, d: int) -> tf.data.Dataset:
     def filter_fn(X, y):
@@ -29,10 +31,10 @@ def main():
         required=True,
         help='Digits the picture should contain. This should be a string containin digits, as well as the e character for an empty spot.')
     parser.add_argument(
-        '--checkpoint-dir',
+        '--root-dir',
         type=str,
-        required=False,
-        help='Location of the checkpoint directory.'
+        required=True,
+        help='Location to where the model was trained from, which contains the config files.'
     )
     parser.add_argument(
         '--num-examples',
@@ -50,21 +52,25 @@ def main():
 
     args = parser.parse_args()
 
-    tf.random.set_seed(1337)
+    root_dir = Path(args.root_dir)
+    assert root_dir.exists()
 
     # Setup a fake argparser, so that the default values are there.
-    util.setup_arg_parser(argparse.ArgumentParser())
+    config.setup_arg_parser(argparse.ArgumentParser())
 
-    if args.checkpoint_dir:
-        config.checkpoint_dir = Path(args.checkpoint_dir)
+    global_config.checkpoint_dir = root_dir / 'checkpoints'
 
-    assert config.checkpoint_dir.exists()
+    config.update_config_from_yaml(
+        root_dir / 'cfg.yaml'
+    )
+
+    assert global_config.checkpoint_dir.exists()
 
     # Forcefully modify config, since combine_into_windows looks at it for batching.
-    config.expand_per_width = len(args.digits)
-    config.num_examples = args.num_examples
+    global_config.expand_per_width = len(args.digits)
+    global_config.num_examples = args.num_examples
 
-    model = SuperVAE(config.latent_dim, name=args.name)
+    model = SuperVAE(global_config.latent_dim, name=args.name)
 
     epoch = args.epoch
     if epoch == 'latest':
@@ -80,7 +86,7 @@ def main():
     D_init = D_init_test.shuffle(test_size)
     D = None
 
-    for _ in range(config.num_examples):
+    for _ in range(global_config.num_examples):
         for d in args.digits:
             if d in string.digits:
                 d = int(d)
@@ -95,7 +101,7 @@ def main():
                 D = D_cur
 
     D = util.combine_into_windows(D)
-    D = D.batch(config.num_examples)
+    D = D.batch(global_config.num_examples)
 
     (X, y) = next(iter(D))
 

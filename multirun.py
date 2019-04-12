@@ -5,17 +5,7 @@ import subprocess
 
 to_run = [
     {
-        'beta': 2,
-        'gamma': 0.01,
-        'nvaes': 3,
-    },
-    {
-        'beta': 1,
-        'gamma': 0.01,
-        'nvaes': 3,
-    },
-    {
-        'beta': 2,
+        'beta': 1.5,
         'gamma': 0.01,
         'nvaes': 4,
     },
@@ -24,27 +14,24 @@ to_run = [
         'gamma': 0.01,
         'nvaes': 4,
     },
-
-
-
     {
-        'beta': 2,
-        'gamma': 0.005,
-        'nvaes': 3,
-    },
-    {
-        'beta': 1,
-        'gamma': 0.005,
-        'nvaes': 3,
-    },
-    {
-        'beta': 2,
+        'beta': 1.5,
         'gamma': 0.005,
         'nvaes': 4,
     },
     {
         'beta': 1,
         'gamma': 0.005,
+        'nvaes': 4,
+    },
+    {
+        'beta': 1.5,
+        'gamma': 0.001,
+        'nvaes': 4,
+    },
+    {
+        'beta': 1,
+        'gamma': 0.001,
         'nvaes': 4,
     },
 ]
@@ -60,7 +47,7 @@ def run_once(cfg: dict):
     ]) + '-coordconv'
 
     proc = subprocess.run(
-        ['./run.sh', '--runs', '4',
+        ['./run.sh', '--runs', '1',
          '--name', name,
          '--desc', 'test',
         ],
