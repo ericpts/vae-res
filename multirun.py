@@ -3,38 +3,20 @@ import yaml
 from pathlib import Path
 import subprocess
 
-to_run = [
-    {
-        'beta': 1.5,
-        'gamma': 0.01,
-        'nvaes': 4,
-    },
-    {
-        'beta': 1,
-        'gamma': 0.01,
-        'nvaes': 4,
-    },
-    {
-        'beta': 1.5,
-        'gamma': 0.005,
-        'nvaes': 4,
-    },
-    {
-        'beta': 1,
-        'gamma': 0.005,
-        'nvaes': 4,
-    },
-    {
-        'beta': 1.5,
-        'gamma': 0.001,
-        'nvaes': 4,
-    },
-    {
-        'beta': 1,
-        'gamma': 0.001,
-        'nvaes': 4,
-    },
+gammas = [0.002, 0.005, 0.007, 0.01, 0.02, 0.04]
+betas = [0.5, 0.7, 0.9, 1.0, 1.3, 1.5, 1.7, 2.0]
+nvaes = [4]
+
+to_run = [{
+        'beta': beta,
+        'gamma': gamma,
+        'nvaes': nvae,
+    }
+        for beta in betas
+        for gamma in gammas
+        for nvae in nvaes
 ]
+
 
 def run_once(cfg: dict):
     p = Path('cfg.yaml')
@@ -47,7 +29,7 @@ def run_once(cfg: dict):
     ]) + '-coordconv'
 
     proc = subprocess.run(
-        ['./run.sh', '--runs', '1',
+        ['./run.sh', '--runs', '2',
          '--name', name,
          '--desc', 'test',
         ],
