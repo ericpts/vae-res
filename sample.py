@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+
+
+def disable_tf_logging():
+    import os
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+
+disable_tf_logging()
+
 import string
 import argparse
 from pathlib import Path
