@@ -30,7 +30,8 @@
 *** Do a pixel-wise entropy function (i.e., for each pixel consider that the VAE's give a probability distribution, and compute the entropy for each pixel).
 *** Then take the sum of all entropies, and add Alpha * log(S) to the loss function, where Alpha is a hyperparameter.
 *** Keep in mind that maybe we have to normalize the Entropy term depending on the number of VAE's.
-** TODO Implement VAE's for 3 digits.
+** DONE Implement VAE's for 3 digits.
+   CLOSED: [2019-04-15 Mon 15:59]
 ** DONE Figure out what is the best way to freeze a VAE
    CLOSED: [2019-03-15 Fri 18:25]
 *** One way would be to make the learning rate very small, so that nothing changes.
@@ -81,9 +82,6 @@
 ** Try to see if there are bugs.
    Maybe VAE_0 is not properly frozen.
 
-
-* Current issues
-
 ** Network params results
    These are all done with ReLU before BN, with no FC.
   | Beta |  Gamma | Good/(Good+Bad) | Obs.                     |
@@ -106,7 +104,6 @@
  |    2 | 0.005 | 3/4             |                            |
 
 
-
 ** Network Architecture results
     | ReLU / SeLU | Act. before/after BN | FC at end | Works?      |
     |-------------+----------------------+-----------+-------------|
@@ -121,7 +118,6 @@
     As a result, there is a single architecture which seems most likely to work:
     ReLU, act. before BN, no FC at the end.
 
-
 ** VAE_1 may collapse.
    Occasionally, VAE_1 will not learn anything. As soon as it starts training, its KL-loss becomes 0 and stays 0.
    This may be because the KL loss for VAE_0 will be fixed and cannot change, and hence maybe not much is left
@@ -133,7 +129,6 @@
 
    See this paper https://arxiv.org/pdf/1808.04947.pdf for possible solutions.
 
-
 ** Vanishing gradients
    It seems that when training multiple VAE's, eventually we run into the problem of vanishing gradients.
    Possible solutions: different activations?
@@ -144,6 +139,44 @@
 ** Add batch normalization to the confidence values for each VAE.
    This way all VAE's will produce confidences within the same ballpark values, so there is no more overpowering by the early
    VAE's who get a chance to up their confidences really really high.
+
+** Plot KL for fixed image, to see if it activated or not.
+** Scale to harder problems:
+
+*** Have more digits.
+
+
+* Current issues
+  List of hyperparams which produce satisfactory results:
+ | Beta | Gamma |
+ |------+-------|
+ |  0.5 | 0.005 |
+ |  0.5 | 0.007 |
+ |  0.5 |  0.01 |
+ |  0.5 |  0.02 |
+ |  0.7 | 0.002 |
+ |  0.7 | 0.005 |
+ |  0.7 | 0.007 |
+ |  0.7 |  0.01 |
+ |  0.7 |  0.02 |
+ |  0.9 | 0.005 |
+ |  0.9 | 0.007 |
+ |  0.9 |  0.01 |
+ |  0.9 |  0.02 |
+ |  0.9 |  0.04 |
+ |  1.0 | 0.005 |
+ |  1.0 | 0.007 |
+ |  1.0 |  0.01 |
+ |  1.0 |  0.02 |
+ |  1.3 | 0.005 |
+ |  1.3 | 0.007 |
+ |  1.3 |  0.01 |
+ |  1.5 | 0.005 |
+ |  1.5 | 0.007 |
+ |      |       |
+
+
+
 
 
 * Stashed ideas
@@ -165,6 +198,3 @@
 * Outstanding ideas
 
 * Next issues
-** Plot KL for fixed image, to see if it activated or not.
-** Scale to harder problems:
-*** Have more digits.
