@@ -40,17 +40,29 @@ class SuperVAE(tf.keras.Model):
 
         self.model = keras.models.Model(
             inputs=inputs, outputs=[softmax_confidences, vae_images])
-        self.set_lr(lr = 0.001)
+
+        self.optimizer = tf.keras.optimizers.Adam(
+            learning_rate=lambda: self.get_lr(),
+            epsilon=1,
+        )
+
+
+    def get_lr(self):
+        return self.lr
 
 
     def set_lr(self, lr: float):
         self.lr = lr
 
-        self.fast_optimizer = tf.keras.optimizers.Adam(
-            learning_rate=self.lr,
-            epsilon=0.1,
-        )
 
+    def freeze_all(self):
+        for i in range(self.nvaes):
+            self.freeze_vae(i)
+
+
+    def unfreeze_all(self):
+        for i in range(self.nvaes):
+            self.unfreeze_vae(i)
 
 
     def unfreeze_vae(self, i: int):
@@ -139,7 +151,7 @@ class SuperVAE(tf.keras.Model):
 
 
     def apply_gradients(self, vars, grads):
-        self.fast_optimizer.apply_gradients(zip(grads, vars))
+        self.optimizer.apply_gradients(zip(grads, vars))
 
 
     @tf.function

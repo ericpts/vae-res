@@ -193,22 +193,35 @@ def main():
     epochs_so_far = 0
     for i in range(global_config.nvaes):
         print(f'Trainig VAE_{i} for digits up to {i}')
+
+        model.freeze_all()
         model.unfreeze_vae(i)
+        model.set_lr(1e-3)
+
         digits = list(range(i + 1))
         D_train = with_digits(digits, D_init_train, train_size)
-        D_test = with_digits(digits + [i + 1], D_init_test, test_size)
+        D_test = with_digits(digits, D_init_test, test_size)
 
-        end_epoch = epochs_so_far + global_config.epochs[i]
-        train_model(
-            model,
-            D_train,
-            D_test,
-            start_epoch,
-            total_epochs=end_epoch
-        )
-        model.freeze_vae(i)
-        start_epoch = max(start_epoch, end_epoch + 1)
-        epochs_so_far = end_epoch
+        def train_for_n_epochs(n: int):
+            nonlocal epochs_so_far, start_epoch
+            end_epoch = epochs_so_far + n
+            train_model(
+                model,
+                D_train,
+                D_test,
+                start_epoch,
+                total_epochs=end_epoch
+            )
+            start_epoch = max(start_epoch, end_epoch + 1)
+            epochs_so_far = end_epoch
+
+        train_for_n_epochs(global_config.epochs[i])
+
+        for j in range(i):
+            model.unfreeze_vae(j)
+
+        model.set_lr(1e-4)
+        train_for_n_epochs(global_config.epochs[i])
 
 
 if __name__ == '__main__':
