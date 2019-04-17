@@ -41,6 +41,7 @@ class SuperVAE(tf.keras.Model):
         self.model = keras.models.Model(
             inputs=inputs, outputs=[softmax_confidences, vae_images])
 
+        self.set_lr(1e-3)
         self.optimizer = tf.keras.optimizers.Adam(
             learning_rate=lambda: self.get_lr(),
             epsilon=1,
@@ -150,9 +151,6 @@ class SuperVAE(tf.keras.Model):
         return ret
 
 
-    def apply_gradients(self, vars, grads):
-        self.optimizer.apply_gradients(zip(grads, vars))
-
 
     @tf.function
     def compute_gradients(self, X, variables):
@@ -161,11 +159,9 @@ class SuperVAE(tf.keras.Model):
         return tape.gradient(loss, variables), loss
 
 
-    def fit(self, X, vae_is_learning):
-        vars = self.get_trainable_variables(self.vae_is_learning)
-        gradients, loss = self.compute_gradients(X, vars)
-
-        self.apply_gradients(vars, gradients)
+    def fit(self, X, variables, apply_gradients_fn):
+        gradients, loss = self.compute_gradients(X, variables)
+        apply_gradients_fn(gradients)
         return loss
 
 
@@ -173,11 +169,18 @@ class SuperVAE(tf.keras.Model):
         train_loss = 0
         train_size = 0
 
+        variables = self.get_trainable_variables(self.vae_is_learning)
+
+        @tf.function
+        def apply_gradients_fn(grads):
+            self.optimizer.apply_gradients(
+                zip(grads, variables))
+
         for (X, y) in D_train.batch(
                 global_config.batch_size, drop_remainder=True).prefetch(
                     16 * global_config.batch_size
                 ):
-            loss = self.fit(X, self.vae_is_learning)
+            loss = self.fit(X, variables, apply_gradients_fn)
             train_loss += loss * X.shape[0]
             train_size += X.shape[0]
 
