@@ -70,7 +70,7 @@ EOF
 cd ${remote_dir}
 echo "${expname}" > experiment_name.txt
 echo "${desc}$" > experiment_desc.txt
-bsub -W 12:00 -n 4 -R "rusage[mem=4000,ngpus_excl_p=1]" "python3 train.py --name leonhard --config cfg.yaml"
+bsub -W 16:00 -n 4 -R "rusage[mem=4000,ngpus_excl_p=1]" "python3 train.py --name leonhard --config cfg.yaml"
 EOF
 }
 

@@ -1,3 +1,6 @@
+# -*- eval: (let () (org-babel-goto-named-src-block "setup-elisp-env") (org-babel-execute-src-block)); -*-
+
+
 * VAE Project
 
 * Purpose
@@ -145,39 +148,98 @@
 
 *** Have more digits.
 
+** List of hyperparams which produce satisfactory results:
+#+NAME: setup-elisp-env
+#+BEGIN_SRC elisp :results silent
+  (defun run-experiment-with-params (beta gamma)
+  (setq beta beta)
+  (setq gamma gamma)
+  (save-excursion
+    (goto-char
+      (org-babel-find-named-block "sample-experiment"))
+    (org-babel-execute-src-block-maybe))
+  )
+(setq digits "44")
+#+END_SRC
 
-* Current issues
-  List of hyperparams which produce satisfactory results:
+  #+NAME: generate-table-with-links
+  #+BEGIN_SRC python :var table=good-hyperparam-table :results value
+    for row in table:
+        row.append(f"[[elisp:(run-experiment-with-params {row[0]} {row[1]})]]")
+    return table
+  #+END_SRC
+
+  #+NAME:good-hyperparam-table
  | Beta | Gamma |
  |------+-------|
- |  0.5 | 0.005 |
  |  0.5 | 0.007 |
  |  0.5 |  0.01 |
  |  0.5 |  0.02 |
- |  0.7 | 0.002 |
- |  0.7 | 0.005 |
  |  0.7 | 0.007 |
  |  0.7 |  0.01 |
  |  0.7 |  0.02 |
+
+  #+CALL: generate-table-with-links(table=good-hyperparam-table)
+
+  #+RESULTS:
+  | 0.5 | 0.007 | [[elisp:(run-experiment-with-params 0.5 0.007)]] |
+  | 0.5 |  0.01 | [[elisp:(run-experiment-with-params 0.5 0.01)]]  |
+  | 0.5 |  0.02 | [[elisp:(run-experiment-with-params 0.5 0.02)]]  |
+  | 0.7 | 0.007 | [[elisp:(run-experiment-with-params 0.7 0.007)]] |
+  | 0.7 |  0.01 | [[elisp:(run-experiment-with-params 0.7 0.01)]]  |
+  | 0.7 |  0.02 | [[elisp:(run-experiment-with-params 0.7 0.02)]]  |
+
+
+
+ #+NAME: sample-experiment
+ #+BEGIN_SRC sh :var beta=(identity beta) gamma=(identity gamma) digits=(identity digits)
+   export run=1
+   echo "Running beta=${beta}, gamma=${gamma}"
+   python3 sample.py --name leonhard --digits "${digits}" --root-dir ../_save/beta=${beta}_gamma=${gamma}_nvaes=5-coordconv/run-${run} --num-examples 4 --epoch 700
+ #+END_SRC
+
+ #+RESULTS: sample-experiment
+ | Running | beta=0.5, | gamma=0.007 |            |           |           |            |   |
+ | (4,     | 28,       |         56, | 1)         |           |           |            |   |
+ | KL      | for       |          0: | [27.470936 |  26.64038 | 25.737038 | 27.853338] |   |
+ | KL      | for       |          1: | [18.806267 | 14.671562 | 13.805559 | 21.734085] |   |
+ | KL      | for       |          2: | [15.488848 | 19.590532 | 18.339827 | 19.94676   | ] |
+ | KL      | for       |          3: | [4.889363  |  5.191582 |   4.70188 | 4.6944566] |   |
+ | KL      | for       |          4: | [14.22592  |   13.3612 |  17.30783 | 14.117587] |   |
+
+
+** Sometimes later models still collapse
+ #+NAME: collapse-hyperparam-table
+ | Beta | Gamma |
+ |------+-------|
+ |  0.7 | 0.005 |
+
+ #+CALL: generate-table-with-links(table=collapse-hyperparam-table)
+
+ #+RESULTS:
+ | 0.7 | 0.005 | [[elisp:(run-experiment-with-params 0.7 0.005)]] |
+
+** Sometimes KL does not change if model is doing something
+#+NAME: kl-does-not-change-hyperparam-table
+ | Beta | Gamma |
+ |------+-------|
  |  0.9 | 0.005 |
- |  0.9 | 0.007 |
- |  0.9 |  0.01 |
- |  0.9 |  0.02 |
- |  0.9 |  0.04 |
- |  1.0 | 0.005 |
- |  1.0 | 0.007 |
- |  1.0 |  0.01 |
- |  1.0 |  0.02 |
- |  1.3 | 0.005 |
- |  1.3 | 0.007 |
- |  1.3 |  0.01 |
- |  1.5 | 0.005 |
- |  1.5 | 0.007 |
- |      |       |
+ In this case, this happens for VAE-3.
+
+#+CALL: generate-table-with-links(table=kl-does-not-change-hyperparam-table)
+
+#+RESULTS:
+| 0.9 | 0.005 | [[elisp:(run-experiment-with-params 0.9 0.005)]] |
 
 
 
-
+* Current issues
+** Try to see why the KL of VAE-0 is higher when there is no 0.
+** Try to train all VAE's together at the end for some time, with a lower lr.
+*** Try to also increase KL loss for this scenario.
+** Try to maybe also feed empty blocks very bright.
+** Try to get rid of supervision:
+*** Train all at once, and the ones with high KL loss get frozen.
 
 * Stashed ideas
 ** Decrease Gamma and increase the KL-loss while training VAE_1,

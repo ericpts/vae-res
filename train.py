@@ -76,6 +76,10 @@ def train_model(
 
         tf.summary.image('Output', X_output, max_outputs=max_outputs, step=None)
 
+    def save_model(epoch):
+        p = 'checkpoints/{}/cp_{}.ckpt'.format(model.name, epoch)
+        model.save_weights(p)
+
 
     bar = tf.keras.utils.Progbar(total_epochs)
     bar.update(start_epoch)
@@ -98,9 +102,10 @@ def train_model(
 
         bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
 
-    p = 'checkpoints/{}/cp_{}.ckpt'.format(model.name, total_epochs)
-    model.save_weights(p)
+        if epoch % 50 == 0:
+            save_model(epoch)
 
+    save_model(total_epochs)
 
 
 def maybe_load_model_weights(model):
