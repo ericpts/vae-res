@@ -39,10 +39,10 @@ def run_once(cfg: dict, runs: int):
     )
 
 def main():
-    argparse = argparse.ArgumentParser(help='Launch multiple experiments')
-    argparse.add_argument('--runs', type=int, required=True, help='How many times to repeat each experiment.')
+    parser = argparse.ArgumentParser(description='Launch multiple experiments')
+    parser.add_argument('--runs', type=int, required=True, help='How many times to repeat each experiment.')
 
-    args = argparse.parse_args()
+    args = parser.parse_args()
     for cfg in to_run:
         run_once(cfg, args.runs)
 
