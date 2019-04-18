@@ -26,6 +26,7 @@ step_var = tf.Variable(tf.constant(0, dtype=tf.int64))
 current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
 test_log_dir = 'logs/gradient_tape/' + current_time + '/test'
+
 train_summary_writer = tf.summary.create_file_writer(train_log_dir)
 test_summary_writer = tf.summary.create_file_writer(test_log_dir)
 
@@ -157,7 +158,22 @@ def main():
         required=False,
     )
 
+    parser.add_argument(
+        '--no-summary',
+        action='store_true',
+        help='Disable logging summary data during training.',
+        required=False,
+    )
+
     args = parser.parse_args()
+
+    if args.no_summary:
+        global train_summary_writer
+        global test_summary_writer
+
+        train_summary_writer = tf.summary.create_noop_writer()
+        test_summary_writer = tf.summary.create_noop_writer()
+
 
     config.update_config_from_parsed_args(args)
 
