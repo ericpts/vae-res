@@ -184,7 +184,7 @@ def main():
 
     if global_config.epochs is None:
         global_config.epochs =[
-            80 + 30 * i
+            60 + 10 * i
             for i in range(global_config.nvaes)
         ]
 
