@@ -103,7 +103,7 @@ def train_model(
 
         bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
 
-        if epoch % 50 == 0:
+        if epoch % 20 == 0:
             save_model(epoch)
 
     save_model(total_epochs)
@@ -184,7 +184,7 @@ def main():
 
     if global_config.epochs is None:
         global_config.epochs =[
-            60 + 10 * i
+            80 + 30 * i
             for i in range(global_config.nvaes)
         ]
 
