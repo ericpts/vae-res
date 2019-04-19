@@ -45,7 +45,7 @@ class SuperVAE(tf.keras.Model):
 
         self.optimizer = tf.keras.optimizers.Adam(
             learning_rate=lambda: self.get_lr(),
-            epsilon=1,
+            epsilon=0.1,
         )
 
 

@@ -27,7 +27,7 @@ def run_once(cfg: dict, runs: int):
 
     name = '_'.join([
         f'{key}={value}' for (key, value) in cfg.items()
-    ]) + '-coordconv'
+    ]) + '-coordconv' + '-eps=0.1'
 
 
     proc = subprocess.run(
