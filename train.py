@@ -101,7 +101,7 @@ def train_model(
             if epoch % 40 == 0:
                 save_test_pictures(test_imgs, epoch)
 
-        bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
+        # bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
 
         if epoch % 40 == 0:
             save_model(epoch)

@@ -4,8 +4,8 @@ import yaml
 from pathlib import Path
 import subprocess
 
-gammas = [0.005, 0.007, 0.009, 0.011]
-betas = [0.9]
+gammas = [0.005, 0.007, 0.009, 0.011, 0.013]
+betas = [1.2, 1.4, 1.6]
 nvaes = [4]
 
 to_run = [{
