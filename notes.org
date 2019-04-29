@@ -163,6 +163,7 @@
       (org-babel-execute-src-block-maybe))
     )
   (setq digits "44")
+  (setq epoch "latest")
 #+END_SRC
 
   #+NAME: generate-table-with-links
@@ -196,16 +197,20 @@
 
 
  #+NAME: sample-experiment
- #+BEGIN_SRC sh :var root_dir=(identity root_dir) digits=(identity digits)
-   python3 sample.py --name leonhard --digits "${digits}" --root-dir "${root_dir}" --num-examples 4 --epoch 'latest'
+ #+BEGIN_SRC sh :var root_dir=(identity root_dir) digits=(identity digits) epoch=(identity epoch)
+   echo "digits = ${digits}"
+   echo "epoch = ${epoch}"
+   python3 sample.py --name leonhard --digits "${digits}" --root-dir "${root_dir}" --num-examples 4 --epoch "${epoch}"
  #+END_SRC
 
  #+RESULTS: sample-experiment
- | (4, | 28, | 56, | 1)         |           |            |            |          |   |
- | KL  | for |  0: | [1.2666323 |  5.174501 | 0.99687195 |  1.4980268 | ]        |   |
- | KL  | for |  1: | [3.2226562 | 1.2623823 |  2.0987422 |   2.360978 | ]        |   |
- | KL  | for |  2: | [18.318132 | 17.039242 |  19.780178 | 18.722046] |          |   |
- | KL  | for |  3: | [          | 5.0307403 |  6.3076477 |  12.696253 | 9.141944 | ] |
+ | digits | =   |    0 |             |            |            |             |   |
+ | epoch  | =   | 1000 |             |            |            |             |   |
+ | (4,    | 28, |  56, | 1)          |            |            |             |   |
+ | KL     | for |   0: | [25.396618  |  18.544659 |  22.539942 | 18.68363    | ] |
+ | KL     | for |   1: | [0.5349599  |  0.6172561 |  0.5112433 | 0.41823462] |   |
+ | KL     | for |   2: | [7.6578784  |   8.222282 |    8.05437 | 7.6673164]  |   |
+ | KL     | for |   3: | [0.00086406 | 0.00128841 | 0.00353906 | 0.00166154] |   |
 
 
 ** Sometimes later models still collapse
@@ -242,6 +247,7 @@
 ** Results for training all together
 
    VAE for 4 does not seem to learn anything: VAE_2 learns the digit 3 as well as the digit 2.
+   All of them seem to learn [[elisp:(setq digits "00")][digits 00]] quite well though.
    Try this with [[elisp:(setq digits "33")][digits set to 33]].
    #+NAME: train-together-table-bad
    #+RESULTS: update-train-together-table-bad
@@ -262,6 +268,7 @@
    #+CALL: generate-table-with-links(table=train-together-table-bad, base_dir="nvaes=4_train_together")
 
    VAE's seem to perform well, but only on certain runs (not all):
+   It is interesting to note that they perform well with [[elisp:(setq digits "00")][digits set to 00]]
 
    #+NAME: train-together-table-well
    #+RESULTS: update-train-together-table-well
@@ -273,6 +280,44 @@
 
    #+NAME: update-train-together-table-well
    #+CALL: generate-table-with-links(table=train-together-table-well, base_dir="nvaes=4_train_together")
+
+   During training, if ran on earlier epochs, it seems they do not behave as
+   expected. After training 0 and 1 together, we would expect 1 to not react to
+   the digit 0 anymore. However, it seems that, for small values of beta (i.e.,
+   up to around 1.1), it still encodes information about the digit 0. Something
+   strange happens at epoch 1000 though: somehow all of them (except 0) learn to
+   not encode digit 0 anymore.
+
+  This phenomena happens *only* with the digit 0, though. For 1, they seem to correctly
+  learn to not output anything.
+
+  For 2, a similar problem as with 0 occurs (but only with some models).
+
+  | Epoch |         What? |
+  |-------+---------------|
+  |   [[elisp:(setq epoch "160")][160]] |             0 |
+  |   [[elisp:(setq epoch "270")][270]] |             1 |
+  |   [[elisp:(setq epoch "380")][380]] |         0 + 1 |
+  |   [[elisp:(setq epoch "520")][520]] |             2 |
+  |   [[elisp:(setq epoch "660")][660]] |     0 + 1 + 2 |
+  |   [[elisp:(setq epoch "830")][830]] |             3 |
+  |  [[elisp:(setq epoch "1000")][1000]] | 0 + 1 + 2 + 3 |
+
+
+   #+NAME: train-together-table-zeroes
+   #+RESULTS: update-train-together-table-zeroes
+   | Beta | Gamma | Run | Link  | Comments     |
+   |------+-------+-----+-------+--------------|
+   |  1.2 | 0.007 |   1 | [[elisp:(run-experiment-with-params "../_save/nvaes=4_train_together/beta=1.2_gamma=0.007/run-1" "sample-experiment")][click]] | 2 is meh-ok. |
+   |  1.2 | 0.007 |   2 | [[elisp:(run-experiment-with-params "../_save/nvaes=4_train_together/beta=1.2_gamma=0.007/run-2" "sample-experiment")][click]] | 2 is ok.     |
+   |  1.2 | 0.009 |   1 | [[elisp:(run-experiment-with-params "../_save/nvaes=4_train_together/beta=1.2_gamma=0.009/run-1" "sample-experiment")][click]] | 2 is meh.    |
+   |  1.2 | 0.009 |   3 | [[elisp:(run-experiment-with-params "../_save/nvaes=4_train_together/beta=1.2_gamma=0.009/run-3" "sample-experiment")][click]] | 2 is ok.     |
+   |  1.2 |  0.01 |   1 | [[elisp:(run-experiment-with-params "../_save/nvaes=4_train_together/beta=1.2_gamma=0.01/run-1" "sample-experiment")][click]] | 2 is ok.     |
+   |  1.2 |  0.01 |   2 | [[elisp:(run-experiment-with-params "../_save/nvaes=4_train_together/beta=1.2_gamma=0.01/run-2" "sample-experiment")][click]] | 2 is ok.     |
+   |  1.2 |  0.01 |   3 | [[elisp:(run-experiment-with-params "../_save/nvaes=4_train_together/beta=1.2_gamma=0.01/run-3" "sample-experiment")][click]] | 2 is meh.    |
+
+   #+NAME: update-train-together-table-zeroes
+   #+CALL: generate-table-with-links(table=train-together-table-zeroes, base_dir="nvaes=4_train_together")
 
 * Stashed ideas
 ** Decrease Gamma and increase the KL-loss while training VAE_1,

@@ -41,20 +41,14 @@ class SuperVAE(tf.keras.Model):
         self.model = keras.models.Model(
             inputs=inputs, outputs=[softmax_confidences, vae_images])
 
-        self.lr = tf.Variable(tf.constant(1e-3))
+        self.set_lr_for_new_stage(1e-3)
 
+
+    def set_lr_for_new_stage(self, lr: float):
         self.optimizer = tf.keras.optimizers.Adam(
-            learning_rate=lambda: self.get_lr(),
+            learning_rate=lr,
             epsilon=0.1,
         )
-
-
-    def get_lr(self):
-        return self.lr
-
-
-    def set_lr(self, lr: float):
-        self.lr.assign(lr)
 
 
     def freeze_all(self):
