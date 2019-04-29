@@ -239,6 +239,14 @@
 
 
 * Current issues
+** Connection to disentanglement
+   Isn't what we are doing just a "forced" version of disentanglement? Since a fully disent. model will
+   have one component of the latent variable which controls the object type, our model just seems to
+   produce results where the object type latent variable is forced to be disentangled, via the
+   separation of different VAE's.
+   In other words, since our purpose is to have one VAE learn one object, this is the same as splitting
+   one fully-disentangled VAE model into N differente VAE's, where each one has the object-type latent var.
+   fixed to one of the objects.
 ** Maybe switch to 3D and then try less supervision
    It seems that most approaches which perform well on MNIST do not actually generalize well to other approaches.
    With that in mind, it might be better to first transition to a more realistic dataset, and only then try to
@@ -318,6 +326,7 @@
 
    #+NAME: update-train-together-table-zeroes
    #+CALL: generate-table-with-links(table=train-together-table-zeroes, base_dir="nvaes=4_train_together")
+
 
 * Stashed ideas
 ** Decrease Gamma and increase the KL-loss while training VAE_1,
