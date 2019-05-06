@@ -162,7 +162,7 @@
         (org-babel-find-named-block block-name))
       (org-babel-execute-src-block-maybe))
     )
-  (setq digits "44")
+  (setq digits "33")
   (setq epoch "latest")
 #+END_SRC
 
@@ -198,19 +198,31 @@
 
  #+NAME: sample-experiment
  #+BEGIN_SRC sh :var root_dir=(identity root_dir) digits=(identity digits) epoch=(identity epoch)
-   echo "digits = ${digits}"
-   echo "epoch = ${epoch}"
-   python3 sample.py --name leonhard --digits "${digits}" --root-dir "${root_dir}" --num-examples 4 --epoch "${epoch}"
+    echo "digits = ${digits}"
+    echo "epoch = ${epoch}"
+    echo "${root_dir}"
+    python3 sample.py --name leonhard --digits "${digits}" --root-dir "${root_dir}" --num-examples 4 --epoch "${epoch}"
  #+END_SRC
 
  #+RESULTS: sample-experiment
- | digits | =   |    0 |             |            |            |             |   |
- | epoch  | =   | 1000 |             |            |            |             |   |
- | (4,    | 28, |  56, | 1)          |            |            |             |   |
- | KL     | for |   0: | [25.396618  |  18.544659 |  22.539942 | 18.68363    | ] |
- | KL     | for |   1: | [0.5349599  |  0.6172561 |  0.5112433 | 0.41823462] |   |
- | KL     | for |   2: | [7.6578784  |   8.222282 |    8.05437 | 7.6673164]  |   |
- | KL     | for |   3: | [0.00086406 | 0.00128841 | 0.00353906 | 0.00166154] |   |
+ | digits                                               |                  = |        22 |           |            |
+ | epoch                                                |                  = |       530 |           |            |
+ | ../_save/together_new_opt/beta=0.9_gamma=0.011/run-1 |                    |           |           |            |
+ | KL-0:                                                |         [14.077386 | 11.414541 | 16.697693 | 8.232033]  |
+ | KL-1:                                                |         [10.295265 | 11.551574 |  8.419278 | 9.734122]  |
+ | KL-2:                                                |         [15.480766 |  21.82479 |  19.01466 | 19.203266] |
+ | KL-3:                                                |          [2.637058 | 2.7061493 | 2.6927314 | 2.6894078] |
+ | recall_loss_vae_0:                                   | 15.141132354736328 |           |           |            |
+ | recall_loss_vae_1:                                   |  12.80359935760498 |           |           |            |
+ | recall_loss_vae_2:                                   | 34.151187896728516 |           |           |            |
+ | recall_loss_vae_3:                                   |  1.973002552986145 |           |           |            |
+ | raw_kl_loss_vae_0:                                   | 11.344871520996094 |           |           |            |
+ | raw_kl_loss_vae_1:                                   |  9.000053405761719 |           |           |            |
+ | raw_kl_loss_vae_2:                                   | 16.992782592773438 |           |           |            |
+ | raw_kl_loss_vae_3:                                   | 2.4132027626037598 |           |           |            |
+ | raw_ent_loss:                                        |  7.254261016845703 |           |           |            |
+ | total_recall_loss:                                   | 16.017230987548828 |           |           |            |
+ | total_loss:                                          |  33.20922088623047 |           |           |            |
 
 
 ** Sometimes later models still collapse
@@ -237,8 +249,10 @@
 | 0.9 | 0.005 | [[elisp:(run-experiment-with-params 0.9 0.005)]] |
 
 
+** Investigate why it cannot learn the 3's -- on the latest runs.
+** Maybe also look at how the loss progresses.
+*** What is the loss difference between failed models and good models?
 
-* Current issues
 ** Connection to disentanglement
    Isn't what we are doing just a "forced" version of disentanglement? Since a fully disent. model will
    have one component of the latent variable which controls the object type, our model just seems to
@@ -296,7 +310,7 @@
    strange happens at epoch 1000 though: somehow all of them (except 0) learn to
    not encode digit 0 anymore.
 
-  This phenomena happens *only* with the digit 0, though. For 1, they seem to correctly
+  This phenomena happens with the digit 0, though. For 1, they seem to correctly
   learn to not output anything.
 
   For 2, a similar problem as with 0 occurs (but only with some models).
@@ -326,6 +340,86 @@
 
    #+NAME: update-train-together-table-zeroes
    #+CALL: generate-table-with-links(table=train-together-table-zeroes, base_dir="nvaes=4_train_together")
+
+
+* Current issues
+
+** Next runs
+
+
+  | Epoch |         What? |
+  |-------+---------------|
+  |   [[elisp:(setq epoch "160")][160]] |             0 |
+  |   [[elisp:(setq%20epoch%20"265")][265]] |             1 |
+  |   [[elisp:(setq%20epoch%20"370")][370]] |         0 + 1 |
+  |   [[elisp:(setq%20epoch%20"530")][530]] |             2 |
+  |   [[elisp:(setq%20epoch%20"690")][690]] |     0 + 1 + 2 |
+  |   [[elisp:(setq%20epoch%20"935")][935]] |             3 |
+  |  [[elisp:(setq%20epoch%20"1180")][1180]] | 0 + 1 + 2 + 3 |
+
+
+   #+NAME: train-together-new-optimizer
+   #+RESULTS: update-train-together-new-optimizer
+   | Beta | Gamma | Run | Link  | Obs.        |
+   |------+-------+-----+-------+-------------|
+   |  0.5 | 0.009 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.5_gamma=0.009/run-2" "sample-experiment")][click]] | split       |
+   |  0.5 | 0.011 |   1 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.5_gamma=0.011/run-1" "sample-experiment")][click]] | split       |
+   |  0.5 | 0.013 |   3 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.5_gamma=0.013/run-3" "sample-experiment")][click]] | split       |
+   |  0.5 | 0.015 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.5_gamma=0.015/run-2" "sample-experiment")][click]] | split       |
+   |------+-------+-----+-------+-------------|
+   |------+-------+-----+-------+-------------|
+   |  0.7 | 0.009 |   1 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.7_gamma=0.009/run-1" "sample-experiment")][click]] | takeover    |
+   |  0.7 | 0.009 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.7_gamma=0.009/run-2" "sample-experiment")][click]] | split       |
+   |  0.7 | 0.009 |   3 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.7_gamma=0.009/run-3" "sample-experiment")][click]] | split       |
+   |------+-------+-----+-------+-------------|
+   |------+-------+-----+-------+-------------|
+   |  0.9 | 0.011 |   1 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.011/run-1" "sample-experiment")][click]] | equal split |
+   |  0.9 | 0.011 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.011/run-2" "sample-experiment")][click]] | equal split |
+   |  0.9 | 0.011 |   3 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.011/run-3" "sample-experiment")][click]] | takeover    |
+   |------+-------+-----+-------+-------------|
+   |  0.9 | 0.013 |   1 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.013/run-1" "sample-experiment")][click]] | equal split |
+   |  0.9 | 0.013 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.013/run-2" "sample-experiment")][click]] | takeover    |
+   |  0.9 | 0.013 |   3 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.013/run-3" "sample-experiment")][click]] | bad split   |
+   |------+-------+-----+-------+-------------|
+
+
+   #+NAME: update-train-together-new-optimizer
+   #+CALL: generate-table-with-links(table=train-together-new-optimizer, base_dir="together_new_opt")
+
+   The loss does indeed go down over time, but it seems that it is optimal for model 2 to learn
+   the digit 3, even if model 3 has a head start.
+
+   When beta is 0.5, it seems that almost always the digit 3 is split.
+   However, for example at beta = 0.9, sometimes they split and sometimes model 2 takes over.
+   When they split, the loss is about 23. When they don't, it is about 25, which seems right.
+
+   One potential issue is that when model 3 trains only by itself, its confidence at the end is not
+   always very high. On the other hand, when model 2 trains by itself on digit 2, its confidence is always
+   very very high.
+
+*** Confidences problem?
+    Maybe when model 3 finishes training by itself, it did not yet have a chance to get really confident about the digit 3,
+    whereas model 2 may already be confident from before and thus have more gradients flowing to it.
+    As a result, it trains faster than model 3, and thus learns the 3's as well.
+
+    One issue with this hypothesis is why is it always model 2 the one that takes over, and not one of the others?
+    Is it because the digit 2 is the closest one to a 3, or is it because it is the one trained right beforehand?
+
+    In the worst case, it seems that they split the digit, instead of only one of them learning it.
+
+   The difference from 2 is that when model 2 finishes training, it is already very confident in its own digits.
+   As such, when they all train together, it is only natural for it to take over.
+   On the other and, it seems that after model 3 finishes training, it is still "meh" in regards to confidence.
+   As such, since it seems to split the confidence with model 2 right from the start, both of them train together (in the good case).
+   In the bad case, model 2 just overtakes it completely.
+
+
+*** Randomized training order?
+    Maybe the issue is that digit 2 looks maybe more similar to digit 3, and so model 2 already has some
+    knowhow about 3's. One interesting idea may be to randomize the digits that we use when training.
+    For example, model 0 may learn digit 9, model 1 maybe learns 5, and so on.
+    In this way we check whether it is the digit's similarity, or if this always happens.
+
 
 
 * Stashed ideas

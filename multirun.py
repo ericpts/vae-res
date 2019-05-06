@@ -4,8 +4,8 @@ import yaml
 from pathlib import Path
 import subprocess
 
-gammas = [0.005, 0.007, 0.009, 0.011, 0.013]
-betas = [1.2, 1.4, 1.6]
+gammas = [0.009, 0.011, 0.013, 0.015]
+betas = [0.1, 0.3, 0.5, 0.7, 0.9, 1.1]
 nvaes = [4]
 
 to_run = [{
@@ -26,8 +26,8 @@ def run_once(cfg: dict, runs: int):
     )
 
     name = '_'.join([
-        f'{key}={value}' for (key, value) in cfg.items()
-    ]) + '-new-optimizer-lower-lr'
+        f'{key}={value}' for (key, value) in cfg.items() if key != 'nvaes'
+    ])
 
 
     proc = subprocess.run(

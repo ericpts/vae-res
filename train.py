@@ -184,7 +184,7 @@ def main():
 
     if global_config.epochs is None:
         global_config.epochs =[
-            80 + 30 * i
+            80 + 10 * i + 15 * i * i
             for i in range(global_config.nvaes)
         ]
 
@@ -212,7 +212,7 @@ def main():
 
         model.freeze_all()
         model.unfreeze_vae(i)
-        model.set_lr_for_new_stage(3e-4)
+        model.set_lr_for_new_stage(1e-3)
 
         digits = list(range(i + 1))
         D_train = with_digits(digits, D_init_train, train_size)

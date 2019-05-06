@@ -111,7 +111,7 @@ class SuperVAE(tf.keras.Model):
         kl_loss = 0.0
         for ivae, nvae in enumerate(self.vaes):
             cur_loss = VAE.compute_kl_loss(nvae.last_mean, nvae.last_logvar)
-            tf.summary.scalar(f'kl-loss-vae-{ivae}',
+            tf.summary.scalar(f'raw_kl_loss_vae_{ivae}',
                               tf.math.reduce_mean(global_config.beta * cur_loss),
                               step=None)
             kl_loss += cur_loss
@@ -127,7 +127,7 @@ class SuperVAE(tf.keras.Model):
                     step=None
                 )
 
-        tf.summary.scalar('ent_loss', tf.math.reduce_mean(global_config.gamma * ent_loss),
+        tf.summary.scalar('raw_ent_loss', tf.math.reduce_mean(global_config.gamma * ent_loss),
                           step=None)
 
         tf.summary.scalar('total_recall_loss', recall_loss,
@@ -135,6 +135,9 @@ class SuperVAE(tf.keras.Model):
 
         vae_loss = tf.math.reduce_mean(
             recall_loss + global_config.beta * kl_loss + global_config.gamma * ent_loss)
+
+        tf.summary.scalar('total_loss', vae_loss,
+                          step=None)
         return vae_loss
 
 
