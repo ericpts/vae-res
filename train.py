@@ -218,7 +218,7 @@ def main():
         )
         plot_util.plot_dataset_sample(
             cur_big_ds.D_test,
-            f'train-{i}'
+            f'test-{i}'
         )
 
         def train_for_n_epochs(n: int):
