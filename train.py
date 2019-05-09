@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 
 import datetime
-from typing import Tuple, List
+from pathlib import Path
+from typing import List
 import argparse
-import tensorflow
+import os
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_util
 control_flow_util.ENABLE_CONTROL_FLOW_V2 = True
 
-import time
-import os
 from supervae import SuperVAE
-from util import *
+
+import data_util
+from data_util import BigDataset
+import plot_util
+
 from config import global_config
 import config
 
@@ -33,8 +36,7 @@ test_summary_writer = tf.summary.create_file_writer(test_log_dir)
 
 def train_model(
         model: tf.keras.Model,
-        D_train: tf.data.Dataset,
-        D_test: tf.data.Dataset,
+        big_ds: BigDataset,
         start_epoch: int,
         total_epochs: int) -> tf.keras.Model:
 
@@ -59,31 +61,34 @@ def train_model(
         (X, softmax_confidences, vae_images, X_output) = test_imgs
         fname = 'images/{}/image_at_epoch_{}.png'.format(model.name, epoch)
 
-        imgs = (X, softmax_confidences, vae_images, X_output)
-        save_pictures(X, softmax_confidences, vae_images, X_output, fname)
+        plot_util.save_pictures(
+            X, softmax_confidences, vae_images, X_output, fname)
 
         max_outputs = 4
-        tf.summary.image('Input', X, max_outputs=max_outputs, step=None)
+        tf.summary.image(
+            'Input', X, max_outputs=max_outputs, step=None)
 
         for ivae in range(global_config.nvaes):
             tf.summary.image(f'VAE_{ivae}_softmax_confidences',
-                            softmax_confidences[ivae],
-                            step=None,
-                            max_outputs=max_outputs)
+                             softmax_confidences[ivae],
+                             step=None,
+                             max_outputs=max_outputs)
             tf.summary.image(f'VAE_{ivae}_images',
-                            vae_images[ivae],
-                            step=None,
-                            max_outputs=max_outputs)
+                             vae_images[ivae],
+                             step=None,
+                             max_outputs=max_outputs)
 
-        tf.summary.image('Output', X_output, max_outputs=max_outputs, step=None)
+        tf.summary.image(
+            'Output', X_output, max_outputs=max_outputs, step=None)
 
     def save_model(epoch):
         p = 'checkpoints/{}/cp_{}.ckpt'.format(model.name, epoch)
         model.save_weights(p)
 
+    D_train, D_test = big_ds
 
-    bar = tf.keras.utils.Progbar(total_epochs)
-    bar.update(start_epoch)
+    print(
+        f'Training from epoch {start_epoch} up to {total_epochs}')
 
     for epoch in range(start_epoch, total_epochs + 1):
         step_var.assign(epoch)
@@ -101,8 +106,6 @@ def train_model(
             if epoch % 40 == 0:
                 save_test_pictures(test_imgs, epoch)
 
-        # bar.add(1, values=[("train_loss", train_loss), ("test_loss", test_loss)])
-
         if epoch % 40 == 0:
             save_model(epoch)
 
@@ -110,36 +113,27 @@ def train_model(
 
 
 def maybe_load_model_weights(model):
-    start_epoch = get_latest_epoch(model.name)
+    start_epoch = data_util.get_latest_epoch(model.name)
     if start_epoch:
         print('Resuming training from epoch {}'.format(start_epoch))
-        model.load_weights(checkpoint_for_epoch(model.name, start_epoch))
+        model.load_weights(
+            data_util.checkpoint_for_epoch(
+                model.name, start_epoch))
     start_epoch += 1
 
 
-def make_filter_fn(digits: List[int]):
-    def filter_fn(X, y):
-        return tf.math.reduce_any([tf.math.equal(y, d) for d in digits])
-    return filter_fn
-
-def with_digits(
+def with_digits_and_grouped(
+        big_ds: BigDataset,
         digits: List[int],
-        D_init: tf.data.Dataset,
-        D_init_size: int,
 ):
-    filter_fn = make_filter_fn(digits)
-
-    D_empty_size = D_init_size * len(digits) // 10
-    D = D_init
-    D = D.filter(filter_fn)
-
-    image_size = 28
-    D_empty = make_empty_windows(image_size, D_empty_size)
-
-    D = D.concatenate(D_empty)
-    D = D.shuffle(D_init_size + D_empty_size)
-    D = combine_into_windows(D)
-    return D
+    filter_fn = data_util.make_filter_fn(digits)
+    big_ds = data_util.filter_big_dataset(big_ds, filter_fn)
+    big_ds = BigDataset(
+        *tuple(
+            [data_util.combine_into_windows(D) for D in big_ds]
+        )
+    )
+    return big_ds
 
 
 def main():
@@ -174,7 +168,6 @@ def main():
         train_summary_writer = tf.summary.create_noop_writer()
         test_summary_writer = tf.summary.create_noop_writer()
 
-
     config.update_config_from_parsed_args(args)
 
     if args.config:
@@ -190,21 +183,22 @@ def main():
 
     print(f'Using {global_config.nvaes} VAEs')
 
-    (D_init_train, D_init_test, image_size, train_size, test_size) = load_data()
-
     model = SuperVAE(global_config.latent_dim, name=args.name)
 
     with open('model_summary.txt', 'wt') as f:
-        print_fn = lambda x : f.write(x + '\n')
+        def print_fn(x):
+            f.write(x + '\n')
         model.model.summary(print_fn=print_fn)
         model.vaes[0].encoder.summary(print_fn=print_fn)
         model.vaes[0].decoder.summary(print_fn=print_fn)
 
-    start_epoch = get_latest_epoch(model.name) + 1
+    start_epoch = data_util.get_latest_epoch(model.name) + 1
     maybe_load_model_weights(model)
 
     for i in range(global_config.nvaes):
         model.freeze_vae(i)
+
+    big_ds = data_util.load_data()
 
     epochs_so_far = 0
     for i in range(global_config.nvaes):
@@ -215,16 +209,24 @@ def main():
         model.set_lr_for_new_stage(1e-3)
 
         digits = list(range(i + 1))
-        D_train = with_digits(digits, D_init_train, train_size)
-        D_test = with_digits(digits, D_init_test, test_size)
+        cur_big_ds = with_digits_and_grouped(
+            big_ds, digits
+        )
+        plot_util.plot_dataset_sample(
+            cur_big_ds.D_train,
+            f'train-{i}'
+        )
+        plot_util.plot_dataset_sample(
+            cur_big_ds.D_test,
+            f'train-{i}'
+        )
 
         def train_for_n_epochs(n: int):
             nonlocal epochs_so_far, start_epoch
             end_epoch = epochs_so_far + n
             train_model(
                 model,
-                D_train,
-                D_test,
+                cur_big_ds,
                 start_epoch,
                 total_epochs=end_epoch
             )
