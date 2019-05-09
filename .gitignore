@@ -9,3 +9,4 @@ logs/
 _others/
 
 cfg.yaml
+.cache/
