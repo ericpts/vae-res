@@ -77,7 +77,8 @@ class VAE(tf.keras.Model):
 
     def encoder_network(self, latent_dim: int) -> tf.keras.Model:
         inputs = keras.Input(
-            shape=(28 * global_config.expand_per_height, 28 * global_config.expand_per_width,
+            shape=(28 * global_config.expand_per_height,
+                   28 * global_config.expand_per_width,
                    global_config.n_vae_channels))
 
         X = inputs
@@ -86,16 +87,15 @@ class VAE(tf.keras.Model):
 
         X = keras.layers.Flatten(name='encoder-flatten')(X)
 
-        X = keras.layers.Dense(256, name='encoder-prev-fc', activation='relu')(X)
+        X = keras.layers.Dense(
+            256, name='encoder-prev-fc', activation='relu')(X)
         X = keras.layers.Dense(32, name='encoder-last-fc', activation='relu')(X)
 
         mean = keras.layers.Dense(latent_dim)(X)
         logvar = keras.layers.Dense(latent_dim)(X)
 
         model = keras.models.Model(
-            inputs=inputs,
-            outputs=[mean, logvar],
-            name='encoder')
+            inputs=inputs, outputs=[mean, logvar], name='encoder')
         return model
 
     def decoder_network(self, latent_dim: int) -> tf.keras.Model:
@@ -104,9 +104,7 @@ class VAE(tf.keras.Model):
         inputs = keras.Input(shape=(latent_dim,))
         X = inputs
         X = keras.layers.Dense(
-            np.prod(first_shape),
-            activation='relu',
-            name='decoder-first-fc')(X)
+            np.prod(first_shape), activation='relu', name='decoder-first-fc')(X)
         X = keras.layers.Reshape(first_shape)(X)
 
         X = self.convolutional_layers(True)(X)
@@ -131,24 +129,19 @@ class VAE(tf.keras.Model):
 
         return model
 
-
     def sample(self, eps):
         return self.decode(eps)
-
 
     def encode(self, x):
         (mean, logvar) = self.encoder(x)
         return (mean, logvar)
 
-
     def reparametrize(self, mean, logvar):
         eps = tf.random.normal(shape=tf.shape(mean))
         return eps * tf.exp(1 / 2 * logvar) + mean
 
-
     def decode(self, z):
         return self.decoder(z)
-
 
     @staticmethod
     def compute_kl_loss(mean, logvar):
@@ -157,7 +150,6 @@ class VAE(tf.keras.Model):
         kl_loss *= -0.5
 
         return kl_loss
-
 
     def call(self, inputs):
         mean, logvar = self.encode(inputs)
@@ -168,10 +160,8 @@ class VAE(tf.keras.Model):
         z = self.reparametrize(mean, logvar)
         return self.decode(z)
 
-
     def get_trainable_variables(self):
         return self.trainable_variables
-
 
     def summarize(self):
         self.encoder.summary()

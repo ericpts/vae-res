@@ -15,12 +15,8 @@ def make_plot(pictures):
         plt.axis('off')
 
 
-def save_pictures(
-        X_input,
-        vae_softmax_confidences,
-        vae_images,
-        X_output,
-        file_name: Optional[str]):
+def save_pictures(X_input, vae_softmax_confidences, vae_images, X_output,
+                  file_name: Optional[str]):
 
     assert vae_softmax_confidences.shape[0] == global_config.nvaes
     assert vae_softmax_confidences.shape[1] == global_config.num_examples
@@ -34,8 +30,8 @@ def save_pictures(
         hspace=0.4,
     )
 
-    k = int(global_config.num_examples ** .5)
-    assert k * k == global_config.num_examples # They should display in a nice square grid.
+    k = int(global_config.num_examples**.5)
+    assert k * k == global_config.num_examples  # They should display in a nice square grid.
 
     for i in range(k * k):
 

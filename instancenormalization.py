@@ -50,6 +50,7 @@ class InstanceNormalization(Layer):
         - [Instance Normalization: The Missing Ingredient for Fast Stylization](
         https://arxiv.org/abs/1607.08022)
     """
+
     def __init__(self,
                  axis=None,
                  epsilon=1e-3,
@@ -91,19 +92,21 @@ class InstanceNormalization(Layer):
             shape = (input_shape[self.axis],)
 
         if self.scale:
-            self.gamma = self.add_weight(shape=shape,
-                                         name='gamma',
-                                         initializer=self.gamma_initializer,
-                                         regularizer=self.gamma_regularizer,
-                                         constraint=self.gamma_constraint)
+            self.gamma = self.add_weight(
+                shape=shape,
+                name='gamma',
+                initializer=self.gamma_initializer,
+                regularizer=self.gamma_regularizer,
+                constraint=self.gamma_constraint)
         else:
             self.gamma = None
         if self.center:
-            self.beta = self.add_weight(shape=shape,
-                                        name='beta',
-                                        initializer=self.beta_initializer,
-                                        regularizer=self.beta_regularizer,
-                                        constraint=self.beta_constraint)
+            self.beta = self.add_weight(
+                shape=shape,
+                name='beta',
+                initializer=self.beta_initializer,
+                regularizer=self.beta_regularizer,
+                constraint=self.beta_constraint)
         else:
             self.beta = None
         self.built = True

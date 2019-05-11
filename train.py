@@ -34,11 +34,8 @@ train_summary_writer = tf.summary.create_file_writer(train_log_dir)
 test_summary_writer = tf.summary.create_file_writer(test_log_dir)
 
 
-def train_model(
-        model: tf.keras.Model,
-        big_ds: BigDataset,
-        start_epoch: int,
-        total_epochs: int) -> tf.keras.Model:
+def train_model(model: tf.keras.Model, big_ds: BigDataset, start_epoch: int,
+                total_epochs: int) -> tf.keras.Model:
 
     def train_step():
         train_loss = model.fit_on_dataset(D_train)
@@ -47,10 +44,8 @@ def train_model(
     def test_step():
         test_loss = model.evaluate_on_dataset(D_test)
 
-        for (X, y) in D_test.shuffle(
-                2**10).take(
-                    global_config.num_examples).batch(
-                        global_config.num_examples):
+        for (X, y) in D_test.shuffle(2**10).take(
+                global_config.num_examples).batch(global_config.num_examples):
             (softmax_confidences, vae_images) = model.run_on_input(X)
             X_output = tf.reduce_sum(softmax_confidences * vae_images, axis=0)
             imgs = (X, softmax_confidences, vae_images, X_output)
@@ -61,25 +56,25 @@ def train_model(
         (X, softmax_confidences, vae_images, X_output) = test_imgs
         fname = 'images/{}/image_at_epoch_{}.png'.format(model.name, epoch)
 
-        plot_util.save_pictures(
-            X, softmax_confidences, vae_images, X_output, fname)
+        plot_util.save_pictures(X, softmax_confidences, vae_images, X_output,
+                                fname)
 
         max_outputs = 4
-        tf.summary.image(
-            'Input', X, max_outputs=max_outputs, step=None)
+        tf.summary.image('Input', X, max_outputs=max_outputs, step=None)
 
         for ivae in range(global_config.nvaes):
-            tf.summary.image(f'VAE_{ivae}_softmax_confidences',
-                             softmax_confidences[ivae],
-                             step=None,
-                             max_outputs=max_outputs)
-            tf.summary.image(f'VAE_{ivae}_images',
-                             vae_images[ivae],
-                             step=None,
-                             max_outputs=max_outputs)
+            tf.summary.image(
+                f'VAE_{ivae}_softmax_confidences',
+                softmax_confidences[ivae],
+                step=None,
+                max_outputs=max_outputs)
+            tf.summary.image(
+                f'VAE_{ivae}_images',
+                vae_images[ivae],
+                step=None,
+                max_outputs=max_outputs)
 
-        tf.summary.image(
-            'Output', X_output, max_outputs=max_outputs, step=None)
+        tf.summary.image('Output', X_output, max_outputs=max_outputs, step=None)
 
     def save_model(epoch):
         p = 'checkpoints/{}/cp_{}.ckpt'.format(model.name, epoch)
@@ -87,8 +82,7 @@ def train_model(
 
     D_train, D_test = big_ds
 
-    print(
-        f'Training from epoch {start_epoch} up to {total_epochs}')
+    print(f'Training from epoch {start_epoch} up to {total_epochs}')
 
     for epoch in range(start_epoch, total_epochs + 1):
         step_var.assign(epoch)
@@ -117,8 +111,7 @@ def maybe_load_model_weights(model):
     if start_epoch:
         print('Resuming training from epoch {}'.format(start_epoch))
         model.load_weights(
-            data_util.checkpoint_for_epoch(
-                model.name, start_epoch))
+            data_util.checkpoint_for_epoch(model.name, start_epoch))
     start_epoch += 1
 
 
@@ -129,10 +122,7 @@ def with_digits_and_grouped(
     filter_fn = data_util.make_filter_fn(digits)
     big_ds = data_util.filter_big_dataset(big_ds, filter_fn)
     big_ds = BigDataset(
-        *tuple(
-            [data_util.combine_into_windows(D) for D in big_ds]
-        )
-    )
+        *tuple([data_util.combine_into_windows(D) for D in big_ds]))
     return big_ds
 
 
@@ -148,7 +138,8 @@ def main():
     parser.add_argument(
         '--config',
         type=str,
-        help='Extra yaml config file to use. It will override command line values.',
+        help=
+        'Extra yaml config file to use. It will override command line values.',
         required=False,
     )
 
@@ -176,9 +167,8 @@ def main():
         config.update_config_from_yaml(cfg)
 
     if global_config.epochs is None:
-        global_config.epochs =[
-            80 + 10 * i + 15 * i * i
-            for i in range(global_config.nvaes)
+        global_config.epochs = [
+            80 + 10 * i + 15 * i * i for i in range(global_config.nvaes)
         ]
 
     print(f'Using {global_config.nvaes} VAEs')
@@ -186,8 +176,10 @@ def main():
     model = SuperVAE(global_config.latent_dim, name=args.name)
 
     with open('model_summary.txt', 'wt') as f:
+
         def print_fn(x):
             f.write(x + '\n')
+
         model.model.summary(print_fn=print_fn)
         model.vaes[0].encoder.summary(print_fn=print_fn)
         model.vaes[0].decoder.summary(print_fn=print_fn)
@@ -209,27 +201,14 @@ def main():
         model.set_lr_for_new_stage(1e-3)
 
         digits = list(range(i + 1))
-        cur_big_ds = with_digits_and_grouped(
-            big_ds, digits
-        )
-        plot_util.plot_dataset_sample(
-            cur_big_ds.D_train,
-            f'train-{i}'
-        )
-        plot_util.plot_dataset_sample(
-            cur_big_ds.D_test,
-            f'test-{i}'
-        )
+        cur_big_ds = with_digits_and_grouped(big_ds, digits)
+        plot_util.plot_dataset_sample(cur_big_ds.D_train, f'train-{i}')
+        plot_util.plot_dataset_sample(cur_big_ds.D_test, f'test-{i}')
 
         def train_for_n_epochs(n: int):
             nonlocal epochs_so_far, start_epoch
             end_epoch = epochs_so_far + n
-            train_model(
-                model,
-                cur_big_ds,
-                start_epoch,
-                total_epochs=end_epoch
-            )
+            train_model(model, cur_big_ds, start_epoch, total_epochs=end_epoch)
             start_epoch = max(start_epoch, end_epoch + 1)
             epochs_so_far = end_epoch
 

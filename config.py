@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 import yaml
 
+
 class Config:
     pass
 
@@ -10,32 +11,23 @@ global_config = Config()
 
 _config_argparse_fields = []
 
+
 def setup_arg_parser(parser: argparse.ArgumentParser):
     sample_config = open('cfg_sample.yaml', 'w+t')
-    sample_config.write('## Uncomment options to override command line values.\n\n\n')
+    sample_config.write(
+        '## Uncomment options to override command line values.\n\n\n')
 
-    def add_config_argument(
-            argname: str,
-            default_value,
-            help: str,
-            type,
-            parser: argparse.ArgumentParser,
-            **kwargs):
+    def add_config_argument(argname: str, default_value, help: str, type,
+                            parser: argparse.ArgumentParser, **kwargs):
 
         _config_argparse_fields.append(argname)
 
         setattr(global_config, argname, default_value)
-        parser.add_argument(
-            f'--{argname}',
-            type=type,
-            help=help,
-            **kwargs)
+        parser.add_argument(f'--{argname}', type=type, help=help, **kwargs)
 
-        sample_config.write(
-            f'\
+        sample_config.write(f'\
 # {help}\n\
-# {argname}: {default_value}\n\n'
-        )
+# {argname}: {default_value}\n\n')
 
     add_config_argument(
         'expand_per_width',
@@ -67,18 +59,10 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
         nargs='+')
 
     add_config_argument(
-        'beta',
-        2.0,
-        help='KL loss weight.',
-        type=float,
-        parser=parser)
+        'beta', 2.0, help='KL loss weight.', type=float, parser=parser)
 
     add_config_argument(
-        'gamma',
-        0.05,
-        help='Entropy loss weight.',
-        type=float,
-        parser=parser)
+        'gamma', 0.05, help='Entropy loss weight.', type=float, parser=parser)
 
     add_config_argument(
         'nlayers',
@@ -95,7 +79,6 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
         parser=parser)
 
     sample_config.close()
-
 
 
 def update_config_from_parsed_args(args):

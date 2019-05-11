@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 def disable_tf_logging():
     import os
     import logging
@@ -7,9 +8,9 @@ def disable_tf_logging():
     logging.getLogger("tensorflow").setLevel(logging.CRITICAL)
     logging.getLogger("tensorflow_hub").setLevel(logging.CRITICAL)
 
+
 disable_tf_logging()
 
-import pickle
 import numpy as np
 import datetime
 import string
@@ -26,14 +27,18 @@ from tensorflow.python.framework import tensor_util
 
 tf.random.set_seed(1337)
 
+
 def sample_digit(D_init: tf.data.Dataset, d: int) -> tf.data.Dataset:
+
     def filter_fn(X, y):
         return tf.math.equal(y, d)
+
     return D_init.filter(filter_fn).shuffle(2**20).take(1)
 
 
 def generate_data(digits: str):
-    (D_init_train, D_init_test, image_size, train_size, test_size) = util.load_data()
+    (D_init_train, D_init_test, image_size, train_size,
+     test_size) = util.load_data()
 
     # Since the training samples were already observed, we will only make use of the test ones.
     D_init = D_init_test.shuffle(test_size)
@@ -61,8 +66,7 @@ def generate_data(digits: str):
 
 
 def load_data(digits: str):
-    dst = Path(
-        f'.cache/data_{digits}_n{global_config.num_examples}.npz')
+    dst = Path(f'.cache/data_{digits}_n{global_config.num_examples}.npz')
 
     dst.parent.mkdir(parents=True, exist_ok=True)
 
@@ -88,25 +92,28 @@ def main():
         '--digits',
         type=str,
         required=True,
-        help='Digits the picture should contain. This should be a string containin digits, as well as the e character for an empty spot.')
+        help=
+        'Digits the picture should contain. This should be a string containin digits, as well as the e character for an empty spot.'
+    )
     parser.add_argument(
         '--root-dir',
         type=str,
         required=True,
-        help='Location to where the model was trained from, which contains the config files.'
+        help=
+        'Location to where the model was trained from, which contains the config files.'
     )
     parser.add_argument(
         '--num-examples',
         type=int,
         default=1,
         required=False,
-        help='How many examples to draw.'
-    )
+        help='How many examples to draw.')
     parser.add_argument(
         '--epoch',
         required=False,
         default='latest',
-        help='Which epoch to load the checkpoints from. Either \'latest\' or an integer.'
+        help=
+        'Which epoch to load the checkpoints from. Either \'latest\' or an integer.'
     )
 
     args = parser.parse_args()
@@ -119,9 +126,7 @@ def main():
 
     global_config.checkpoint_dir = root_dir / 'checkpoints'
 
-    config.update_config_from_yaml(
-        root_dir / 'cfg.yaml'
-    )
+    config.update_config_from_yaml(root_dir / 'cfg.yaml')
 
     assert global_config.checkpoint_dir.exists()
 

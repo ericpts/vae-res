@@ -9,38 +9,38 @@ betas = [0.1, 0.3, 0.5, 0.7, 0.9, 1.1]
 nvaes = [4]
 
 to_run = [{
-        'beta': beta,
-        'gamma': gamma,
-        'nvaes': nvae,
-    }
-        for beta in betas
-        for gamma in gammas
-        for nvae in nvaes
-]
+    'beta': beta,
+    'gamma': gamma,
+    'nvaes': nvae,
+} for beta in betas for gamma in gammas for nvae in nvaes]
 
 
 def run_once(cfg: dict, runs: int):
     p = Path('cfg.yaml')
-    p.write_text(
-        yaml.dump(cfg, default_flow_style=False)
-    )
+    p.write_text(yaml.dump(cfg, default_flow_style=False))
 
-    name = '_'.join([
-        f'{key}={value}' for (key, value) in cfg.items() if key != 'nvaes'
-    ])
+    name = '_'.join(
+        [f'{key}={value}' for (key, value) in cfg.items() if key != 'nvaes'])
 
+    proc = subprocess.run([
+        './run.sh',
+        '--runs',
+        str(runs),
+        '--name',
+        name,
+        '--desc',
+        'test',
+    ],
+                          check=True)
 
-    proc = subprocess.run(
-        ['./run.sh', '--runs', str(runs),
-         '--name', name,
-         '--desc', 'test',
-        ],
-        check=True
-    )
 
 def main():
     parser = argparse.ArgumentParser(description='Launch multiple experiments')
-    parser.add_argument('--runs', type=int, required=True, help='How many times to repeat each experiment.')
+    parser.add_argument(
+        '--runs',
+        type=int,
+        required=True,
+        help='How many times to repeat each experiment.')
 
     args = parser.parse_args()
     for cfg in to_run:

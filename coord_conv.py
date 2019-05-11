@@ -2,7 +2,9 @@ import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
 
+
 class CoordConv2D(keras.layers.Layer):
+
     def __init__(
             self,
             transp: bool,
@@ -16,10 +18,7 @@ class CoordConv2D(keras.layers.Layer):
         else:
             conv_layer = keras.layers.Conv2D
 
-        self.conv = conv_layer(
-            **kwargs
-        )
-
+        self.conv = conv_layer(**kwargs)
 
     def build(self, input_shape):
         assert len(input_shape) == 4
@@ -42,16 +41,11 @@ class CoordConv2D(keras.layers.Layer):
         self.im = matrix_to_4d_tensor(build_once((x, y)))
         self.jm = matrix_to_4d_tensor(np.transpose(build_once((y, x))))
 
-
     def add_coordinates(self, X):
         batch_size = tf.shape(X)[0]
         itensor = tf.tile(self.im, [batch_size, 1, 1, 1])
         jtensor = tf.tile(self.jm, [batch_size, 1, 1, 1])
-        return tf.concat(
-            (X, itensor, jtensor),
-            3
-        )
+        return tf.concat((X, itensor, jtensor), 3)
 
     def call(self, X):
-        return self.conv(
-            self.add_coordinates(X))
+        return self.conv(self.add_coordinates(X))

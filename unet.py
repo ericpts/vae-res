@@ -4,6 +4,7 @@ from instancenormalization import InstanceNormalization
 
 
 class UNet(tf.keras.models.Model):
+
     def __init__(self, nblocks: int, **kwargs) -> None:
         super(UNet, self).__init__(**kwargs)
         self.nblocks = nblocks
@@ -12,9 +13,7 @@ class UNet(tf.keras.models.Model):
         inputs = tf.keras.Input(shape=input_shape)
         X = inputs
 
-        filters = [
-            64 * 2**i for i in range(self.nblocks)
-        ]
+        filters = [64 * 2**i for i in range(self.nblocks)]
 
         skip_tensors = []
 
@@ -22,7 +21,8 @@ class UNet(tf.keras.models.Model):
         for i in range(self.nblocks):
             shape = input_shape
             X = tf.keras.layers.Conv2D(
-                filters[i], 3,
+                filters[i],
+                3,
                 use_bias=False,
             )(X)
             X = InstanceNormalization(
@@ -37,9 +37,7 @@ class UNet(tf.keras.models.Model):
                 # No resizing happens on the last block.
                 break
 
-            new_shape = tuple([
-                int(s / 2) for s in shape
-            ])
+            new_shape = tuple([int(s / 2) for s in shape])
             X = tf.image.resize(
                 X,
                 new_shape,
@@ -62,7 +60,8 @@ class UNet(tf.keras.models.Model):
             X = tf.keras.layers.Concatenate()([X, skip_tensors[-1]])
             skip_tensors = skip_tensors[:-1]
             X = tf.keras.layers.Conv2D(
-                filters[i], 3,
+                filters[i],
+                3,
                 use_bias=False,
             )(X)
             X = InstanceNormalization(
@@ -81,18 +80,11 @@ class UNet(tf.keras.models.Model):
         X = tf.keras.layers.Conv2D(1, 1)
 
         X = tf.nn.log_softmax(
-            tf.keras.layers.Concatenate()([
-                X, tf.zeros_like(X)
-            ])
-        )
+            tf.keras.layers.Concatenate()([X, tf.zeros_like(X)]))
         logs, log1ms = tf.split(X, 2, axis=-1)
 
         self.model = tf.keras.models.Model(
-            inputs=[inputs],
-            outputs=[logs, log1ms]
-        )
+            inputs=[inputs], outputs=[logs, log1ms])
 
     def call(self, X, image, log1ms):
-        return self.model(
-            image, log1ms
-        )
+        return self.model(image, log1ms)
