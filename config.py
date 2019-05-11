@@ -53,7 +53,7 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'latent_dim',
-        32,
+        16,
         help='Size of the latent dimension.',
         type=int,
         parser=parser)
@@ -82,7 +82,7 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'nlayers',
-        2,
+        4,
         help='How many CNN layers the model should have.',
         type=int,
         parser=parser)
@@ -116,3 +116,5 @@ def update_config_from_yaml(cfg: Path):
 global_config.num_examples = 16
 global_config.batch_size = 64
 global_config.checkpoint_dir = Path('checkpoints')
+
+global_config.n_vae_channels = 2

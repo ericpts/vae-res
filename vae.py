@@ -13,9 +13,14 @@ class VAE(tf.keras.Model):
         super(VAE, self).__init__(name=name)
 
         self.nlayers = global_config.nlayers
+        assert self.nlayers % 2 == 0
         self.latent_dim = latent_dim
 
-        self.layer_sizes = [4 * 2**i for i in range(self.nlayers)]
+        self.layer_sizes = []
+        for i in range(self.nlayers // 2):
+            size = 32 * 2**i
+            self.layer_sizes.append(size)
+            self.layer_sizes.append(size)
 
         self.encoder = self.encoder_network(self.latent_dim)
         self.decoder = self.decoder_network(self.latent_dim)
@@ -73,7 +78,7 @@ class VAE(tf.keras.Model):
     def encoder_network(self, latent_dim: int) -> tf.keras.Model:
         inputs = keras.Input(
             shape=(28 * global_config.expand_per_height, 28 * global_config.expand_per_width,
-                   1))
+                   global_config.n_vae_channels))
 
         X = inputs
 
@@ -81,7 +86,8 @@ class VAE(tf.keras.Model):
 
         X = keras.layers.Flatten(name='encoder-flatten')(X)
 
-        X = keras.layers.Dense(64, name='encoder-last-fc', activation='relu')(X)
+        X = keras.layers.Dense(256, name='encoder-prev-fc', activation='relu')(X)
+        X = keras.layers.Dense(32, name='encoder-last-fc', activation='relu')(X)
 
         mean = keras.layers.Dense(latent_dim)(X)
         logvar = keras.layers.Dense(latent_dim)(X)
@@ -108,7 +114,7 @@ class VAE(tf.keras.Model):
         img = CoordConv2D(
             transp=True,
             filters=1,
-            kernel_size=3,
+            kernel_size=1,
             activation='sigmoid',
             padding='same',
             name='decoder-image')(X)
@@ -116,7 +122,7 @@ class VAE(tf.keras.Model):
         confidence = CoordConv2D(
             transp=True,
             filters=1,
-            kernel_size=3,
+            kernel_size=1,
             padding='same',
             name='decoder-raw-confidence')(X)
 
