@@ -46,9 +46,13 @@ def train_model(model: tf.keras.Model, big_ds: BigDataset, start_epoch: int,
 
         for (X, y) in D_test.shuffle(2**10).take(
                 global_config.num_examples).batch(global_config.num_examples):
-            (softmax_confidences, vae_images) = model.run_on_input(X)
-            X_output = tf.reduce_sum(softmax_confidences * vae_images, axis=0)
-            imgs = (X, softmax_confidences, vae_images, X_output)
+
+            (log_residual, vae_images, vae_masks, masks) = model.run_on_input(X)
+
+            masks = tf.stack(masks, axis=0)
+            vae_images = tf.stack(vae_images, axis=0)
+            X_output = tf.reduce_sum(masks * vae_images, axis=0)
+            imgs = (X, masks, vae_images, X_output)
 
         return test_loss, imgs
 
@@ -97,7 +101,7 @@ def train_model(model: tf.keras.Model, big_ds: BigDataset, start_epoch: int,
             test_loss, test_imgs = test_step()
             tf.summary.scalar('loss', test_loss, step=None)
 
-            if epoch % 40 == 0:
+            if epoch % 1 == 0:
                 save_test_pictures(test_imgs, epoch)
 
         if epoch % 40 == 0:
@@ -176,13 +180,13 @@ def main():
     model = SuperVAE(global_config.latent_dim, name=args.name)
 
     with open('model_summary.txt', 'wt') as f:
-
         def print_fn(x):
             f.write(x + '\n')
 
-        model.model.summary(print_fn=print_fn)
         model.vaes[0].encoder.summary(print_fn=print_fn)
         model.vaes[0].decoder.summary(print_fn=print_fn)
+        model.unet.model.summary(print_fn=print_fn)
+
 
     start_epoch = data_util.get_latest_epoch(model.name) + 1
     maybe_load_model_weights(model)
@@ -198,7 +202,7 @@ def main():
 
         model.freeze_all()
         model.unfreeze_vae(i)
-        model.set_lr_for_new_stage(1e-3)
+        model.set_lr_for_new_stage(1e-4)
 
         digits = list(range(i + 1))
         cur_big_ds = with_digits_and_grouped(big_ds, digits)

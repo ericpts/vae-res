@@ -54,8 +54,6 @@ class VAE(tf.keras.Model):
                 X = keras.layers.BatchNormalization(axis=3)(X)
                 X = keras.layers.Activation('relu')(X)
 
-                # ReLU should go after.
-
                 if not transp:
                     continue
 

@@ -3,6 +3,7 @@ import tensorflow as tf
 from config import global_config
 import numpy as np
 
+from unet import UNet
 from vae import VAE
 
 
@@ -15,35 +16,17 @@ class SuperVAE(tf.keras.Model):
 
         self.nvaes = global_config.nvaes
 
-        inputs = keras.Input(
-            shape=(28 * global_config.expand_per_height,
-                   28 * global_config.expand_per_width, 1))
-
         self.vaes = [
             VAE(latent_dim, 'VAE-{}'.format(i)) for i in range(self.nvaes)
         ]
 
+        self.unet = UNet(global_config.n_unet_blocks)
+
         self.vae_is_learning = np.array([True for i in range(self.nvaes)])
 
-        vae_images = []
-        vae_confidences = []
-        for vae in self.vaes:
-            (image, confidence) = vae(inputs)
-            vae_images.append(image)
-            vae_confidences.append(confidence)
-
-        vae_confidences = tf.convert_to_tensor(vae_confidences)
-        vae_images = tf.convert_to_tensor(vae_images)
-
-        softmax_confidences = tf.keras.layers.Softmax(axis=0)(vae_confidences)
-
-        self.model = keras.models.Model(
-            inputs=inputs, outputs=[softmax_confidences, vae_images])
-
-        self.set_lr_for_new_stage(1e-3)
 
     def set_lr_for_new_stage(self, lr: float):
-        self.optimizer = tf.keras.optimizers.Adam(
+        self.optimizer = tf.keras.optimizers.RMSprop(
             learning_rate=lr,
             epsilon=0.1,
         )
@@ -64,37 +47,20 @@ class SuperVAE(tf.keras.Model):
         assert 0 <= i and i < self.nvaes
         self.vae_is_learning[i] = False
 
-    @tf.function
-    def entropy_loss(self, softmax_confidences):
-        entropy = -tf.math.xlogy(softmax_confidences, softmax_confidences)
-        entropy = tf.math.reduce_sum(entropy, axis=0)
-
-        # Bring the entropy to a term between 0 and 1.
-        entropy /= tf.math.log(float(self.nvaes))
-
-        # Heavily penalize entropies close to 0, since we want the information
-        # to be shared.
-        entropy = -tf.math.log(entropy)
-
-        # Sum across all pixels of a given image.
-        entropy = tf.math.reduce_sum(entropy, axis=[1, 2])
-
-        # This now has shape (batch_size, 1).
-        return entropy
 
     @tf.function
-    def compute_loss(self, x):
-        (softmax_confidences, vae_images) = self.model(x)
+    def compute_loss(self, X):
+        (log_residual, vae_images, vae_masks, masks) = self.run_on_input(X)
 
         loss_object = tf.keras.losses.MeanSquaredError()
         recall_loss = 0.0
-
         recall_loss_coef = 28 * 28 * global_config.expand_per_width * global_config.expand_per_height
 
         for i in range(self.nvaes):
             cur_loss = loss_object(
-                x, vae_images[i],
-                sample_weight=softmax_confidences[i]) * recall_loss_coef
+                X, vae_images[i],
+                sample_weight=masks[i]) * recall_loss_coef
+
             tf.summary.scalar(f'recall_loss_vae_{i}', cur_loss, step=None)
             recall_loss += cur_loss
         recall_loss /= self.nvaes
@@ -109,31 +75,38 @@ class SuperVAE(tf.keras.Model):
             kl_loss += cur_loss
         kl_loss /= self.nvaes
 
-        ent_loss = self.entropy_loss(softmax_confidences)
+        # TODO maybe these are useful in the future.
+        #
+        # if tf.summary.experimental.get_step() % 20 == 0:
+        #     for i in range(self.nvaes):
+        #         tf.summary.histogram(
+        #             f'softmax_confidences_vae_{i}',
+        #             softmax_confidences[i],
+        #             step=None)
 
-        if tf.summary.experimental.get_step() % 20 == 0:
-            for i in range(self.nvaes):
-                tf.summary.histogram(
-                    f'softmax_confidences_vae_{i}',
-                    softmax_confidences[i],
-                    step=None)
-
-        tf.summary.scalar(
-            'raw_ent_loss',
-            tf.math.reduce_mean(global_config.gamma * ent_loss),
-            step=None)
+        ent_loss = 0
+        for i in range(self.nvaes):
+            # TODO: Maybe make this into a KL divergence instead.
+            cur_loss = loss_object(
+                masks[i], vae_masks[i]
+            )
+            tf.summary.scalar(f'mask_loss_vae_{i}', cur_loss, step=None)
+            ent_loss += cur_loss
+        ent_loss /= self.nvaes
 
         tf.summary.scalar('total_recall_loss', recall_loss, step=None)
 
-        vae_loss = tf.math.reduce_mean(recall_loss +
+        total_loss = tf.math.reduce_mean(recall_loss +
                                        global_config.beta * kl_loss +
                                        global_config.gamma * ent_loss)
 
-        tf.summary.scalar('total_loss', vae_loss, step=None)
-        return vae_loss
+        tf.summary.scalar('total_loss', total_loss, step=None)
+        return total_loss
 
     def get_trainable_variables(self, vae_is_learning):
-        ret = []
+        ret = [
+            *self.unet.trainable_variables
+        ]
         for i in range(self.nvaes):
             if vae_is_learning[i]:
                 ret.extend(self.vaes[i].get_trainable_variables())
@@ -180,5 +153,41 @@ class SuperVAE(tf.keras.Model):
         return test_loss / test_size
 
     def run_on_input(self, X):
-        (softmax_confidences, vae_images) = self.model(X)
-        return (softmax_confidences, vae_images)
+        log_residual = tf.zeros_like(X)
+
+        vae_images = []
+        vae_masks = []
+        masks = []
+
+        for i in range(self.nvaes):
+            log_m, log_1minusm = self.unet(
+                tf.concat([X, log_residual], axis=-1)
+            )
+
+            mask = tf.math.add(log_residual, log_m)
+
+            (rimage, rmask) = self.vaes[i](
+                tf.concat([X, mask], axis=-1)
+            )
+
+            log_residual = tf.math.add(log_residual, log_1minusm)
+
+            vae_images.append(rimage)
+            vae_masks.append(rmask)
+            masks.append(mask)
+
+        vae_masks = tf.split(
+            tf.math.softmax(
+                tf.concat(vae_masks, axis=-1),
+                axis=-1
+            ),
+            num_or_size_splits=self.nvaes,
+            axis=-1,
+        )
+
+        return (
+            log_residual,
+            vae_images,
+            vae_masks,
+            masks
+        )

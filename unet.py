@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+from config import global_config
 from instancenormalization import InstanceNormalization
 
 
@@ -9,21 +10,36 @@ class UNet(tf.keras.models.Model):
         super(UNet, self).__init__(**kwargs)
         self.nblocks = nblocks
 
-    def build(self, input_shape):
+        self._build((None,
+                     28 * global_config.expand_per_height,
+                     28 * global_config.expand_per_width,
+                     2))
+
+    def _build(self, input_shape):
+        assert len(input_shape) == 4
+
+        cur_filter = 32
+        filters = []
+        for i in range(self.nblocks):
+            filters.append(cur_filter)
+            if len(filters) % 2 == 0:
+                cur_filter *= 2
+
+        # Drop the batch size.
+        input_shape = input_shape[1:]
+        skip_tensors = []
+        shape = input_shape[0:2]
+
         inputs = tf.keras.Input(shape=input_shape)
         X = inputs
 
-        filters = [64 * 2**i for i in range(self.nblocks)]
-
-        skip_tensors = []
-
         # Downsample.
         for i in range(self.nblocks):
-            shape = input_shape
             X = tf.keras.layers.Conv2D(
                 filters[i],
                 3,
                 use_bias=False,
+                padding='same',
             )(X)
             X = InstanceNormalization(
                 axis=3,
@@ -38,46 +54,59 @@ class UNet(tf.keras.models.Model):
                 break
 
             new_shape = tuple([int(s / 2) for s in shape])
+
             X = tf.image.resize(
                 X,
                 new_shape,
                 method=tf.image.ResizeMethod.NEAREST_NEIGHBOR,
             )
+
             shape = new_shape
 
         X = tf.keras.layers.Flatten()(X)
-        X = tf.keras.layers.Dense(128, activation='relu')(X)
-        X = tf.keras.layers.Dense(128, activation='relu')(X)
+
+        # TODO: Make this 128 if we want to make the model better.
+        X = tf.keras.layers.Dense(32, activation='relu')(X)
+        X = tf.keras.layers.Dense(32, activation='relu')(X)
+
         X = tf.keras.layers.Dense(
-            np.prod(skip_tensors[-1].output_shape[1:]),
+            np.prod(skip_tensors[-1].get_shape()[1:]),
             activation='relu',
         )(X)
 
-        X = tf.keras.layers.Reshape(skip_tensors[-1].output_shape[1:])
+        X = tf.keras.layers.Reshape(skip_tensors[-1].get_shape()[1:])(X)
 
         # Upsample + skip connections.
         for i in range(self.nblocks):
             X = tf.keras.layers.Concatenate()([X, skip_tensors[-1]])
             skip_tensors = skip_tensors[:-1]
+
             X = tf.keras.layers.Conv2D(
-                filters[i],
+                filters[self.nblocks - 1 - i],
                 3,
                 use_bias=False,
+                padding='same',
             )(X)
             X = InstanceNormalization(
                 axis=3,
                 scale=False,
             )(X)
             X = tf.keras.layers.ReLU()(X)
-            new_shape = skip_tensors[-1].output_shape[1:]
+
+            if i == self.nblocks - 1:
+                break
+
+            new_shape = skip_tensors[-1].get_shape()[1:3]
             X = tf.image.resize(
                 X,
                 new_shape,
                 method=tf.image.ResizeMethod.NEAREST_NEIGHBOR,
             )
 
+        assert X.get_shape()[1:3] == input_shape[0:2]
+
         # Generate final logit probabilities
-        X = tf.keras.layers.Conv2D(1, 1)
+        X = tf.keras.layers.Conv2D(1, 1, padding='same')(X)
 
         X = tf.nn.log_softmax(
             tf.keras.layers.Concatenate()([X, tf.zeros_like(X)]))
@@ -86,5 +115,6 @@ class UNet(tf.keras.models.Model):
         self.model = tf.keras.models.Model(
             inputs=[inputs], outputs=[logs, log1ms])
 
-    def call(self, X, image, log1ms):
-        return self.model(image, log1ms)
+
+    def call(self, X):
+        return self.model(X)

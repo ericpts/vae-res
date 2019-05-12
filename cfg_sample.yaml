@@ -8,7 +8,7 @@
 # expand_per_height: 1
 
 # Size of the latent dimension.
-# latent_dim: 32
+# latent_dim: 16
 
 # How many epochs to train VAE_i for.
 # epochs: None
@@ -20,7 +20,7 @@
 # gamma: 0.05
 
 # How many CNN layers the model should have.
-# nlayers: 2
+# nlayers: 4
 
 # How many VAEs the module should include.
 # nvaes: 2

@@ -101,3 +101,4 @@ global_config.batch_size = 64
 global_config.checkpoint_dir = Path('checkpoints')
 
 global_config.n_vae_channels = 2
+global_config.n_unet_blocks = 3
