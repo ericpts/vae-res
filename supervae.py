@@ -1,5 +1,6 @@
 import tensorflow.keras as keras
 import tensorflow as tf
+import data_util
 from config import global_config
 import numpy as np
 
@@ -28,7 +29,7 @@ class SuperVAE(tf.keras.Model):
     def set_lr_for_new_stage(self, lr: float):
         self.optimizer = tf.keras.optimizers.RMSprop(
             learning_rate=lr,
-            epsilon=0.1,
+            # epsilon=0.1,
         )
 
     def freeze_all(self):
@@ -75,21 +76,12 @@ class SuperVAE(tf.keras.Model):
             kl_loss += cur_loss
         kl_loss /= self.nvaes
 
-        # TODO maybe these are useful in the future.
-        #
-        # if tf.summary.experimental.get_step() % 20 == 0:
-        #     for i in range(self.nvaes):
-        #         tf.summary.histogram(
-        #             f'softmax_confidences_vae_{i}',
-        #             softmax_confidences[i],
-        #             step=None)
-
         ent_loss = 0
         for i in range(self.nvaes):
             # TODO: Maybe make this into a KL divergence instead.
             cur_loss = loss_object(
                 masks[i], vae_masks[i]
-            )
+            ) * recall_loss_coef
             tf.summary.scalar(f'mask_loss_vae_{i}', cur_loss, step=None)
             ent_loss += cur_loss
         ent_loss /= self.nvaes
@@ -99,6 +91,8 @@ class SuperVAE(tf.keras.Model):
         total_loss = tf.math.reduce_mean(recall_loss +
                                        global_config.beta * kl_loss +
                                        global_config.gamma * ent_loss)
+
+        data_util.assert_all_finite(total_loss)
 
         tf.summary.scalar('total_loss', total_loss, step=None)
         return total_loss
@@ -120,6 +114,8 @@ class SuperVAE(tf.keras.Model):
 
     def fit(self, X, variables, apply_gradients_fn):
         gradients, loss = self.compute_gradients(X, variables)
+        for X in gradients:
+            data_util.assert_all_finite(X)
         apply_gradients_fn(gradients)
         return loss
 
@@ -164,6 +160,9 @@ class SuperVAE(tf.keras.Model):
                 tf.concat([X, log_residual], axis=-1)
             )
 
+            data_util.assert_all_finite(log_m)
+            data_util.assert_all_finite(log_1minusm)
+
             mask = tf.math.add(log_residual, log_m)
 
             (rimage, rmask) = self.vaes[i](
@@ -171,6 +170,10 @@ class SuperVAE(tf.keras.Model):
             )
 
             log_residual = tf.math.add(log_residual, log_1minusm)
+
+            data_util.assert_all_finite(rimage)
+            data_util.assert_all_finite(rmask)
+            data_util.assert_all_finite(mask)
 
             vae_images.append(rimage)
             vae_masks.append(rmask)

@@ -8,6 +8,10 @@ from config import global_config
 BigDataset = namedtuple('BigDataset', ['D_train', 'D_test'])
 
 
+def assert_all_finite(X):
+    return tf.debugging.assert_all_finite(X, 'expected finite tensor')
+
+
 def filter_big_dataset(
         big_ds: BigDataset,
         filter_fn: Callable[[np.array, float], bool]) -> BigDataset:
