@@ -47,23 +47,20 @@ def train_model(model: tf.keras.Model, big_ds: BigDataset, start_epoch: int,
         for (X, y) in D_test.shuffle(2**10).take(
                 global_config.num_examples).batch(global_config.num_examples):
 
-            (log_residual, vae_images, vae_masks, masks) = model.run_on_input(X)
+            (log_residual, vae_images, log_vae_masks, log_masks) = model.run_on_input(X)
 
-            masks = tf.stack(masks, axis=0)
-            vae_masks = tf.stack(vae_masks, axis=0)
-            vae_images = tf.stack(vae_images, axis=0)
             X_output = tf.reduce_sum(
-                tf.math.exp(masks) * vae_images, axis=0)
-            imgs = (X, masks, vae_masks, vae_images, X_output)
+                tf.math.exp(log_masks) * vae_images, axis=0)
+            imgs = (X, log_masks, log_vae_masks, vae_images, X_output)
 
         return test_loss, imgs
 
     def save_test_pictures(test_imgs, epoch):
-        (X, masks, vae_masks, vae_images, X_output) = test_imgs
+        (X, log_masks, log_vae_masks, vae_images, X_output) = test_imgs
         fname = 'images/{}/image_at_epoch_{}.png'.format(model.name, epoch)
 
         plot_util.save_pictures(
-            X, masks, vae_masks, vae_images, X_output, fname)
+            X, log_masks, log_vae_masks, vae_images, X_output, fname)
 
         max_outputs = 3
         tf.summary.image('Input', X, max_outputs=max_outputs, step=None)
@@ -71,12 +68,12 @@ def train_model(model: tf.keras.Model, big_ds: BigDataset, start_epoch: int,
         for ivae in range(global_config.nvaes):
             tf.summary.image(
                 f'VAE_{ivae}_given_mask',
-                tf.math.exp(masks[ivae]),
+                tf.math.exp(log_masks[ivae]),
                 step=None,
                 max_outputs=max_outputs)
             tf.summary.image(
                 f'VAE_{ivae}_reproduced_mask',
-                tf.math.exp(vae_masks[ivae]),
+                tf.math.exp(log_vae_masks[ivae]),
                 step=None,
                 max_outputs=max_outputs)
             tf.summary.image(
@@ -204,6 +201,7 @@ def main():
     big_ds = data_util.load_data()
 
     epochs_so_far = 0
+
     for i in range(global_config.nvaes):
         print(f'Trainig VAE_{i} for digits up to {i}')
 

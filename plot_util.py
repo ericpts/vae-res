@@ -17,14 +17,20 @@ def make_plot(pictures):
 
 def save_pictures(
         X_input,
-        masks,
-        vae_masks,
+        log_masks,
+        log_vae_masks,
         vae_images,
         X_output,
         file_name: Optional[str]):
 
-    assert masks.shape[0] == global_config.nvaes
-    assert masks.shape[1] == global_config.num_examples
+    assert log_masks.shape[0] == global_config.nvaes
+    assert log_masks.shape[1] == global_config.num_examples
+
+    assert log_vae_masks.shape[0] == global_config.nvaes
+    assert log_vae_masks.shape[1] == global_config.num_examples
+
+    masks = tf.math.exp(log_masks)
+    vae_masks = tf.math.exp(log_vae_masks)
 
     assert vae_images.shape[0] == global_config.nvaes
     assert vae_images.shape[1] == global_config.num_examples

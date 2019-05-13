@@ -51,14 +51,17 @@ class SuperVAE(tf.keras.Model):
 
     @tf.function
     def compute_loss(self, X):
-        (log_residual, vae_images, vae_masks, masks) = self.run_on_input(X)
+        (log_residual, vae_images, log_vae_masks, log_masks) = self.run_on_input(X)
+
+        vae_masks = tf.math.exp(log_vae_masks)
+        masks = tf.math.exp(log_masks)
 
         loss_object = tf.keras.losses.MeanSquaredError()
         recall_loss = 0.0
         recall_loss_coef = 28 * 28 * global_config.expand_per_width * global_config.expand_per_height
 
         tf.summary.scalar(
-            f'log_residual',
+            f'residual',
             tf.math.reduce_sum(
                 tf.math.exp(log_residual))
         )
@@ -66,8 +69,7 @@ class SuperVAE(tf.keras.Model):
         for i in range(self.nvaes):
             cur_loss = recall_loss_coef * loss_object(
                 X, vae_images[i],
-                sample_weight=tf.math.exp(
-                    masks[i]))
+                sample_weight=masks[i])
 
             tf.summary.scalar(f'recall_loss_vae_{i}', cur_loss, step=None)
             recall_loss += cur_loss
@@ -90,8 +92,8 @@ class SuperVAE(tf.keras.Model):
 
             cur_loss = tf.math.reduce_sum(
                 tf.math.multiply(
-                    tf.math.exp(vae_masks[i]),
-                    (vae_masks[i] - masks[i])
+                    vae_masks[i],
+                    (log_vae_masks[i] - log_masks[i])
                 )
             )
 
@@ -175,8 +177,8 @@ class SuperVAE(tf.keras.Model):
         log_residual = tf.zeros_like(X)
 
         vae_images = []
-        vae_masks = []
-        masks = []
+        log_vae_masks = []
+        log_masks = []
 
         for i in range(self.nvaes):
             log_m, log_1minusm = tf.split(
@@ -202,21 +204,25 @@ class SuperVAE(tf.keras.Model):
             data_util.assert_all_finite(mask)
 
             vae_images.append(rimage)
-            vae_masks.append(rmask)
-            masks.append(mask)
+            log_vae_masks.append(rmask)
+            log_masks.append(mask)
 
-        vae_masks = tf.split(
+        log_vae_masks = tf.split(
             tf.math.log_softmax(
-                tf.concat(vae_masks, axis=-1),
+                tf.concat(log_vae_masks, axis=-1),
                 axis=-1
             ),
             num_or_size_splits=self.nvaes,
             axis=-1,
         )
 
+        log_masks = tf.stack(log_masks, axis=0)
+        log_vae_masks = tf.stack(log_vae_masks, axis=0)
+        vae_images = tf.stack(vae_images, axis=0)
+
         return (
             log_residual,
             vae_images,
-            vae_masks,
-            masks
+            log_vae_masks,
+            log_masks
         )
