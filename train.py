@@ -176,7 +176,7 @@ def main():
 
     if global_config.epochs is None:
         global_config.epochs = [
-            80 + 10 * i + 15 * i * i for i in range(global_config.nvaes)
+            60 + 10 * i for i in range(global_config.nvaes)
         ]
 
     print(f'Using {global_config.nvaes} VAEs')
@@ -222,6 +222,9 @@ def main():
             epochs_so_far = end_epoch
 
         train_for_n_epochs(global_config.epochs[i])
+
+        if i == 0:
+            continue
 
         for j in range(i):
             model.unfreeze_vae(j)
