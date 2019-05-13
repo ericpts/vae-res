@@ -122,6 +122,7 @@ class VAE(tf.keras.Model):
             padding='same',
             name='decoder-raw-confidence')(X)
 
+
         model = keras.models.Model(
             inputs=inputs, outputs=[img, confidence], name='decoder')
 

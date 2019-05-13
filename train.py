@@ -50,26 +50,33 @@ def train_model(model: tf.keras.Model, big_ds: BigDataset, start_epoch: int,
             (log_residual, vae_images, vae_masks, masks) = model.run_on_input(X)
 
             masks = tf.stack(masks, axis=0)
+            vae_masks = tf.stack(vae_masks, axis=0)
             vae_images = tf.stack(vae_images, axis=0)
-            X_output = tf.reduce_sum(masks * vae_images, axis=0)
-            imgs = (X, masks, vae_images, X_output)
+            X_output = tf.reduce_sum(
+                tf.math.exp(masks) * vae_images, axis=0)
+            imgs = (X, masks, vae_masks, vae_images, X_output)
 
         return test_loss, imgs
 
     def save_test_pictures(test_imgs, epoch):
-        (X, softmax_confidences, vae_images, X_output) = test_imgs
+        (X, masks, vae_masks, vae_images, X_output) = test_imgs
         fname = 'images/{}/image_at_epoch_{}.png'.format(model.name, epoch)
 
-        plot_util.save_pictures(X, softmax_confidences, vae_images, X_output,
-                                fname)
+        plot_util.save_pictures(
+            X, masks, vae_masks, vae_images, X_output, fname)
 
-        max_outputs = 4
+        max_outputs = 3
         tf.summary.image('Input', X, max_outputs=max_outputs, step=None)
 
         for ivae in range(global_config.nvaes):
             tf.summary.image(
-                f'VAE_{ivae}_softmax_confidences',
-                softmax_confidences[ivae],
+                f'VAE_{ivae}_given_mask',
+                tf.math.exp(masks[ivae]),
+                step=None,
+                max_outputs=max_outputs)
+            tf.summary.image(
+                f'VAE_{ivae}_reproduced_mask',
+                tf.math.exp(vae_masks[ivae]),
                 step=None,
                 max_outputs=max_outputs)
             tf.summary.image(

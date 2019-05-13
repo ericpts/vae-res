@@ -137,14 +137,12 @@ class UNet(tf.keras.models.Model):
         X = tf.keras.layers.Conv2D(1, 1, padding='same')(X)
 
         X = tf.nn.log_softmax(
-            tf.keras.layers.Concatenate()([X, tf.zeros_like(X)]))
-        logs, log1ms = tf.split(X, 2, axis=-1)
-
-        logs = data_util.assert_all_finite(logs)
-        log1ms = data_util.assert_all_finite(log1ms)
+            tf.keras.layers.Concatenate()([X, tf.zeros_like(X)]),
+            axis=-1,
+        )
 
         self.model = tf.keras.models.Model(
-            inputs=[inputs], outputs=[logs, log1ms])
+            inputs=[inputs], outputs=[X])
 
 
     def call(self, X):

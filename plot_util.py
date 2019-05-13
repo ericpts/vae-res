@@ -15,11 +15,16 @@ def make_plot(pictures):
         plt.axis('off')
 
 
-def save_pictures(X_input, vae_softmax_confidences, vae_images, X_output,
-                  file_name: Optional[str]):
+def save_pictures(
+        X_input,
+        masks,
+        vae_masks,
+        vae_images,
+        X_output,
+        file_name: Optional[str]):
 
-    assert vae_softmax_confidences.shape[0] == global_config.nvaes
-    assert vae_softmax_confidences.shape[1] == global_config.num_examples
+    assert masks.shape[0] == global_config.nvaes
+    assert masks.shape[1] == global_config.num_examples
 
     assert vae_images.shape[0] == global_config.nvaes
     assert vae_images.shape[1] == global_config.num_examples
@@ -41,7 +46,8 @@ def save_pictures(X_input, vae_softmax_confidences, vae_images, X_output,
         to_stack.append(X_input[i, :, :, 0])
 
         for v in range(global_config.nvaes):
-            to_stack.append(vae_softmax_confidences[v, i, :, :, 0])
+            to_stack.append(masks[v, i, :, :, 0])
+            to_stack.append(vae_masks[v, i, :, :, 0])
             to_stack.append(vae_images[v, i, :, :, 0])
 
         to_stack.append(X_output[i, :, :, 0])
