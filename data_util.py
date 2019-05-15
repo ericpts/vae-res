@@ -1,6 +1,6 @@
 import tensorflow as tf
 from collections import namedtuple
-from typing import Callable, List
+from typing import Callable, List, Dict
 import re
 import numpy as np
 from config import global_config
@@ -53,6 +53,14 @@ def shuffle_big_dataset(big_ds: BigDataset) -> BigDataset:
         Dt.shuffle(get_tf_dataset_size(Dt),
                    reshuffle_each_iteration=True
         )
+    )
+
+
+def map_big_dataset(big_ds: BigDataset, map_fn) -> BigDataset:
+    (Dr, Dt) = big_ds
+    return BigDataset(
+        Dr.map(map_fn),
+        Dt.map(map_fn)
     )
 
 
@@ -110,6 +118,23 @@ def make_filter_fn(labels: List[int]):
     return filter_fn
 
 
+def remap_labels(d: Dict[int, int], big_ds: BigDataset) -> BigDataset:
+    ret = []
+    for k, v in d.items():
+        v = tf.convert_to_tensor(v, dtype=tf.uint8)
+
+        cur_ds = filter_big_dataset(
+            big_ds,
+            make_filter_fn([k])
+        )
+
+        def map_fn(X, y):
+            return X, v
+        cur_ds = map_big_dataset(cur_ds, map_fn)
+        ret.append(cur_ds)
+    return chain_big_datasets(*ret)
+
+
 def load_data() -> BigDataset:
 
     return shuffle_big_dataset(
@@ -118,9 +143,15 @@ def load_data() -> BigDataset:
                 load_big_dataset_by_name('mnist'),
                 make_filter_fn([0, 1])
             ),
-            filter_big_dataset(
-                load_big_dataset_by_name('fashion_mnist'),
-                make_filter_fn([2, 3])
+            remap_labels(
+                {
+                    3: 2,
+                    5: 3,
+                },
+                filter_big_dataset(
+                    load_big_dataset_by_name('fashion_mnist'),
+                    make_filter_fn([3, 5])
+                )
             )
         )
     )

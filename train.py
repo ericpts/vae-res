@@ -95,13 +95,10 @@ def train_model(
         tf.summary.experimental.set_step(step_var)
 
         with train_summary_writer.as_default():
-            train_loss = train_step()
-            tf.summary.scalar('loss', train_loss, step=None)
+            train_step()
 
         with test_summary_writer.as_default():
-
             test_loss, test_imgs = test_step()
-            tf.summary.scalar('loss', test_loss, step=None)
 
             if epoch % 40 == 0:
                 save_test_pictures(test_imgs, epoch)
