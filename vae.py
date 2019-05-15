@@ -16,11 +16,12 @@ class VAE(tf.keras.Model):
         assert self.nlayers % 2 == 0
         self.latent_dim = latent_dim
 
+        size = 32
         self.layer_sizes = []
-        for i in range(self.nlayers // 2):
-            size = 32 * 2**i
+        for i in range(self.nlayers):
             self.layer_sizes.append(size)
-            self.layer_sizes.append(size)
+            if i % 2 == 1:
+                size *= 2
 
         self.encoder = self.encoder_network(self.latent_dim)
         self.decoder = self.decoder_network(self.latent_dim)

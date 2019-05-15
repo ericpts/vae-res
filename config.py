@@ -66,7 +66,7 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'nlayers',
-        4,
+        2,
         help='How many CNN layers the model should have.',
         type=int,
         parser=parser)

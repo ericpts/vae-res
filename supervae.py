@@ -67,6 +67,8 @@ class SuperVAE(tf.keras.Model):
         )
 
         for i in range(self.nvaes):
+            tf.debugging.assert_less_equal(log_masks[i], 0.0)
+
             cur_loss = recall_loss_coef * loss_object(
                 X, vae_images[i],
                 sample_weight=tf.math.exp(log_masks[i]))
