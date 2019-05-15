@@ -34,6 +34,7 @@ class SuperVAE(tf.keras.Model):
             # epsilon=0.1,
         )
 
+
     def freeze_all(self):
         for i in range(self.nvaes):
             self.freeze_vae(i)
@@ -95,7 +96,7 @@ class SuperVAE(tf.keras.Model):
 
             tf.debugging.assert_greater(cur_loss, -1e-5)
 
-            cur_loss = tf.math.reduce_sum(cur_loss)
+            cur_loss = tf.math.reduce_mean(cur_loss)
 
             tf.summary.scalar(f'mask_loss_vae_{i}', cur_loss, step=None)
             ent_loss += cur_loss
