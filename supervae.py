@@ -4,6 +4,8 @@ import data_util
 from config import global_config
 import numpy as np
 
+import tensorflow_probability as tfp
+
 from unet import UNet
 from vae import VAE
 
@@ -53,9 +55,6 @@ class SuperVAE(tf.keras.Model):
     def compute_loss(self, X):
         (log_residual, vae_images, log_vae_masks, log_masks) = self.run_on_input(X)
 
-        vae_masks = tf.math.exp(log_vae_masks)
-        masks = tf.math.exp(log_masks)
-
         loss_object = tf.keras.losses.MeanSquaredError()
         recall_loss = 0.0
         recall_loss_coef = 28 * 28 * global_config.expand_per_width * global_config.expand_per_height
@@ -69,7 +68,7 @@ class SuperVAE(tf.keras.Model):
         for i in range(self.nvaes):
             cur_loss = recall_loss_coef * loss_object(
                 X, vae_images[i],
-                sample_weight=masks[i])
+                sample_weight=tf.math.exp(log_masks[i]))
 
             tf.summary.scalar(f'recall_loss_vae_{i}', cur_loss, step=None)
             recall_loss += cur_loss
@@ -90,17 +89,14 @@ class SuperVAE(tf.keras.Model):
 
             # Compute KL between vae_masks and masks.
 
-            cur_loss = tf.math.reduce_sum(
-                tf.math.multiply(
-                    vae_masks[i],
-                    (log_vae_masks[i] - log_masks[i])
-                )
-            )
+            vae_bern = tfp.distributions.Bernoulli(logits=log_vae_masks[i], validate_args=True, allow_nan_stats=False, dtype=tf.float32)
+            mask_bern = tfp.distributions.Bernoulli(logits=log_masks[i], validate_args=True, allow_nan_stats=False, dtype=tf.float32)
 
-            # cur_loss = loss_object(
-            #     tf.math.exp(masks[i]),
-            #     tf.math.exp(vae_masks[i]),
-            # ) * recall_loss_coef
+            cur_loss = vae_bern.kl_divergence(mask_bern)
+
+            tf.debugging.assert_greater(cur_loss, -1e-5)
+
+            cur_loss = tf.math.reduce_sum(cur_loss)
 
             tf.summary.scalar(f'mask_loss_vae_{i}', cur_loss, step=None)
             ent_loss += cur_loss
