@@ -449,3 +449,10 @@
 ** Or with google deepmind ai lab
 
 ** Try to see how to make the model have a lower loss if it does not do anything.
+
+
+* Paper comments
+** Their hypothesis is that it is easier for a model to process a scene if there are repeating patterns.
+   For example, if the same time of object appears multiple times, then it
+   should be easier to model all of them at once.
+*** They test the hypothesis by training with fixed masks, and it seems to be the case indeed.
