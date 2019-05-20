@@ -22,6 +22,41 @@ def filter_big_dataset(
         Dt.filter(filter_fn))
 
 
+def make_big_dataset_with_empty_images(img_size: int,
+                                  size_train: int,
+                                  size_test: int) -> BigDataset:
+    def make_tf_dataset(n):
+        X = np.zeros((n, img_size, img_size, 1), dtype=np.float32)
+        y = np.array([-1] * n, dtype=np.uint8)
+        D = tf.data.Dataset.from_tensor_slices((X, y))
+        return D
+
+    return BigDataset(
+        make_tf_dataset(size_train),
+        make_tf_dataset(size_test)
+    )
+
+
+def augment_big_dataset_with_empty_images(big_ds: BigDataset,
+                                          f_empty: float) -> BigDataset:
+    size_train = int(
+        f_empty * get_tf_dataset_size(big_ds.D_train)
+    )
+    size_test = int(
+        f_empty * get_tf_dataset_size(big_ds.D_test)
+    )
+    return shuffle_big_dataset(
+        chain_big_datasets(
+            big_ds,
+            make_big_dataset_with_empty_images(
+                28,
+                size_train,
+                size_test
+            )
+        )
+    )
+
+
 def chain_big_datasets(
         *big_ds: List[BigDataset]
 ) -> BigDataset:
@@ -155,15 +190,6 @@ def load_data() -> BigDataset:
             )
         )
     )
-
-
-def make_empty_windows(img_size: int,
-                       n: int) -> tf.data.Dataset:
-
-    X = np.zeros((n, img_size, img_size, 1), dtype=np.float32)
-    y = np.array([-1] * n, dtype=np.uint8)
-    D = tf.data.Dataset.from_tensor_slices((X, y))
-    return D
 
 
 def combine_into_windows(

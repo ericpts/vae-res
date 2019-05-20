@@ -124,7 +124,14 @@ def with_digits_and_grouped(
         digits: List[int],
 ):
     filter_fn = data_util.make_filter_fn(digits)
+
     big_ds = data_util.filter_big_dataset(big_ds, filter_fn)
+
+    big_ds = data_util.augment_big_dataset_with_empty_images(
+        big_ds,
+        1.0 / len(digits)
+    )
+
     big_ds = BigDataset(
         *tuple(
             [data_util.combine_into_windows(D) for D in big_ds]
@@ -209,6 +216,7 @@ def main():
         cur_big_ds = with_digits_and_grouped(
             big_ds, digits
         )
+
         plot_util.plot_dataset_sample(
             cur_big_ds.D_train,
             f'train-{i}'
