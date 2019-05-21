@@ -451,6 +451,7 @@
 
 * Outstanding ideas
 
+
 * Next issues
 ** TODO Fix KL loss in MONet impl.
 ** TODO Implement spatial broadcast decoder.
@@ -458,6 +459,12 @@
 
 ** TODO Truncated normal weight initializer
    Seems to be used everywhere.
+** TODO Maybe try different loss.
+** TODO Check to see what happens if the background is complicated.
+
+** TODO Make a metric to see how well the models are splitting.
+*** Compute how many pixels are modelled (via the softmax conf.) by the good pixel.
+    Maybe use the ARI one from the IODIDE paper.
 
 * MONet Paper comments
 ** Their hypothesis is that it is easier for a model to process a scene if there are repeating patterns.
@@ -469,6 +476,7 @@
      model is capable of representing everything, and so there is no "incentive" to share the load.
 ** They only use uniformly coloured backgrounds.
    Why might this be? Does the model have problems in other scenarios?
+
 
 * IODIDE Paper comments
 ** The MSE loss function in our model is actually the same as they present!
