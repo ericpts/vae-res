@@ -456,6 +456,9 @@
 ** TODO Implement spatial broadcast decoder.
 ** TODO Use the last residual as input mask to last VAE.
 
+** TODO Truncated normal weight initializer
+   Seems to be used everywhere.
+
 * MONet Paper comments
 ** Their hypothesis is that it is easier for a model to process a scene if there are repeating patterns.
    For example, if the same time of object appears multiple times, then it
