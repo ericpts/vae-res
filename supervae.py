@@ -17,8 +17,12 @@ class SuperVAE(tf.keras.Model):
         self.nvaes = global_config.nvaes
 
         inputs = keras.Input(
-            shape=(28 * global_config.expand_per_height, 28 * global_config.expand_per_width,
-                   1))
+            shape=(
+                global_config.img_height,
+                global_config.img_width,
+                global_config.img_channels
+                )
+            )
 
         self.vaes = [
             VAE(latent_dim, 'VAE-{}'.format(i)) for i in range(self.nvaes)
@@ -96,7 +100,7 @@ class SuperVAE(tf.keras.Model):
         loss_object = tf.keras.losses.MeanSquaredError()
         recall_loss = 0.0
 
-        recall_loss_coef = 28 * 28 * global_config.expand_per_width * global_config.expand_per_height
+        recall_loss_coef = global_config.img_width * global_config.img_height * global_config.img_channels
 
         for i in range(self.nvaes):
             cur_loss = loss_object(x, vae_images[i], sample_weight=softmax_confidences[i]) * recall_loss_coef
@@ -174,13 +178,15 @@ class SuperVAE(tf.keras.Model):
             self.optimizer.apply_gradients(
                 zip(grads, variables))
 
-        for (X, y) in D_train.batch(
+        for D in D_train.batch(
                 global_config.batch_size, drop_remainder=True).prefetch(
-                    16 * global_config.batch_size
-                ):
+                    global_config.batch_size):
+            t = time.time()
+            X = D['img']
             loss = self.fit(X, variables, apply_gradients_fn)
             train_loss += loss * X.shape[0]
             train_size += X.shape[0]
+            print(f'Done one batch in {time.time() - t} secs.')
 
         return train_loss / train_size
 
@@ -188,9 +194,21 @@ class SuperVAE(tf.keras.Model):
     def evaluate_on_dataset(self, D_test):
         test_loss = 0
         test_size = 0
-        for (X, y) in D_test.batch(
-                global_config.batch_size * 8, drop_remainder=True):
-            test_loss += self.compute_loss(X) * X.shape[0]
+        for D in D_test.batch(
+                global_config.batch_size, drop_remainder=True):
+            X = D['img']
+            (softmax_confidences, vae_images) = self.model(X)
+
+            y = D['bbox']
+            y = np.swapaxes(y, 0, 1)
+
+            # We might have labels for 10 objects, but only train on fewer.
+            y = y[: global_config.nvaes]
+            softmax_confidences = softmax_confidences[: global_config.nvaes]
+
+            test_loss += -tf.math.xlogy(y, softmax_confidences)
+
+            # test_loss += self.compute_loss(X) * X.shape[0]
             test_size += X.shape[0]
 
         return test_loss / test_size

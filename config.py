@@ -82,7 +82,7 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'nlayers',
-        2,
+        4,
         help='How many CNN layers the model should have.',
         type=int,
         parser=parser)
@@ -92,6 +92,13 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
         2,
         help='How many VAEs the module should include.',
         type=int,
+        parser=parser)
+
+    add_config_argument(
+        'clevr',
+        None,
+        help='Use the clevr dataset, and find it at this path.',
+        type=str,
         parser=parser)
 
     sample_config.close()
@@ -114,5 +121,9 @@ def update_config_from_yaml(cfg: Path):
 
 # These options probably don't need to be set often.
 global_config.num_examples = 16
-global_config.batch_size = 64
+global_config.batch_size = 32
 global_config.checkpoint_dir = Path('checkpoints')
+
+global_config.img_width = 28
+global_config.img_height = 28
+global_config.img_channels = 1

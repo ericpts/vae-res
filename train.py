@@ -14,6 +14,7 @@ from supervae import SuperVAE
 import data_util
 from data_util import BigDataset
 import plot_util
+import clevr_util
 
 from config import global_config
 import config
@@ -47,10 +48,10 @@ def train_model(
     def test_step():
         test_loss = model.evaluate_on_dataset(D_test)
 
-        for (X, y) in D_test.shuffle(
-                2**10).take(
-                    global_config.num_examples).batch(
-                        global_config.num_examples):
+        for D in D_test.take(
+                global_config.num_examples).batch(
+                    global_config.num_examples):
+            X = D['img']
             (softmax_confidences, vae_images) = model.run_on_input(X)
             X_output = tf.reduce_sum(softmax_confidences * vae_images, axis=0)
             imgs = (X, softmax_confidences, vae_images, X_output)
@@ -100,7 +101,7 @@ def train_model(
         with test_summary_writer.as_default():
             test_loss, test_imgs = test_step()
 
-            if epoch % 40 == 0:
+            if epoch % 1 == 0:
                 save_test_pictures(test_imgs, epoch)
 
         if epoch % 40 == 0:
@@ -185,6 +186,12 @@ def main():
             for i in range(global_config.nvaes)
         ]
 
+    if global_config.clevr:
+        print('Using the clevr dataset.')
+        big_ds = clevr_util.Clevr(Path(global_config.clevr))
+    else:
+        big_ds = data_util.load_data()
+
     print(f'Using {global_config.nvaes} VAEs')
 
     model = SuperVAE(global_config.latent_dim, name=args.name)
@@ -202,29 +209,21 @@ def main():
     for i in range(global_config.nvaes):
         model.freeze_vae(i)
 
-    big_ds = data_util.load_data()
-
     epochs_so_far = 0
     for i in range(global_config.nvaes):
-        print(f'Trainig VAE_{i} for digits up to {i}')
+        print(f'Training VAE_{i} for digits up to {i}.')
 
         model.freeze_all()
         model.unfreeze_vae(i)
         model.set_lr_for_new_stage(1e-3)
 
-        digits = list(range(i + 1))
-        cur_big_ds = with_digits_and_grouped(
-            big_ds, digits
-        )
+        digits = [
+            clevr_util.Clevr.OBJECTS[j] for j in range(i + 1)
+        ]
+        cur_big_ds = big_ds.filter_for_objects(digits)
 
-        plot_util.plot_dataset_sample(
-            cur_big_ds.D_train,
-            f'train-{i}'
-        )
-        plot_util.plot_dataset_sample(
-            cur_big_ds.D_test,
-            f'test-{i}'
-        )
+        plot_util.plot_dataset_sample(cur_big_ds.D_train, f'train-{i}')
+        plot_util.plot_dataset_sample(cur_big_ds.D_test, f'test-{i}')
 
         def train_for_n_epochs(n: int):
             nonlocal epochs_so_far, start_epoch

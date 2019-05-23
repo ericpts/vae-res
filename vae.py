@@ -15,7 +15,7 @@ class VAE(tf.keras.Model):
         self.nlayers = global_config.nlayers
         self.latent_dim = latent_dim
 
-        self.layer_sizes = [4 * 2**i for i in range(self.nlayers)]
+        self.layer_sizes = [32 * 2**i for i in range(self.nlayers)]
 
         self.encoder = self.encoder_network(self.latent_dim)
         self.decoder = self.decoder_network(self.latent_dim)
@@ -72,8 +72,12 @@ class VAE(tf.keras.Model):
 
     def encoder_network(self, latent_dim: int) -> tf.keras.Model:
         inputs = keras.Input(
-            shape=(28 * global_config.expand_per_height, 28 * global_config.expand_per_width,
-                   1))
+            shape=(
+                global_config.img_height,
+                global_config.img_width,
+                global_config.img_channels
+                )
+            )
 
         X = inputs
 
@@ -81,7 +85,7 @@ class VAE(tf.keras.Model):
 
         X = keras.layers.Flatten(name='encoder-flatten')(X)
 
-        X = keras.layers.Dense(64, name='encoder-last-fc', activation='relu')(X)
+        X = keras.layers.Dense(32, name='encoder-last-fc', activation='relu')(X)
 
         mean = keras.layers.Dense(latent_dim)(X)
         logvar = keras.layers.Dense(latent_dim)(X)
@@ -107,7 +111,7 @@ class VAE(tf.keras.Model):
 
         img = CoordConv2D(
             transp=True,
-            filters=1,
+            filters=global_config.img_channels,
             kernel_size=3,
             activation='sigmoid',
             padding='same',

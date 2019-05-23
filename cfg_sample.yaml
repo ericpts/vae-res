@@ -20,8 +20,11 @@
 # gamma: 0.05
 
 # How many CNN layers the model should have.
-# nlayers: 2
+# nlayers: 4
 
 # How many VAEs the module should include.
 # nvaes: 2
+
+# Use the clevr dataset, and find it at this path.
+# clevr: None
 

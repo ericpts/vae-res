@@ -3,6 +3,10 @@ from typing import Optional
 import os
 import numpy as np
 from pathlib import Path
+
+import matplotlib
+# matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 from config import global_config
 
@@ -11,7 +15,8 @@ def make_plot(pictures):
     fig = plt.figure(figsize=(16, 16))
     for i in range(4 * 4):
         plt.subplot(4, 4, i + 1)
-        plt.imshow(pictures[i, :, :, 0], cmap='gray')
+
+        plt.imshow(pictures[i])
         plt.axis('off')
 
 
@@ -42,17 +47,18 @@ def save_pictures(
         plt.subplot(k, k, i + 1)
 
         to_stack = []
-        to_stack.append(X_input[i, :, :, 0])
+        to_stack.append(X_input[i])
 
         for v in range(global_config.nvaes):
-            to_stack.append(vae_softmax_confidences[v, i, :, :, 0])
-            to_stack.append(vae_images[v, i, :, :, 0])
+            to_stack.append(
+                tf.image.grayscale_to_rgb(vae_softmax_confidences[v, i]))
+            to_stack.append(vae_images[v, i])
 
-        to_stack.append(X_output[i, :, :, 0])
+        to_stack.append(X_output[i])
 
         to_show = np.vstack(to_stack)
 
-        plt.imshow(to_show, cmap='gray')
+        plt.imshow(to_show)
 
         plt.axis('off')
 
@@ -70,7 +76,7 @@ def save_pictures(
 def plot_dataset_sample(D: tf.data.Dataset, img_name: str):
     D_samples = D.take(global_config.num_examples)
 
-    X = [np.array(X) for (X, y) in D_samples]
+    X = [np.array(X['img']) for X in D_samples]
     X = np.array(X)
 
     make_plot(X)
