@@ -152,6 +152,7 @@
 ** Try to train all VAE's together at the end for some time, with a lower lr.
 *** Try to also increase KL loss for this scenario.
 ** Try to maybe also feed empty blocks very bright.
+
 ** List of hyperparams which produce satisfactory results:
 #+NAME: setup-elisp-env
 #+BEGIN_SRC elisp :results silent
@@ -266,6 +267,14 @@
    With that in mind, it might be better to first transition to a more realistic dataset, and only then try to
    achieve "true" supervision.
 *** Train all at once, and the ones with high KL loss get frozen.
+
+** Try to integrate with another dataset, like fashion MNIST.
+*** See if one model is capable enough of handling it.
+
+** Try to see how to make the model have a lower loss if it does not do anything.
+   Maybe this actually does not really matter.
+
+
 ** Results for training all together
 
    VAE for 4 does not seem to learn anything: VAE_2 learns the digit 3 as well as the digit 2.
@@ -442,10 +451,32 @@
 
 * Outstanding ideas
 
-* Next issues
-** Try to integrate with another dataset, like fashion MNIST.
-*** See if one model is capable enough of handling it.
-** Maybe add noise to inputs.
-** Or with google deepmind ai lab
 
-** Try to see how to make the model have a lower loss if it does not do anything.
+* Next issues
+** TODO Fix KL loss in MONet impl.
+** TODO Implement spatial broadcast decoder.
+** TODO Use the last residual as input mask to last VAE.
+
+** TODO Truncated normal weight initializer
+   Seems to be used everywhere.
+** TODO Maybe try different loss.
+** TODO Check to see what happens if the background is complicated.
+
+** TODO Make a metric to see how well the models are splitting.
+*** Compute how many pixels are modelled (via the softmax conf.) by the good pixel.
+    Maybe use the ARI one from the IODIDE paper.
+
+* MONet Paper comments
+** Their hypothesis is that it is easier for a model to process a scene if there are repeating patterns.
+   For example, if the same time of object appears multiple times, then it
+   should be easier to model all of them at once.
+*** They test the hypothesis by training with fixed masks, and it seems to be the case indeed.
+**** Maybe we could try the same thing, by forcing the softmaxed masks of the VAE's to take certain values.
+     One possible reason why models maybe tend to take over is that the scenes are so simple, that a single
+     model is capable of representing everything, and so there is no "incentive" to share the load.
+** They only use uniformly coloured backgrounds.
+   Why might this be? Does the model have problems in other scenarios?
+
+
+* IODIDE Paper comments
+** The MSE loss function in our model is actually the same as they present!
