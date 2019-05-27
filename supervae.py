@@ -181,12 +181,10 @@ class SuperVAE(tf.keras.Model):
         for D in D_train.batch(
                 global_config.batch_size, drop_remainder=True).prefetch(
                     global_config.batch_size):
-            t = time.time()
             X = D['img']
             loss = self.fit(X, variables, apply_gradients_fn)
             train_loss += loss * X.shape[0]
             train_size += X.shape[0]
-            print(f'Done one batch in {time.time() - t} secs.')
 
         return train_loss / train_size
 

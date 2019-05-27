@@ -47,7 +47,7 @@ class Clevr(object):
 
             def gen():
                 lst = list(range(len(ret)))
-                lst = random.choices(lst, k=512)
+                lst = random.choices(lst, k=2048)
 
                 for i in lst:
                     cur = scenes[ret[i]]
