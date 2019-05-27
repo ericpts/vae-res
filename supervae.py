@@ -51,7 +51,7 @@ class SuperVAE(tf.keras.Model):
     def set_lr_for_new_stage(self, lr: float):
         self.optimizer = tf.keras.optimizers.RMSprop(
             learning_rate=lr,
-            # epsilon=0.1,
+            epsilon=0.1,
         )
 
 
