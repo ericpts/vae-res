@@ -46,6 +46,7 @@ class VAE(tf.keras.Model):
                     strides=2,
                     padding='same',
                     name=layer_name,
+                    kernel_initializer='truncated_normal',
                 )(X)
 
                 X = keras.layers.BatchNormalization(axis=3)(X)
@@ -87,8 +88,18 @@ class VAE(tf.keras.Model):
 
         X = keras.layers.Flatten(name='encoder-flatten')(X)
 
-        X = keras.layers.Dense(256, name='encoder-pre-fc', activation='relu')(X)
-        X = keras.layers.Dense(32, name='encoder-last-fc', activation='relu')(X)
+        X = keras.layers.Dense(
+            256,
+            name='encoder-pre-fc',
+            activation='relu',
+            kernel_initializer='truncated_normal',
+        )(X)
+        X = keras.layers.Dense(
+            32,
+            name='encoder-last-fc',
+            activation='relu',
+            kernel_initializer='truncated_normal',
+        )(X)
 
         mean = keras.layers.Dense(latent_dim)(X)
         logvar = keras.layers.Dense(latent_dim)(X)
@@ -107,7 +118,9 @@ class VAE(tf.keras.Model):
         X = keras.layers.Dense(
             np.prod(first_shape),
             activation='relu',
-            name='decoder-first-fc')(X)
+            name='decoder-first-fc',
+            kernel_initializer='truncated_normal',
+        )(X)
         X = keras.layers.Reshape(first_shape)(X)
 
         X = self.convolutional_layers(True)(X)
@@ -118,14 +131,18 @@ class VAE(tf.keras.Model):
             kernel_size=3,
             activation='sigmoid',
             padding='same',
-            name='decoder-image')(X)
+            name='decoder-image',
+            kernel_initializer='truncated_normal',
+        )(X)
 
         confidence = CoordConv2D(
             transp=True,
             filters=1,
             kernel_size=3,
             padding='same',
-            name='decoder-raw-confidence')(X)
+            name='decoder-raw-confidence',
+            kernel_initializer='truncated_normal',
+        )(X)
 
         model = keras.models.Model(
             inputs=inputs, outputs=[img, confidence], name='decoder')
