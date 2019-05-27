@@ -93,7 +93,7 @@ class Clevr(object):
 
                     yield data
 
-                    gc.collect()
+                    # gc.collect()
                     # tf.random.set_seed(1)
 
             output_types = {
