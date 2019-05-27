@@ -15,7 +15,9 @@ class VAE(tf.keras.Model):
         self.nlayers = global_config.nlayers
         self.latent_dim = latent_dim
 
-        self.layer_sizes = [32 * 2**i for i in range(self.nlayers)]
+        self.layer_sizes = []
+        for i in range(self.nlayers):
+            self.layer_sizes.append(32 * 2 ** (i // 2))
 
         self.encoder = self.encoder_network(self.latent_dim)
         self.decoder = self.decoder_network(self.latent_dim)
@@ -85,6 +87,7 @@ class VAE(tf.keras.Model):
 
         X = keras.layers.Flatten(name='encoder-flatten')(X)
 
+        X = keras.layers.Dense(256, name='encoder-pre-fc', activation='relu')(X)
         X = keras.layers.Dense(32, name='encoder-last-fc', activation='relu')(X)
 
         mean = keras.layers.Dense(latent_dim)(X)

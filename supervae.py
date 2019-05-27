@@ -45,13 +45,13 @@ class SuperVAE(tf.keras.Model):
         self.model = keras.models.Model(
             inputs=inputs, outputs=[softmax_confidences, vae_images])
 
-        self.set_lr_for_new_stage(1e-3)
+        self.set_lr_for_new_stage(1e-4)
 
 
     def set_lr_for_new_stage(self, lr: float):
-        self.optimizer = tf.keras.optimizers.Adam(
+        self.optimizer = tf.keras.optimizers.RMSprop(
             learning_rate=lr,
-            epsilon=0.1,
+            # epsilon=0.1,
         )
 
 

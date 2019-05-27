@@ -215,7 +215,7 @@ def main():
 
         model.freeze_all()
         model.unfreeze_vae(i)
-        model.set_lr_for_new_stage(1e-3)
+        model.set_lr_for_new_stage(1e-4)
 
         digits = [
             clevr_util.Clevr.OBJECTS[j] for j in range(i + 1)
