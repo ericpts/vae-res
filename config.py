@@ -121,7 +121,7 @@ def update_config_from_yaml(cfg: Path):
 
 # These options probably don't need to be set often.
 global_config.num_examples = 16
-global_config.batch_size = 32
+global_config.batch_size = 64
 global_config.checkpoint_dir = Path('checkpoints')
 
 global_config.img_width = 28

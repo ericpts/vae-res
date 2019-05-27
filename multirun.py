@@ -6,12 +6,13 @@ import subprocess
 
 gammas = [0.009, 0.011, 0.013]
 betas = [0.3, 0.5, 0.7]
-nvaes = [4]
+nvaes = [2]
 
 to_run = [{
         'beta': beta,
         'gamma': gamma,
         'nvaes': nvae,
+        'clevr': '/cluster/scratch/ericst/clevr',
     }
         for beta in betas
         for gamma in gammas
@@ -40,7 +41,19 @@ def run_once(cfg: dict, runs: int):
 
 def main():
     parser = argparse.ArgumentParser(description='Launch multiple experiments')
-    parser.add_argument('--runs', type=int, required=True, help='How many times to repeat each experiment.')
+    parser.add_argument(
+        '--runs',
+        type=int,
+        required=True,
+        help='How many times to repeat each experiment.'
+    )
+
+    subprocess.run([
+        'rsync',
+        '-a',
+        '../clevr/',
+        'ericst@login.leonhard.ethz.ch:/cluster/scratch/ericst/clevr/',
+    ], check=True)
 
     args = parser.parse_args()
     for cfg in to_run:
