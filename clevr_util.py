@@ -6,8 +6,6 @@ from typing import List
 from pathlib import Path
 import json
 from config import global_config
-import gc
-import time
 
 
 class Clevr(object):

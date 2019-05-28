@@ -53,7 +53,7 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
 
     add_config_argument(
         'latent_dim',
-        32,
+        128,
         help='Size of the latent dimension.',
         type=int,
         parser=parser)
