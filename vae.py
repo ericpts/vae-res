@@ -88,12 +88,12 @@ class VAE(tf.keras.Model):
 
         X = keras.layers.Flatten(name='encoder-flatten')(X)
 
-        # X = keras.layers.Dense(
-        #     256,
-        #     name='encoder-pre-fc',
-        #     activation='relu',
-        #     kernel_initializer='glorot_normal',
-        # )(X)
+        X = keras.layers.Dense(
+            256,
+            name='encoder-pre-fc',
+            activation='relu',
+            kernel_initializer='glorot_normal',
+        )(X)
         X = keras.layers.Dense(
             32,
             name='encoder-last-fc',
