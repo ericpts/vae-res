@@ -26,8 +26,8 @@ class Clevr(object):
             Path(clevr_root / 'scenes' / 'CLEVR_val_scenes.json').read_text()
         )['scenes'])
 
-        global_config.img_height = 320 // 4
-        global_config.img_width = 480 // 4
+        global_config.img_height = 128
+        global_config.img_width = 128
         global_config.img_channels = 3
 
         print('Loaded clevr dataset.')
@@ -58,6 +58,15 @@ class Clevr(object):
                         channels=3,
                         dtype=tf.dtypes.float32,
                     )
+
+                    img = tf.image.crop_to_bounding_box(
+                        img,
+                        29,
+                        64,
+                        221 - 21,
+                        256 - 64,
+                    )
+
                     img = tf.image.resize(
                         img,
                         (
