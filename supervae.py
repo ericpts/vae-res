@@ -76,6 +76,9 @@ class SuperVAE(tf.keras.Model):
 
     @tf.function
     def entropy_loss(self, softmax_confidences):
+        if self.nvaes == 1:
+            return 0.0
+
         entropy = - tf.math.xlogy(softmax_confidences, softmax_confidences)
         entropy = tf.math.reduce_sum(entropy, axis=0)
 
