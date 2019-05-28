@@ -49,7 +49,7 @@ class VAE(tf.keras.Model):
                     kernel_initializer='truncated_normal',
                 )(X)
 
-                X = keras.layers.BatchNormalization(axis=3)(X)
+                # X = keras.layers.BatchNormalization(axis=3)(X)
                 X = keras.layers.Activation('relu')(X)
 
                 # ReLU should go after.
