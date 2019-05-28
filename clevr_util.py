@@ -33,6 +33,68 @@ class Clevr(object):
         print('Loaded clevr dataset.')
 
 
+    def _make_gen_fn(self, good_indices, scenes, is_test):
+        def gen():
+            for i in random.choices(good_indices, k=2048):
+                cur = scenes[i]
+
+                cache_path = Path('.cache') / cur['split'] / cur['image_filename']
+                cache_path.parent.mkdir(parents=True, exist_ok=True)
+                if cache_path.exists():
+                    img = tf.io.decode_image(
+                        tf.io.read_file(str(cache_path)),
+                        channels=3,
+                        dtype=tf.dtypes.float32,
+                    )
+                else:
+                    img_path = self.clevr_root / 'images' / cur['split'] / cur['image_filename']
+
+                    assert img_path.exists()
+                    img = _image_transformation(
+                        tf.io.decode_image(
+                            tf.io.read_file(str(img_path)),
+                            channels=3,
+                            dtype=tf.dtypes.float32,
+                        )
+                    )
+
+                    tf.io.write_file(
+                        str(cache_path),
+                        tf.image.encode_png(
+                            tf.image.convert_image_dtype(
+                                img, tf.dtypes.uint8)
+                        )
+                    )
+
+                data = {
+                    'img': img
+                }
+
+                if is_test:
+                    all_bb = []
+                    for i, tp in enumerate(Clevr.OBJECTS):
+                        cur_bb = np.zeros(
+                            (*img.shape[0:2], 1),
+                            np.float32
+                        )
+                        for obj in cur['objects']:
+                            if obj['shape'] != tp:
+                                continue
+                            bb = obj['bounding_box']
+
+                            cur_bb[
+                                bb['xmin']: bb['xmax'],
+                                bb['ymin']: bb['ymax']] = 1.0
+                        all_bb.append(cur_bb)
+
+                    all_bb = np.stack(all_bb)
+
+                    data['bbox'] = all_bb
+
+                yield data
+        return gen
+
+
     def filter_for_objects(self, filter_objs: List[str]):
         def filter_once(scenes, is_test):
             ret = []
@@ -42,68 +104,10 @@ class Clevr(object):
                 for o in objs:
                     if o['shape'] not in filter_objs:
                         good = False
+                    if o['material'] != 'rubber':
+                        good = False
                 if good:
                     ret.append(si)
-
-            def gen():
-                lst = list(range(len(ret)))
-                lst = random.choices(lst, k=2048)
-
-                for i in lst:
-                    cur = scenes[ret[i]]
-                    img_path = self.clevr_root / 'images' / cur['split'] / cur['image_filename']
-                    assert img_path.exists()
-                    img = tf.io.decode_image(
-                        tf.io.read_file(str(img_path)),
-                        channels=3,
-                        dtype=tf.dtypes.float32,
-                    )
-
-                    img = tf.image.crop_to_bounding_box(
-                        img,
-                        29,
-                        64,
-                        221 - 21,
-                        256 - 64,
-                    )
-
-                    img = tf.image.resize(
-                        img,
-                        (
-                            global_config.img_height,
-                            global_config.img_width,
-                        )
-                    )
-
-                    data = {
-                        'img': img
-                    }
-
-                    if is_test:
-                        all_bb = []
-                        for i, tp in enumerate(Clevr.OBJECTS):
-                            cur_bb = np.zeros(
-                                (*img.shape[0:2], 1),
-                                np.float32
-                            )
-                            for obj in cur['objects']:
-                                if obj['shape'] != tp:
-                                    continue
-                                bb = obj['bounding_box']
-
-                                cur_bb[
-                                    bb['xmin']: bb['xmax'],
-                                    bb['ymin']: bb['ymax']] = 1.0
-                            all_bb.append(cur_bb)
-
-                        all_bb = np.stack(all_bb)
-
-                        data['bbox'] = all_bb
-
-                    yield data
-
-                    # gc.collect()
-                    # tf.random.set_seed(1)
 
             output_types = {
                 'img': tf.float32,
@@ -116,9 +120,9 @@ class Clevr(object):
                 }
 
             D = tf.data.Dataset.from_generator(
-                gen,
+                self._make_gen_fn(ret, scenes, is_test),
                 output_types=output_types
-                )
+            )
 
             return D
 
@@ -177,3 +181,25 @@ def _add_bounding_boxes_to_file(scenes: dict) -> dict:
     for scene in scenes:
         _extract_bounding_boxes(scene)
     return scenes
+
+
+def _image_transformation(img):
+    y0, y1 = 97, 300
+    x0, x1 = 64, 256
+    img = tf.image.crop_to_bounding_box(
+        img,
+        y0,
+        x0,
+        y1 - y0,
+        x1 - x0,
+    )
+
+    img = tf.image.resize(
+        img,
+        (
+            global_config.img_height,
+            global_config.img_width,
+        )
+    )
+
+    return img

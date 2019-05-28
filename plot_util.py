@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 from config import global_config
