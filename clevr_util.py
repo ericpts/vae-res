@@ -1,5 +1,6 @@
 import tensorflow as tf
 from data_util import BigDataset
+import functools
 import random
 import numpy as np
 from typing import List
@@ -31,66 +32,64 @@ class Clevr(object):
         print('Loaded clevr dataset.')
 
 
-    def _make_gen_fn(self, good_indices, scenes, is_test):
-        def gen():
-            for i in random.choices(good_indices, k=2048):
-                cur = scenes[i]
+    def generator(self, good_indices, scenes, is_test):
+        for i in random.choices(good_indices, k=2048):
+            cur = scenes[i]
 
-                cache_path = Path('.cache') / cur['split'] / cur['image_filename']
-                cache_path.parent.mkdir(parents=True, exist_ok=True)
-                if cache_path.exists():
-                    img = tf.io.decode_image(
-                        tf.io.read_file(str(cache_path)),
+            cache_path = Path('.cache') / cur['split'] / cur['image_filename']
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            if cache_path.exists():
+                img = tf.io.decode_image(
+                    tf.io.read_file(str(cache_path)),
+                    channels=3,
+                    dtype=tf.dtypes.float32,
+                )
+            else:
+                img_path = self.clevr_root / 'images' / cur['split'] / cur['image_filename']
+
+                assert img_path.exists()
+                img = _image_transformation(
+                    tf.io.decode_image(
+                        tf.io.read_file(str(img_path)),
                         channels=3,
                         dtype=tf.dtypes.float32,
                     )
-                else:
-                    img_path = self.clevr_root / 'images' / cur['split'] / cur['image_filename']
+                )
 
-                    assert img_path.exists()
-                    img = _image_transformation(
-                        tf.io.decode_image(
-                            tf.io.read_file(str(img_path)),
-                            channels=3,
-                            dtype=tf.dtypes.float32,
-                        )
+                tf.io.write_file(
+                    str(cache_path),
+                    tf.image.encode_png(
+                        tf.image.convert_image_dtype(
+                            img, tf.dtypes.uint8)
                     )
+                )
 
-                    tf.io.write_file(
-                        str(cache_path),
-                        tf.image.encode_png(
-                            tf.image.convert_image_dtype(
-                                img, tf.dtypes.uint8)
-                        )
+            data = {
+                'img': img
+            }
+
+            if is_test:
+                all_bb = []
+                for i, tp in enumerate(Clevr.OBJECTS):
+                    cur_bb = np.zeros(
+                        (*img.shape[0:2], 1),
+                        np.float32
                     )
+                    for obj in cur['objects']:
+                        if obj['shape'] != tp:
+                            continue
+                        bb = obj['bounding_box']
 
-                data = {
-                    'img': img
-                }
+                        cur_bb[
+                            bb['xmin']: bb['xmax'],
+                            bb['ymin']: bb['ymax']] = 1.0
+                    all_bb.append(cur_bb)
 
-                if is_test:
-                    all_bb = []
-                    for i, tp in enumerate(Clevr.OBJECTS):
-                        cur_bb = np.zeros(
-                            (*img.shape[0:2], 1),
-                            np.float32
-                        )
-                        for obj in cur['objects']:
-                            if obj['shape'] != tp:
-                                continue
-                            bb = obj['bounding_box']
+                all_bb = np.stack(all_bb)
 
-                            cur_bb[
-                                bb['xmin']: bb['xmax'],
-                                bb['ymin']: bb['ymax']] = 1.0
-                        all_bb.append(cur_bb)
+                data['bbox'] = all_bb
 
-                    all_bb = np.stack(all_bb)
-
-                    data['bbox'] = all_bb
-
-                yield data
-        return gen
+            yield data
 
 
     def filter_for_objects(self, filter_objs: List[str]):
@@ -101,8 +100,6 @@ class Clevr(object):
                 objs = s['objects']
                 for o in objs:
                     if o['shape'] not in filter_objs:
-                        good = False
-                    if o['material'] != 'rubber':
                         good = False
                 if good:
                     ret.append(si)
@@ -118,7 +115,8 @@ class Clevr(object):
                 }
 
             D = tf.data.Dataset.from_generator(
-                self._make_gen_fn(ret, scenes, is_test),
+                functools.partial(
+                    self.generator, ret, scenes, is_test),
                 output_types=output_types
             )
 
