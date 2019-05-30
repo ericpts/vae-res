@@ -350,63 +350,78 @@
    #+NAME: update-train-together-table-zeroes
    #+CALL: generate-table-with-links(table=train-together-table-zeroes, base_dir="nvaes=4_train_together")
 
-
-* Current issues
-
-** Next runs
-
-
-  | Epoch |         What? |
-  |-------+---------------|
-  |   [[elisp:(setq epoch "160")][160]] |             0 |
-  |   [[elisp:(setq%20epoch%20"265")][265]] |             1 |
-  |   [[elisp:(setq%20epoch%20"370")][370]] |         0 + 1 |
-  |   [[elisp:(setq%20epoch%20"530")][530]] |             2 |
-  |   [[elisp:(setq%20epoch%20"690")][690]] |     0 + 1 + 2 |
-  |   [[elisp:(setq%20epoch%20"935")][935]] |             3 |
-  |  [[elisp:(setq%20epoch%20"1180")][1180]] | 0 + 1 + 2 + 3 |
-
-
-   #+NAME: train-together-new-optimizer
-   #+RESULTS: update-train-together-new-optimizer
-   | Beta | Gamma | Run | Link  | Obs.        |
-   |------+-------+-----+-------+-------------|
-   |  0.5 | 0.009 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.5_gamma=0.009/run-2" "sample-experiment")][click]] | split       |
-   |  0.5 | 0.011 |   1 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.5_gamma=0.011/run-1" "sample-experiment")][click]] | split       |
-   |  0.5 | 0.013 |   3 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.5_gamma=0.013/run-3" "sample-experiment")][click]] | split       |
-   |  0.5 | 0.015 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.5_gamma=0.015/run-2" "sample-experiment")][click]] | split       |
-   |------+-------+-----+-------+-------------|
-   |------+-------+-----+-------+-------------|
-   |  0.7 | 0.009 |   1 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.7_gamma=0.009/run-1" "sample-experiment")][click]] | takeover    |
-   |  0.7 | 0.009 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.7_gamma=0.009/run-2" "sample-experiment")][click]] | split       |
-   |  0.7 | 0.009 |   3 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.7_gamma=0.009/run-3" "sample-experiment")][click]] | split       |
-   |------+-------+-----+-------+-------------|
-   |------+-------+-----+-------+-------------|
-   |  0.9 | 0.011 |   1 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.011/run-1" "sample-experiment")][click]] | equal split |
-   |  0.9 | 0.011 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.011/run-2" "sample-experiment")][click]] | equal split |
-   |  0.9 | 0.011 |   3 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.011/run-3" "sample-experiment")][click]] | takeover    |
-   |------+-------+-----+-------+-------------|
-   |  0.9 | 0.013 |   1 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.013/run-1" "sample-experiment")][click]] | equal split |
-   |  0.9 | 0.013 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.013/run-2" "sample-experiment")][click]] | takeover    |
-   |  0.9 | 0.013 |   3 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.013/run-3" "sample-experiment")][click]] | bad split   |
-   |------+-------+-----+-------+-------------|
+** DONE Implement spatial broadcast decoder.
+** DONE Make a metric to see how well the models are splitting.
+*** Compute how many pixels are modelled (via the softmax conf.) by the good pixel.
+    Maybe use the ARI one from the IODIDE paper.
+** DONE Truncated normal weight initializer
+   Seems to be used everywhere.
+** DONE Check to see what happens if the background is complicated.
+   Should be the case in the CLEVR dataset.
+** MONet Paper comments
+*** Their hypothesis is that it is easier for a model to process a scene if there are repeating patterns.
+    For example, if the same time of object appears multiple times, then it
+    should be easier to model all of them at once.
+**** They test the hypothesis by training with fixed masks, and it seems to be the case indeed.
+***** Maybe we could try the same thing, by forcing the softmaxed masks of the VAE's to take certain values.
+      One possible reason why models maybe tend to take over is that the scenes are so simple, that a single
+      model is capable of representing everything, and so there is no "incentive" to share the load.
+*** They only use uniformly coloured backgrounds.
+    Why might this be? Does the model have problems in other scenarios?
+*** Next runs
 
 
-   #+NAME: update-train-together-new-optimizer
-   #+CALL: generate-table-with-links(table=train-together-new-optimizer, base_dir="together_new_opt")
+   | Epoch |         What? |
+   |-------+---------------|
+   |   [[elisp:(setq epoch "160")][160]] |             0 |
+   |   [[elisp:(setq%20epoch%20"265")][265]] |             1 |
+   |   [[elisp:(setq%20epoch%20"370")][370]] |         0 + 1 |
+   |   [[elisp:(setq%20epoch%20"530")][530]] |             2 |
+   |   [[elisp:(setq%20epoch%20"690")][690]] |     0 + 1 + 2 |
+   |   [[elisp:(setq%20epoch%20"935")][935]] |             3 |
+   |  [[elisp:(setq%20epoch%20"1180")][1180]] | 0 + 1 + 2 + 3 |
 
-   The loss does indeed go down over time, but it seems that it is optimal for model 2 to learn
-   the digit 3, even if model 3 has a head start.
 
-   Even over 0's it seems to wake up a little bit, albeit with not very high confidence.
+    #+NAME: train-together-new-optimizer
+    #+RESULTS: update-train-together-new-optimizer
+    | Beta | Gamma | Run | Link  | Obs.        |
+    |------+-------+-----+-------+-------------|
+    |  0.5 | 0.009 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.5_gamma=0.009/run-2" "sample-experiment")][click]] | split       |
+    |  0.5 | 0.011 |   1 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.5_gamma=0.011/run-1" "sample-experiment")][click]] | split       |
+    |  0.5 | 0.013 |   3 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.5_gamma=0.013/run-3" "sample-experiment")][click]] | split       |
+    |  0.5 | 0.015 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.5_gamma=0.015/run-2" "sample-experiment")][click]] | split       |
+    |------+-------+-----+-------+-------------|
+    |------+-------+-----+-------+-------------|
+    |  0.7 | 0.009 |   1 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.7_gamma=0.009/run-1" "sample-experiment")][click]] | takeover    |
+    |  0.7 | 0.009 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.7_gamma=0.009/run-2" "sample-experiment")][click]] | split       |
+    |  0.7 | 0.009 |   3 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.7_gamma=0.009/run-3" "sample-experiment")][click]] | split       |
+    |------+-------+-----+-------+-------------|
+    |------+-------+-----+-------+-------------|
+    |  0.9 | 0.011 |   1 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.011/run-1" "sample-experiment")][click]] | equal split |
+    |  0.9 | 0.011 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.011/run-2" "sample-experiment")][click]] | equal split |
+    |  0.9 | 0.011 |   3 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.011/run-3" "sample-experiment")][click]] | takeover    |
+    |------+-------+-----+-------+-------------|
+    |  0.9 | 0.013 |   1 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.013/run-1" "sample-experiment")][click]] | equal split |
+    |  0.9 | 0.013 |   2 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.013/run-2" "sample-experiment")][click]] | takeover    |
+    |  0.9 | 0.013 |   3 | [[elisp:(run-experiment-with-params "../_save/together_new_opt/beta=0.9_gamma=0.013/run-3" "sample-experiment")][click]] | bad split   |
+    |------+-------+-----+-------+-------------|
 
-   When beta is 0.5, it seems that almost always the digit 3 is split.
-   However, for example at beta = 0.9, sometimes they split and sometimes model 2 takes over.
-   When they split, the loss is about 23. When they don't, it is about 25, which seems right.
 
-   One potential issue is that when model 3 trains only by itself, its confidence at the end is not
-   always very high. On the other hand, when model 2 trains by itself on digit 2, its confidence is always
-   very very high.
+    #+NAME: update-train-together-new-optimizer
+    #+CALL: generate-table-with-links(table=train-together-new-optimizer, base_dir="together_new_opt")
+
+    The loss does indeed go down over time, but it seems that it is optimal for model 2 to learn
+    the digit 3, even if model 3 has a head start.
+
+    Even over 0's it seems to wake up a little bit, albeit with not very high confidence.
+
+    When beta is 0.5, it seems that almost always the digit 3 is split.
+    However, for example at beta = 0.9, sometimes they split and sometimes model 2 takes over.
+    When they split, the loss is about 23. When they don't, it is about 25, which seems right.
+
+    One potential issue is that when model 3 trains only by itself, its confidence at the end is not
+    always very high. On the other hand, when model 2 trains by itself on digit 2, its confidence is always
+    very very high.
 
 *** Confidences problem?
     Maybe when model 3 finishes training by itself, it did not yet have a chance to get really confident about the digit 3,
@@ -433,6 +448,13 @@
 
 
 
+
+
+** IODIDE Paper comments
+*** The MSE loss function in our model is actually the same as they present!
+
+
+
 * Stashed ideas
 ** Decrease Gamma and increase the KL-loss while training VAE_1,
    in order to encourage it to learn one single thing, and learn it well.
@@ -449,34 +471,10 @@
    It might be wise to also augment our model with two FC's instead of a single one.
 
 
-* Outstanding ideas
-
-
 * Next issues
-** TODO Fix KL loss in MONet impl.
-** TODO Implement spatial broadcast decoder.
 ** TODO Use the last residual as input mask to last VAE.
 
-** TODO Truncated normal weight initializer
-   Seems to be used everywhere.
 ** TODO Maybe try different loss.
-** TODO Check to see what happens if the background is complicated.
-
-** TODO Make a metric to see how well the models are splitting.
-*** Compute how many pixels are modelled (via the softmax conf.) by the good pixel.
-    Maybe use the ARI one from the IODIDE paper.
-
-* MONet Paper comments
-** Their hypothesis is that it is easier for a model to process a scene if there are repeating patterns.
-   For example, if the same time of object appears multiple times, then it
-   should be easier to model all of them at once.
-*** They test the hypothesis by training with fixed masks, and it seems to be the case indeed.
-**** Maybe we could try the same thing, by forcing the softmaxed masks of the VAE's to take certain values.
-     One possible reason why models maybe tend to take over is that the scenes are so simple, that a single
-     model is capable of representing everything, and so there is no "incentive" to share the load.
-** They only use uniformly coloured backgrounds.
-   Why might this be? Does the model have problems in other scenarios?
-
-
-* IODIDE Paper comments
-** The MSE loss function in our model is actually the same as they present!
+** TODO Update with results from fashion mnist.
+** Spatial Broadcast Decoder
+   It gives much better results than normal deconv.
