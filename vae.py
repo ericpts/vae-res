@@ -2,6 +2,7 @@ import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
 
+from spatial_broadcast_decoder import SpatialBroadcastDecoder
 from coord_conv import CoordConv2D
 
 from config import global_config
@@ -47,12 +48,8 @@ class VAE(tf.keras.Model):
                     padding='same',
                     name=layer_name,
                     kernel_initializer='glorot_normal',
+                    activation='relu',
                 )(X)
-
-                # X = keras.layers.BatchNormalization(axis=3)(X)
-                X = keras.layers.Activation('relu')(X)
-
-                # ReLU should go after.
 
                 if not transp:
                     continue
@@ -90,13 +87,7 @@ class VAE(tf.keras.Model):
 
         X = keras.layers.Dense(
             256,
-            name='encoder-pre-fc',
-            activation='relu',
-            kernel_initializer='glorot_normal',
-        )(X)
-        X = keras.layers.Dense(
-            32,
-            name='encoder-last-fc',
+            name='encoder-fc',
             activation='relu',
             kernel_initializer='glorot_normal',
         )(X)
@@ -111,22 +102,25 @@ class VAE(tf.keras.Model):
         return model
 
     def decoder_network(self, latent_dim: int) -> tf.keras.Model:
-        first_shape = self.encoder.get_layer('encoder-flatten').input_shape[1:]
-
         inputs = keras.Input(shape=(latent_dim,))
+
         X = inputs
-        X = keras.layers.Dense(
-            np.prod(first_shape),
-            activation='relu',
-            name='decoder-first-fc',
-            kernel_initializer='glorot_normal',
+        X = SpatialBroadcastDecoder(
+            global_config.img_height + 8,
+            global_config.img_width + 8,
         )(X)
-        X = keras.layers.Reshape(first_shape)(X)
 
-        X = self.convolutional_layers(True)(X)
+        for _ in range(self.nlayers):
+            X = tf.keras.layers.Conv2D(
+                kernel_size=3,
+                filters=32,
+                padding='valid',
+                strides=1,
+                kernel_initializer='glorot_normal',
+                activation='relu',
+            )(X)
 
-        img = CoordConv2D(
-            transp=True,
+        img = tf.keras.layers.Conv2D(
             filters=global_config.img_channels,
             kernel_size=3,
             activation='sigmoid',
@@ -135,8 +129,7 @@ class VAE(tf.keras.Model):
             kernel_initializer='glorot_normal',
         )(X)
 
-        confidence = CoordConv2D(
-            transp=True,
+        confidence = tf.keras.layers.Conv2D(
             filters=1,
             kernel_size=3,
             padding='same',
