@@ -64,7 +64,10 @@ def save_pictures(
 
         to_show = np.vstack(to_stack)
 
-        plt.imshow(to_show)
+        if to_show.shape[-1] == 1:
+            plt.imshow(to_show[:, :, 0], cmap='gray')
+        else:
+            plt.imshow(to_show)
 
         plt.axis('off')
 
