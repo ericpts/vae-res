@@ -101,7 +101,7 @@ def train_model(
         with test_summary_writer.as_default():
             test_loss, test_imgs = test_step()
 
-            if epoch % 1 == 0:
+            if epoch % 5 == 0:
                 save_test_pictures(test_imgs, epoch)
 
         if epoch % 40 == 0:
