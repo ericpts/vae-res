@@ -16,7 +16,10 @@ def make_plot(pictures):
     for i in range(4 * 4):
         plt.subplot(4, 4, i + 1)
 
-        plt.imshow(pictures[i])
+        if pictures[i].shape[-1] == 1:
+            plt.imshow(pictures[i, :, :, 0], cmap='gray')
+        else:
+            plt.imshow(pictures[i])
         plt.axis('off')
 
 

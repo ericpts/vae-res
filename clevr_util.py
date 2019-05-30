@@ -27,7 +27,7 @@ class Clevr(object):
 
         global_config.img_height = 128
         global_config.img_width = 128
-        global_config.img_channels = 3
+        global_config.img_channels = 1
 
         print('Loaded clevr dataset.')
 
@@ -41,7 +41,7 @@ class Clevr(object):
             if cache_path.exists():
                 img = tf.io.decode_image(
                     tf.io.read_file(str(cache_path)),
-                    channels=3,
+                    channels=global_config.img_channels,
                     dtype=tf.dtypes.float32,
                 )
             else:
@@ -51,7 +51,7 @@ class Clevr(object):
                 img = _image_transformation(
                     tf.io.decode_image(
                         tf.io.read_file(str(img_path)),
-                        channels=3,
+                        channels=global_config.img_channels,
                         dtype=tf.dtypes.float32,
                     )
                 )
