@@ -53,8 +53,11 @@ def save_pictures(
         to_stack.append(X_input[i])
 
         for v in range(global_config.nvaes):
-            to_stack.append(
-                tf.image.grayscale_to_rgb(vae_softmax_confidences[v, i]))
+            if vae_images[v, i].shape[-1] == 3:
+                to_stack.append(
+                    tf.image.grayscale_to_rgb(vae_softmax_confidences[v, i]))
+            else:
+                to_stack.append(vae_softmax_confidences[v, i])
             to_stack.append(vae_images[v, i])
 
         to_stack.append(X_output[i])
