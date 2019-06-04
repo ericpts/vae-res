@@ -464,17 +464,14 @@
 ** Add loss for generating images: if you decide to output a non-trivial pixel, then you should
    be very confident in your prediction.
    Another idea in a similar fashion: if you output an image but you have low confidence, don't even bother.
-** Divide the KL-loss by the number of active VAE's.
-   This way, when we active more of them, the new ones still have leftover capacity.
-** Add FC to end of encoder.
-   It seems that most models for CNN's have two FC's at the end: one with arbitrary size and one for the latent dimension.
-   It might be wise to also augment our model with two FC's instead of a single one.
-
 
 * Next issues
-** TODO Use the last residual as input mask to last VAE.
-
-** TODO Maybe try different loss.
+** DONE Maybe try different loss.
+   CLOSED: [2019-06-04 Tue 09:22]
+   It does not seem to perform that well; maybe there is a bug in the implementation.
 ** TODO Update with results from fashion mnist.
 ** Spatial Broadcast Decoder
    It gives much better results than normal deconv.
+** Maybe our current approach cannot work.
+   My intuition is that the VAE's should all be trained in parallel.
+   In the 3D env, maybe a cylinder is so similar to a box, that the same VAE will model both.
