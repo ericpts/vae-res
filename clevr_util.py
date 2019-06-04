@@ -7,6 +7,7 @@ from typing import List
 from pathlib import Path
 import json
 from config import global_config
+import threadedgenerator
 
 
 class Clevr(object):
@@ -115,8 +116,10 @@ class Clevr(object):
                 }
 
             D = tf.data.Dataset.from_generator(
-                functools.partial(
-                    self.generator, ret, scenes, is_test),
+                lambda: threadedgenerator.ThreadedGenerator(
+                    self.generator(ret, scenes, is_test),
+                    queue_maxsize=8 * global_config.batch_size
+                ),
                 output_types=output_types
             )
 
