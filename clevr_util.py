@@ -98,10 +98,10 @@ class Clevr(object):
                 if not good:
                     continue
                 t = []
-                for k, v in sorted(s.items()):
-                    if k in ['objects', 'relationships', 'directions']:
-                        continue
-                    t.append(v)
+
+                t.append(
+                    self.read_image(s['split'], s['image_filename'])
+                )
 
                 if is_test:
                     all_bb = []
@@ -137,23 +137,17 @@ class Clevr(object):
                         tensors.append([])
                     tensors[i].append(v)
 
-            tensors = tuple(tensors)
-
             if is_test:
-                def map_fn(image_filename, image_id, split, bbox):
-                    return {
-                        'img': self.read_image(split, image_filename),
-                        'bbox': bbox,
-                    }
+                D = tf.data.Dataset.from_tensor_slices(
+                    {
+                        'img': tensors[0],
+                        'bbox': tensors[1],
+                    })
             else:
-                def map_fn(image_filename, image_id, split):
-                    return {
-                        'img': self.read_image(split, image_filename),
-                    }
-
-            D = tf.data.Dataset.from_tensor_slices(tensors)
-            D = D.map(map_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-            D = D.cache()
+                D = tf.data.Dataset.from_tensor_slices(
+                    {
+                        'img': tensors[0],
+                    })
             D = D.shuffle(len(tensors))
 
             return D
