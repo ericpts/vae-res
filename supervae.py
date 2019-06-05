@@ -182,8 +182,8 @@ class SuperVAE(tf.keras.Model):
                 zip(grads, variables))
 
         for D in D_train.batch(
-                global_config.batch_size, drop_remainder=True).prefetch(
-                    16 * global_config.batch_size):
+                global_config.batch_size).prefetch(
+                    tf.data.experimental.AUTOTUNE):
             X = D['img']
             loss = self.fit(X, variables, apply_gradients_fn)
             train_loss += loss * X.shape[0]

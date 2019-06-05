@@ -73,37 +73,6 @@ class Clevr(object):
         )
 
 
-    def generator(self, good_indices, scenes, is_test):
-        for i in random.choices(good_indices, k=2048):
-            img = self.read_image(scenes[i])
-            data = {
-                'img': img
-            }
-
-            if is_test:
-                all_bb = []
-                for i, tp in enumerate(Clevr.OBJECTS):
-                    cur_bb = np.zeros(
-                        (*img.shape[0:2], 1),
-                        np.float32
-                    )
-                    for obj in cur['objects']:
-                        if obj['shape'] != tp:
-                            continue
-                        bb = obj['bounding_box']
-
-                        cur_bb[
-                            bb['xmin']: bb['xmax'],
-                            bb['ymin']: bb['ymax']] = 1.0
-                    all_bb.append(cur_bb)
-
-                all_bb = np.stack(all_bb)
-
-                data['bbox'] = all_bb
-
-            yield data
-
-
     def convert_all_images_for_objects(self, scenes, filter_objs: List[str]):
         for si, s in enumerate(scenes):
             good = True
@@ -139,8 +108,8 @@ class Clevr(object):
                     for i, fobj in enumerate(filter_objs):
                         cur_bb = np.zeros(
                             (global_config.img_height,
-                            global_config.img_width,
-                            1),
+                             global_config.img_width,
+                             1),
                             np.float32
                         )
                         for obj in s['objects']:
@@ -182,9 +151,10 @@ class Clevr(object):
                         'img': self.read_image(split, image_filename),
                     }
 
-
             D = tf.data.Dataset.from_tensor_slices(tensors)
-            D = D.map(map_fn, num_parallel_calls=4)
+            D = D.map(map_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+            # D = D.cache()
+            D = D.shuffle(len(tensors))
 
             return D
 
