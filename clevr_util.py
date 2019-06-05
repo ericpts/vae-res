@@ -153,7 +153,7 @@ class Clevr(object):
 
             D = tf.data.Dataset.from_tensor_slices(tensors)
             D = D.map(map_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-            # D = D.cache()
+            D = D.cache()
             D = D.shuffle(len(tensors))
 
             return D
