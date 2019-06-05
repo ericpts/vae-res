@@ -33,38 +33,49 @@ class Clevr(object):
         print('Loaded clevr dataset.')
 
 
+    def ensure_converted_image_exists(self, split, image_filename):
+        cache_path = Path('.cache') / split / image_filename
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if cache_path.exists():
+            return
+
+        img_path = self.clevr_root / 'images' / split / image_filename
+
+        assert img_path.exists()
+        img = _image_transformation(
+            tf.io.decode_image(
+                tf.io.read_file(str(img_path)),
+                channels=global_config.img_channels,
+                dtype=tf.dtypes.float32,
+            )
+        )
+
+        tf.io.write_file(
+            str(cache_path),
+            tf.image.encode_png(
+                tf.image.convert_image_dtype(
+                    img, tf.dtypes.uint8)
+            )
+        )
+        del img
+
+
+    def read_image(self, split, image_filename):
+        cache_path = tf.strings.join(
+            ['.cache', split, image_filename],
+            separator='/')
+
+        return tf.io.decode_image(
+            tf.io.read_file(cache_path),
+            channels=global_config.img_channels,
+            dtype=tf.dtypes.float32,
+        )
+
+
     def generator(self, good_indices, scenes, is_test):
         for i in random.choices(good_indices, k=2048):
-            cur = scenes[i]
-
-            cache_path = Path('.cache') / cur['split'] / cur['image_filename']
-            cache_path.parent.mkdir(parents=True, exist_ok=True)
-            if cache_path.exists():
-                img = tf.io.decode_image(
-                    tf.io.read_file(str(cache_path)),
-                    channels=global_config.img_channels,
-                    dtype=tf.dtypes.float32,
-                )
-            else:
-                img_path = self.clevr_root / 'images' / cur['split'] / cur['image_filename']
-
-                assert img_path.exists()
-                img = _image_transformation(
-                    tf.io.decode_image(
-                        tf.io.read_file(str(img_path)),
-                        channels=global_config.img_channels,
-                        dtype=tf.dtypes.float32,
-                    )
-                )
-
-                tf.io.write_file(
-                    str(cache_path),
-                    tf.image.encode_png(
-                        tf.image.convert_image_dtype(
-                            img, tf.dtypes.uint8)
-                    )
-                )
-
+            img = self.read_image(scenes[i])
             data = {
                 'img': img
             }
@@ -93,37 +104,92 @@ class Clevr(object):
             yield data
 
 
+    def convert_all_images_for_objects(self, scenes, filter_objs: List[str]):
+        for si, s in enumerate(scenes):
+            good = True
+            objs = s['objects']
+            for o in objs:
+                if o['shape'] not in filter_objs:
+                    good = False
+            if not good:
+                continue
+            self.ensure_converted_image_exists(s['split'], s['image_filename'])
+
+
     def filter_for_objects(self, filter_objs: List[str]):
         def filter_once(scenes, is_test):
-            ret = []
+
+            chosen = []
             for si, s in enumerate(scenes):
                 good = True
                 objs = s['objects']
                 for o in objs:
                     if o['shape'] not in filter_objs:
                         good = False
-                if good:
-                    ret.append(si)
+                if not good:
+                    continue
+                t = []
+                for k, v in sorted(s.items()):
+                    if k in ['objects', 'relationships', 'directions']:
+                        continue
+                    t.append(v)
 
-            output_types = {
-                'img': tf.float32,
-            }
+                if is_test:
+                    all_bb = []
+                    for i, fobj in enumerate(filter_objs):
+                        cur_bb = np.zeros(
+                            (global_config.img_height,
+                            global_config.img_width,
+                            1),
+                            np.float32
+                        )
+                        for obj in s['objects']:
+                            if obj['shape'] != fobj:
+                                continue
+                            bb = obj['bounding_box']
+
+                            cur_bb[
+                                bb['xmin']: bb['xmax'],
+                                bb['ymin']: bb['ymax']] = 1.0
+                        all_bb.append(cur_bb)
+                    all_bb = np.stack(all_bb)
+                    t.append(all_bb)
+
+                t = tuple(t)
+                chosen.append(t)
+
+            # Columns are: image_filename; image_id; split; ?bbox
+            # Currently, each entry in `chosen` stores one row. However, tensorflow
+            # wants each entry to store one column.
+            tensors = []
+            for c in chosen:
+                for i, v in enumerate(c):
+                    while len(tensors) <= i:
+                        tensors.append([])
+                    tensors[i].append(v)
+
+            tensors = tuple(tensors)
 
             if is_test:
-                output_types = {
-                    'img': tf.float32,
-                    'bbox': tf.float32,
-                }
+                def map_fn(image_filename, image_id, split, bbox):
+                    return {
+                        'img': self.read_image(split, image_filename),
+                        'bbox': bbox,
+                    }
+            else:
+                def map_fn(image_filename, image_id, split):
+                    return {
+                        'img': self.read_image(split, image_filename),
+                    }
 
-            D = tf.data.Dataset.from_generator(
-                lambda: threadedgenerator.ThreadedGenerator(
-                    self.generator(ret, scenes, is_test),
-                    queue_maxsize=8 * global_config.batch_size
-                ),
-                output_types=output_types
-            )
+
+            D = tf.data.Dataset.from_tensor_slices(tensors)
+            D = D.map(map_fn, num_parallel_calls=4)
 
             return D
+
+        self.convert_all_images_for_objects(self.train, filter_objs)
+        self.convert_all_images_for_objects(self.test, filter_objs)
 
         return BigDataset(
             filter_once(self.train, False),
