@@ -55,6 +55,21 @@ class SuperVAE(tf.keras.Model):
         )
 
 
+    # In case one vae is frozen/unfrozen, the variables that we update will change.
+    # Because of @tf.function weirdness, we have to reinitialize some things.
+    # This should be called every time the way the model works changes
+    # for example, when a model is frozen or unfrozen.
+    # Furthermore, it should be the last method called, before training.
+    def setup_for_new_stage(self):
+        variables = self.get_trainable_variables(self.vae_is_learning)
+        @tf.function
+        def apply_gradients_fn(grads):
+            self.optimizer.apply_gradients(
+                zip(grads, variables))
+
+        self.apply_gradients_fn = apply_gradients_fn
+
+
     def freeze_all(self):
         for i in range(self.nvaes):
             self.freeze_vae(i)
@@ -174,18 +189,11 @@ class SuperVAE(tf.keras.Model):
         train_loss = 0
         train_size = 0
 
-        variables = self.get_trainable_variables(self.vae_is_learning)
-
-        @tf.function
-        def apply_gradients_fn(grads):
-            self.optimizer.apply_gradients(
-                zip(grads, variables))
-
         for D in D_train.batch(
                 global_config.batch_size).prefetch(
-                    tf.data.experimental.AUTOTUNE):
+                    16 * global_config.batch_size):
             X = D['img']
-            loss = self.fit(X, variables, apply_gradients_fn)
+            loss = self.fit(X, self.variables, self.apply_gradients_fn)
             train_loss += loss * X.shape[0]
             train_size += X.shape[0]
 

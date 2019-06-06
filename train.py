@@ -8,6 +8,12 @@ import os
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_util
 control_flow_util.ENABLE_CONTROL_FLOW_V2 = True
+try:
+    tf.config.gpu.set_per_process_memory_growth(True)
+except AttributeError as e:
+    # Memory growth must be set at program startup
+    print(e)
+
 
 from supervae import SuperVAE
 
@@ -18,11 +24,6 @@ import clevr_util
 
 from config import global_config
 import config
-
-try:
-    tf.config.gpu.set_per_process_memory_growth(True)
-except AttributeError:
-    pass
 
 os.makedirs('checkpoints', exist_ok=True)
 
@@ -39,14 +40,16 @@ def train_model(
         model: tf.keras.Model,
         big_ds: BigDataset,
         start_epoch: int,
-        total_epochs: int) -> tf.keras.Model:
+        total_epochs: int):
 
     def train_step():
         train_loss = model.fit_on_dataset(D_train)
         return train_loss
 
     def test_step():
-        test_loss = model.evaluate_on_dataset(D_test)
+        # TODO(ericpts): Fix this.
+        # test_loss = model.evaluate_on_dataset(D_test)
+        test_loss = 0
 
         for D in D_test.take(
                 global_config.num_examples).batch(
@@ -62,8 +65,7 @@ def train_model(
         (X, softmax_confidences, vae_images, X_output) = test_imgs
         fname = 'images/{}/image_at_epoch_{}.png'.format(model.name, epoch)
 
-        plot_util.save_pictures(
-            X, softmax_confidences, vae_images, X_output, fname)
+        # plot_util.save_pictures(X, softmax_confidences, vae_images, X_output, fname)
 
         max_outputs = 4
         tf.summary.image(
@@ -98,10 +100,9 @@ def train_model(
         with train_summary_writer.as_default():
             train_step()
 
-        with test_summary_writer.as_default():
-            test_loss, test_imgs = test_step()
-
-            if epoch % 5 == 0:
+        if epoch % 5 == 0:
+            with test_summary_writer.as_default():
+                test_loss, test_imgs = test_step()
                 save_test_pictures(test_imgs, epoch)
 
         if epoch % 40 == 0:
@@ -228,6 +229,8 @@ def main():
         def train_for_n_epochs(n: int):
             nonlocal epochs_so_far, start_epoch
             end_epoch = epochs_so_far + n
+
+            model.setup_for_new_stage()
             train_model(
                 model,
                 cur_big_ds,

@@ -1,13 +1,10 @@
 import tensorflow as tf
 from data_util import BigDataset
-import functools
-import random
 import numpy as np
 from typing import List
 from pathlib import Path
 import json
 from config import global_config
-import threadedgenerator
 
 
 class Clevr(object):
@@ -149,6 +146,7 @@ class Clevr(object):
                         'img': tensors[0],
                     })
             D = D.shuffle(len(tensors))
+            D = D.repeat(32)
 
             return D
 
