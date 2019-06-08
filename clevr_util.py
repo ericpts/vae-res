@@ -146,7 +146,10 @@ class Clevr(object):
                         'img': tensors[0],
                     })
             D = D.shuffle(len(chosen))
-            D = D.repeat(32)
+
+            if not is_test:
+                D = D.repeat()
+                D = D.take(global_config.batch_size * global_config.epoch_length)
 
             print(f'Raw dataset has {len(chosen)} examples; is_test: {is_test}')
 

@@ -87,6 +87,13 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
         parser=parser)
 
     add_config_argument(
+        'epoch_length',
+        500,
+        help='How many parameter updates an epoch should contain.',
+        type=int,
+        parser=parser)
+
+    add_config_argument(
         'stage_length',
         20,
         help='How many epochs a single stage should last for.',

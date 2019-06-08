@@ -22,6 +22,9 @@
 # How many VAEs the module should include.
 # nvaes: 2
 
+# How many parameter updates an epoch should contain.
+# epoch_length: 500
+
 # How many epochs a single stage should last for.
 # stage_length: 20
 
