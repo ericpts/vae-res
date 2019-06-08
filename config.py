@@ -59,14 +59,6 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
         parser=parser)
 
     add_config_argument(
-        'epochs',
-        None,
-        help='How many epochs to train VAE_i for.',
-        type=int,
-        parser=parser,
-        nargs='+')
-
-    add_config_argument(
         'beta',
         2.0,
         help='KL loss weight.',
@@ -91,6 +83,20 @@ def setup_arg_parser(parser: argparse.ArgumentParser):
         'nvaes',
         2,
         help='How many VAEs the module should include.',
+        type=int,
+        parser=parser)
+
+    add_config_argument(
+        'stage_length',
+        20,
+        help='How many epochs a single stage should last for.',
+        type=int,
+        parser=parser)
+
+    add_config_argument(
+        'nstages',
+        100,
+        help='How many stages to execute in total.',
         type=int,
         parser=parser)
 

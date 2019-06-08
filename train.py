@@ -196,6 +196,7 @@ def main():
     print(f'Using {global_config.nvaes} VAEs')
 
     model = SuperVAE(global_config.latent_dim, name=args.name)
+    maybe_load_model_weights(model)
 
     with open('model_summary.txt', 'wt') as f:
         def print_fn(x):
@@ -205,48 +206,38 @@ def main():
         model.vaes[0].decoder.summary(print_fn=print_fn)
 
     start_epoch = data_util.get_latest_epoch(model.name) + 1
-    maybe_load_model_weights(model)
-
-    for i in range(global_config.nvaes):
-        model.freeze_vae(i)
-
     epochs_so_far = 0
+
+    def train_for_n_epochs(n: int, cur_big_ds: data_util.BigDataset):
+        nonlocal epochs_so_far, start_epoch
+        end_epoch = epochs_so_far + n
+
+        model.setup_for_new_stage()
+        train_model(
+            model,
+            cur_big_ds,
+            start_epoch,
+            total_epochs=end_epoch
+        )
+        start_epoch = max(start_epoch, end_epoch + 1)
+        epochs_so_far = end_epoch
+
+    big_ds_per_stage = []
     for i in range(global_config.nvaes):
-        print(f'Training VAE_{i} for digits up to {i}.')
-
-        model.freeze_all()
-        model.unfreeze_vae(i)
-        model.set_lr_for_new_stage(1e-3)
-
         digits = [
             clevr_util.Clevr.OBJECTS[j] for j in range(i + 1)
         ]
-        cur_big_ds = big_ds.filter_for_objects(digits)
+        big_ds_per_stage.append(big_ds.filter_for_objects(digits))
 
-        plot_util.plot_dataset_sample(cur_big_ds.D_train, f'train-{i}')
-        plot_util.plot_dataset_sample(cur_big_ds.D_test, f'test-{i}')
+        plot_util.plot_dataset_sample(big_ds_per_stage[-1].D_train, f'train-{i}')
+        plot_util.plot_dataset_sample(big_ds_per_stage[-1].D_test, f'test-{i}')
 
-        def train_for_n_epochs(n: int):
-            nonlocal epochs_so_far, start_epoch
-            end_epoch = epochs_so_far + n
-
-            model.setup_for_new_stage()
-            train_model(
-                model,
-                cur_big_ds,
-                start_epoch,
-                total_epochs=end_epoch
-            )
-            start_epoch = max(start_epoch, end_epoch + 1)
-            epochs_so_far = end_epoch
-
-        train_for_n_epochs(global_config.epochs[i])
-
-        for j in range(i):
+    for i in range(global_config.nstages):
+        for j in range(global_config.nvaes):
+            model.freeze_all()
             model.unfreeze_vae(j)
-
-        model.set_lr_for_new_stage(1e-4)
-        train_for_n_epochs(global_config.epochs[i])
+            model.set_lr_for_new_stage(1e-3)
+            train_for_n_epochs(global_config.stage_length, big_ds_per_stage[j])
 
 
 if __name__ == '__main__':
