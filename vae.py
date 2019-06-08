@@ -1,6 +1,5 @@
 import tensorflow.keras as keras
 import tensorflow as tf
-import numpy as np
 
 from spatial_broadcast_decoder import SpatialBroadcastDecoder
 from coord_conv import CoordConv2D
@@ -48,8 +47,11 @@ class VAE(tf.keras.Model):
                     padding='same',
                     name=layer_name,
                     kernel_initializer='glorot_normal',
-                    activation='relu',
                 )(X)
+
+                X = keras.layers.BatchNormalization(axis=3)(X)
+                X = keras.layers.LeakyReLU()(X)
+
 
                 if not transp:
                     continue

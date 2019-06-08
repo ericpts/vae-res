@@ -145,8 +145,10 @@ class Clevr(object):
                     {
                         'img': tensors[0],
                     })
-            D = D.shuffle(len(tensors))
+            D = D.shuffle(len(chosen))
             D = D.repeat(32)
+
+            print(f'Raw dataset has {len(chosen)} examples; is_test: {is_test}')
 
             return D
 
