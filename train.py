@@ -181,12 +181,6 @@ def main():
         assert cfg.exists()
         config.update_config_from_yaml(cfg)
 
-    if global_config.epochs is None:
-        global_config.epochs =[
-            80 + 10 * i + 15 * i * i
-            for i in range(global_config.nvaes)
-        ]
-
     if global_config.clevr:
         print('Using the clevr dataset.')
         big_ds = clevr_util.Clevr(Path(global_config.clevr))

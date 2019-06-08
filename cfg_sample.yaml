@@ -10,9 +10,6 @@
 # Size of the latent dimension.
 # latent_dim: 128
 
-# How many epochs to train VAE_i for.
-# epochs: None
-
 # KL loss weight.
 # beta: 2.0
 
@@ -24,6 +21,12 @@
 
 # How many VAEs the module should include.
 # nvaes: 2
+
+# How many epochs a single stage should last for.
+# stage_length: 20
+
+# How many stages to execute in total.
+# nstages: 100
 
 # Use the clevr dataset, and find it at this path.
 # clevr: None
