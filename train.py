@@ -230,7 +230,8 @@ def main():
         for j in range(global_config.nvaes):
             model.freeze_all()
             model.unfreeze_vae(j)
-            model.set_lr_for_new_stage(1e-3)
+            model.set_lr_for_new_stage(1e-4)
+            model.setup_for_new_stage()
             train_for_n_epochs(global_config.stage_length, big_ds_per_stage[j])
 
 
