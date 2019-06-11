@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
 
-def disable_tf_logging():
-    import os
-    import logging
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-    logging.getLogger("tensorflow").setLevel(logging.CRITICAL)
-    logging.getLogger("tensorflow_hub").setLevel(logging.CRITICAL)
-
-disable_tf_logging()
-
-import pickle
 import numpy as np
 import datetime
 import string
@@ -17,14 +7,28 @@ import argparse
 from pathlib import Path
 import tensorflow as tf
 import shutil
+import data_util
+import plot_util
 from supervae import SuperVAE
-import util
 import config
 from config import global_config
 from vae import VAE
 from tensorflow.python.framework import tensor_util
+from clevr_util import Clevr
 
-tf.random.set_seed(1337)
+# tf.random.set_seed(1337)
+
+
+def disable_tf_logging():
+    import os
+    import logging
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+    logging.getLogger("tensorflow").setLevel(logging.CRITICAL)
+    logging.getLogger("tensorflow_hub").setLevel(logging.CRITICAL)
+
+
+disable_tf_logging()
+
 
 def sample_digit(D_init: tf.data.Dataset, d: int) -> tf.data.Dataset:
     def filter_fn(X, y):
@@ -32,47 +36,26 @@ def sample_digit(D_init: tf.data.Dataset, d: int) -> tf.data.Dataset:
     return D_init.filter(filter_fn).shuffle(2**20).take(1)
 
 
-def generate_data(digits: str):
-    (D_init_train, D_init_test, image_size, train_size, test_size) = util.load_data()
+def generate_data_clevr(digits: str):
+    assert len(digits) <= len(Clevr.OBJECTS)
 
-    # Since the training samples were already observed, we will only make use of the test ones.
-    D_init = D_init_test.shuffle(test_size)
-    D = None
+    objs = []
+    for d in digits:
+        objs.append(Clevr.OBJECTS[int(d)])
 
-    for _ in range(global_config.num_examples):
-        for d in digits:
-            if d in string.digits:
-                d = int(d)
-                D_cur = sample_digit(D_init, d)
-            else:
-                assert d == 'e'
-                D_cur = util.make_empty_windows(image_size, 1)
+    clevr = Clevr(global_config.clevr)
+    big_ds = clevr.filter_for_objects(objs)
 
-            if D:
-                D = D.concatenate(D_cur)
-            else:
-                D = D_cur
+    X = []
+    y = []
 
-    D = util.combine_into_windows(D)
-    D = D.batch(global_config.num_examples)
+    for D in iter(big_ds[1].take(global_config.num_examples)):
+        X.append(D['img'])
+        y.append(D['bbox'])
 
-    (X, y) = next(iter(D))
-    return (X, y)
+    X = np.stack(X)
+    y = np.stack(y)
 
-
-def load_data(digits: str):
-    dst = Path(
-        f'.cache/data_{digits}_n{global_config.num_examples}.npz')
-
-    dst.parent.mkdir(parents=True, exist_ok=True)
-
-    if not dst.exists():
-        (X, y) = generate_data(digits)
-        np.savez(str(dst), X=X, y=y)
-    else:
-        bin = np.load(str(dst))
-        X = bin['X']
-        y = bin['y']
     return (X, y)
 
 
@@ -108,6 +91,11 @@ def main():
         default='latest',
         help='Which epoch to load the checkpoints from. Either \'latest\' or an integer.'
     )
+    parser.add_argument(
+        '--clevr',
+        required=True,
+        help='Where to find the clevr dataset.'
+    )
 
     args = parser.parse_args()
 
@@ -118,6 +106,7 @@ def main():
     config.setup_arg_parser(argparse.ArgumentParser())
 
     global_config.checkpoint_dir = root_dir / 'checkpoints'
+    global_config.clevr = Path(args.clevr)
 
     config.update_config_from_yaml(
         root_dir / 'cfg.yaml'
@@ -129,17 +118,17 @@ def main():
     global_config.expand_per_width = len(args.digits)
     global_config.num_examples = args.num_examples
 
+    (X, y) = generate_data_clevr(args.digits)
+
     model = SuperVAE(global_config.latent_dim, name=args.name)
 
     epoch = args.epoch
     if epoch == 'latest':
-        epoch = util.get_latest_epoch(model.name)
+        epoch = data_util.get_latest_epoch(model.name)
     else:
         epoch = int(epoch)
 
-    (X, y) = load_data(args.digits)
-
-    model.load_weights(util.checkpoint_for_epoch(model.name, epoch))
+    model.load_weights(data_util.checkpoint_for_epoch(model.name, epoch))
 
     (softmax_confidences, vae_images) = model.run_on_input(X)
 
@@ -170,7 +159,7 @@ def main():
     shutil.rmtree(str(Path(sample_log_dir).parent))
 
     X_output = tf.reduce_sum(softmax_confidences * vae_images, axis=0)
-    util.save_pictures(X, softmax_confidences, vae_images, X_output, None)
+    plot_util.save_pictures(X, softmax_confidences, vae_images, X_output, 'sample.png')
 
 
 if __name__ == '__main__':
