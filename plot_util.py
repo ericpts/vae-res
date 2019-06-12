@@ -47,7 +47,7 @@ def save_pictures(
 
     for i in range(k * k):
 
-        plt.subplot(k, k, i + 1)
+        plt.subplot(k, k, i + 1, frame_on=True)
 
         to_stack = []
         to_stack.append(X_input[i])
@@ -62,6 +62,8 @@ def save_pictures(
 
         to_stack.append(X_output[i])
 
+        # import ipdb; ipdb.set_trace()
+
         to_show = np.vstack(to_stack)
 
         if to_show.shape[-1] == 1:
@@ -69,7 +71,10 @@ def save_pictures(
         else:
             plt.imshow(to_show)
 
-        plt.axis('off')
+        plt.yticks(
+            np.arange(2 * global_config.nvaes + 2) * 128
+        )
+        plt.gca().xaxis.set_visible(False)
 
     if file_name:
         file_name = Path(file_name)
