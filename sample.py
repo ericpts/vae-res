@@ -2,7 +2,6 @@
 
 import numpy as np
 import datetime
-import string
 import argparse
 from pathlib import Path
 import tensorflow as tf
@@ -16,7 +15,7 @@ from vae import VAE
 from tensorflow.python.framework import tensor_util
 from clevr_util import Clevr
 
-# tf.random.set_seed(1337)
+# tf.random.set_seed(42)
 
 
 def disable_tf_logging():
