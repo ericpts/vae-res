@@ -48,10 +48,13 @@ class VAE(tf.keras.Model):
                     name=layer_name,
                     kernel_initializer='glorot_normal',
                 )(X)
+                # X = tf.debugging.check_numerics(X, 'CoordConv2D')
 
                 X = keras.layers.BatchNormalization(axis=3)(X)
-                X = keras.layers.LeakyReLU()(X)
+                # X = tf.debugging.check_numerics(X, 'BatchNorm')
 
+                X = keras.layers.LeakyReLU()(X)
+                # X = tf.debugging.check_numerics(X, 'LeakyReLU')
 
                 if not transp:
                     continue
@@ -90,9 +93,12 @@ class VAE(tf.keras.Model):
         X = keras.layers.Dense(
             256,
             name='encoder-fc',
-            activation='relu',
             kernel_initializer='glorot_normal',
         )(X)
+        # X = tf.debugging.check_numerics(X, 'FC')
+        X = keras.layers.LeakyReLU()(X)
+        # X = tf.debugging.check_numerics(X, 'FC-LeakyReLU')
+
 
         mean = keras.layers.Dense(latent_dim)(X)
         logvar = keras.layers.Dense(latent_dim)(X)
@@ -121,6 +127,7 @@ class VAE(tf.keras.Model):
                 kernel_initializer='glorot_normal',
                 activation='relu',
             )(X)
+            # X = tf.debugging.check_numerics(X, 'Conv2D')
 
         img = tf.keras.layers.Conv2D(
             filters=global_config.img_channels,
@@ -130,6 +137,7 @@ class VAE(tf.keras.Model):
             name='decoder-image',
             kernel_initializer='glorot_normal',
         )(X)
+        # X = tf.debugging.check_numerics(X, 'img')
 
         confidence = tf.keras.layers.Conv2D(
             filters=1,
@@ -138,6 +146,7 @@ class VAE(tf.keras.Model):
             name='decoder-raw-confidence',
             kernel_initializer='glorot_normal',
         )(X)
+        # X = tf.debugging.check_numerics(X, 'confidence')
 
         model = keras.models.Model(
             inputs=inputs, outputs=[img, confidence], name='decoder')

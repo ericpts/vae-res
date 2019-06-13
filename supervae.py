@@ -49,25 +49,10 @@ class SuperVAE(tf.keras.Model):
 
 
     def set_lr_for_new_stage(self, lr: float):
-        self.optimizer = tf.keras.optimizers.Adam(
+        self.optimizer = tf.keras.optimizers.RMSprop(
             learning_rate=lr,
-            epsilon=0.1,
+            epsilon=0.01,
         )
-
-
-    # In case one vae is frozen/unfrozen, the variables that we update will change.
-    # Because of @tf.function weirdness, we have to reinitialize some things.
-    # This should be called every time the way the model works changes
-    # for example, when a model is frozen or unfrozen.
-    # Furthermore, it should be the last method called, before training.
-    def setup_for_new_stage(self):
-        variables = self.get_trainable_variables(self.vae_is_learning)
-        @tf.function
-        def apply_gradients_fn(grads):
-            self.optimizer.apply_gradients(
-                zip(grads, variables))
-
-        self.apply_gradients_fn = apply_gradients_fn
 
 
     def freeze_all(self):
@@ -95,6 +80,7 @@ class SuperVAE(tf.keras.Model):
             return 0.0
 
         entropy = - tf.math.xlogy(softmax_confidences, softmax_confidences)
+        # entropy = tf.debugging.check_numerics(entropy, 'entropy-xlogy')
         entropy = tf.math.reduce_sum(entropy, axis=0)
 
         # Bring the entropy to a term between 0 and 1.
@@ -103,6 +89,7 @@ class SuperVAE(tf.keras.Model):
         # Heavily penalize entropies close to 0, since we want the information
         # to be shared.
         entropy = -tf.math.log(entropy)
+        # entropy = tf.debugging.check_numerics(entropy, '-log')
 
         # Sum across all pixels of a given image.
         entropy = tf.math.reduce_sum(entropy, axis=[1, 2])
@@ -122,6 +109,7 @@ class SuperVAE(tf.keras.Model):
 
         for i in range(self.nvaes):
             cur_loss = loss_object(x, vae_images[i], sample_weight=softmax_confidences[i]) * recall_loss_coef
+            # cur_loss = tf.debugging.check_numerics(cur_loss, 'cur_recall_loss')
             tf.summary.scalar(
                 f'recall_loss_vae_{i}',
                 cur_loss,
@@ -133,6 +121,7 @@ class SuperVAE(tf.keras.Model):
         kl_loss = 0.0
         for ivae, nvae in enumerate(self.vaes):
             cur_loss = VAE.compute_kl_loss(nvae.last_mean, nvae.last_logvar)
+            # cur_loss = tf.debugging.check_numerics(cur_loss, 'cur_kl_loss')
             tf.summary.scalar(f'kl_loss_vae_{ivae}',
                               tf.math.reduce_mean(global_config.beta * cur_loss),
                               step=None)
@@ -171,7 +160,6 @@ class SuperVAE(tf.keras.Model):
         return ret
 
 
-
     @tf.function
     def compute_gradients(self, X, variables):
         with tf.GradientTape() as tape:
@@ -189,11 +177,18 @@ class SuperVAE(tf.keras.Model):
         train_loss = 0
         train_size = 0
 
+        variables = self.get_trainable_variables(self.vae_is_learning)
+
+        @tf.function
+        def apply_gradients_fn(grads):
+            self.optimizer.apply_gradients(
+                zip(grads, variables))
+
         for D in D_train.batch(
                 global_config.batch_size).prefetch(
                     16 * global_config.batch_size):
             X = D['img']
-            loss = self.fit(X, self.variables, self.apply_gradients_fn)
+            loss = self.fit(X, variables, apply_gradients_fn)
             train_loss += loss * X.shape[0]
             train_size += X.shape[0]
 

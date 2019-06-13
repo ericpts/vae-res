@@ -121,27 +121,6 @@ def maybe_load_model_weights(model):
     start_epoch += 1
 
 
-def with_digits_and_grouped(
-        big_ds: BigDataset,
-        digits: List[int],
-):
-    filter_fn = data_util.make_filter_fn(digits)
-
-    big_ds = data_util.filter_big_dataset(big_ds, filter_fn)
-
-    big_ds = data_util.augment_big_dataset_with_empty_images(
-        big_ds,
-        1.0 / len(digits)
-    )
-
-    big_ds = BigDataset(
-        *tuple(
-            [data_util.combine_into_windows(D) for D in big_ds]
-        )
-    )
-    return big_ds
-
-
 def main():
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
     parser = argparse.ArgumentParser(description='SuperVAE training.')
@@ -206,7 +185,6 @@ def main():
         nonlocal epochs_so_far, start_epoch
         end_epoch = epochs_so_far + n
 
-        model.setup_for_new_stage()
         train_model(
             model,
             cur_big_ds,
@@ -221,6 +199,7 @@ def main():
         digits = [
             clevr_util.Clevr.OBJECTS[j] for j in range(i + 1)
         ]
+
         big_ds_per_stage.append(big_ds.filter_for_objects(digits))
 
         plot_util.plot_dataset_sample(big_ds_per_stage[-1].D_train, f'train-{i}')
@@ -231,7 +210,6 @@ def main():
             model.freeze_all()
             model.unfreeze_vae(j)
             model.set_lr_for_new_stage(1e-4)
-            model.setup_for_new_stage()
             train_for_n_epochs(global_config.stage_length, big_ds_per_stage[j])
 
 
