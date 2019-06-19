@@ -108,7 +108,7 @@ def train_model(
         if epoch % 40 == 0:
             save_model(epoch)
 
-    save_model(total_epochs)
+    # save_model(total_epochs)
 
 
 def maybe_load_model_weights(model):
