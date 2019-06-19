@@ -104,12 +104,13 @@ def main():
     # Setup a fake argparser, so that the default values are there.
     config.setup_arg_parser(argparse.ArgumentParser())
 
-    global_config.checkpoint_dir = root_dir / 'checkpoints'
-    global_config.clevr = Path(args.clevr)
-
     config.update_config_from_yaml(
         root_dir / 'cfg_all.yaml'
     )
+
+    global_config.checkpoint_dir = root_dir / 'checkpoints'
+    # This needs to override the cfg_all.yaml clevr path.
+    global_config.clevr = Path(args.clevr)
 
     assert global_config.checkpoint_dir.exists()
 
