@@ -108,7 +108,7 @@ def main():
     global_config.clevr = Path(args.clevr)
 
     config.update_config_from_yaml(
-        root_dir / 'cfg.yaml'
+        root_dir / 'cfg_all.yaml'
     )
 
     assert global_config.checkpoint_dir.exists()

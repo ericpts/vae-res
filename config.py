@@ -132,6 +132,15 @@ def update_config_from_yaml(cfg: Path):
         setattr(global_config, k, v)
 
 
+def dump_config_to_yaml(cfg: Path):
+    with cfg.open('w+t') as f:
+        for field_name in _config_argparse_fields:
+            val = getattr(global_config, field_name)
+            if not val:
+                continue
+            f.write(f'{field_name}: {val}\n')
+
+
 # These options probably don't need to be set often.
 global_config.num_examples = 16
 global_config.batch_size = 32

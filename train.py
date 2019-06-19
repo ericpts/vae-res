@@ -90,8 +90,7 @@ def train_model(
 
     D_train, D_test = big_ds
 
-    print(
-        f'Training from epoch {start_epoch} up to {total_epochs}')
+    print(f'Training from epoch {start_epoch} up to {total_epochs}')
 
     for epoch in range(start_epoch, total_epochs + 1):
         step_var.assign(epoch)
@@ -159,6 +158,8 @@ def main():
         cfg = Path(args.config)
         assert cfg.exists()
         config.update_config_from_yaml(cfg)
+
+    config.dump_config_to_yaml(Path('cfg_all.yaml'))
 
     if global_config.clevr:
         print('Using the clevr dataset.')
