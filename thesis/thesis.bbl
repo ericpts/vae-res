@@ -1,0 +1,28 @@
+\begin{thebibliography}{1}
+
+\bibitem{bib:betavae}
+Christopher~P. {Burgess}, Irina {Higgins}, Arka {Pal}, Loic {Matthey}, Nick
+  {Watters}, Guillaume {Desjardins}, and Alexander {Lerchner}.
+\newblock {Understanding disentangling in $\beta$-VAE}.
+\newblock {\em arXiv e-prints}, page arXiv:1804.03599, Apr 2018.
+
+\bibitem{bib:monet}
+Christopher~P. Burgess, Lo{\"{\i}}c Matthey, Nicholas Watters, Rishabh Kabra,
+  Irina Higgins, Matthew Botvinick, and Alexander Lerchner.
+\newblock Monet: Unsupervised scene decomposition and representation.
+\newblock {\em CoRR}, abs/1901.11390, 2019.
+
+\bibitem{bib:iodine}
+Klaus Greff, Rapha{\"{e}}l~Lopez Kaufmann, Rishabh Kabra, Nick Watters,
+  Christopher Burgess, Daniel Zoran, Lo{\"{\i}}c Matthey, Matthew Botvinick,
+  and Alexander Lerchner.
+\newblock Multi-object representation learning with iterative variational
+  inference.
+\newblock {\em CoRR}, abs/1903.00450, 2019.
+
+\bibitem{bib:vae_paper}
+Diederik~P {Kingma} and Max {Welling}.
+\newblock {Auto-Encoding Variational Bayes}.
+\newblock {\em arXiv e-prints}, page arXiv:1312.6114, Dec 2013.
+
+\end{thebibliography}

@@ -1,0 +1,190 @@
+\message{ !name(introduction.tex)}
+\message{ !name(introduction.tex) !offset(-2) }
+% Some commands used in this file
+\newcommand{\package}{\emph}
+
+\chapter{Introduction}
+
+Humans reason about the surrounding world by decomposing it into orthogonal components.
+The idea of an object is decoupled from the qualities of the object: it is very
+easy for us to imagine a pink elephant, even though we have never observed such
+an animal, and these two words suffice for us to imagine a visual scene.
+The words are a latent representation of the scene.
+
+Variational Autoencoders (VAE) \cite{bib:vae_paper} are a powerful framework for
+learning latent representations. Much work has already been done on disentangled
+representations, where we require that any two latent variables are uncorrelated.
+
+Our work focuses on model-based disentanglement of objects. In particular, we
+would like to have one individual VAE which is trained to recognise and
+represent a single type of object: in a normal setting, we could have one VAE
+which represents chairs, another VAE which represents tables, and so on.
+We will call our approach the \textbf{SuperVAE}.
+
+Most similar in spirit is the \cite{bib:monet}, where a single VAE model
+iteratively recognises objects from a scene by using attention masks.
+The main difference is that the MONet uses a single VAE for all objects, whereas
+we use multiple VAE's in parallel.
+Another similar idea is contained in \cite{bib:iodine}, where they have a single
+VAE which tries to model the scene, and where they iteratively refine the latent
+parameters.
+
+\section{Method}
+
+\subsection{SuperVAE}
+
+
+The SuperVAE network tries to reconstructor a scene by feeding the image to some
+VAE's connected in parallel, whereby every VAE models a separate part of the scene.
+
+
+Let us say that there are $K$ VAE's, where each of them tries to model a
+different object.
+Then the image $X$ will be fed independently to
+each of them.
+
+Each VAE will then model a distribution over the latent variables,
+$q_{theta_k}(\textbf{z}_k | \textbf{X})$.
+
+By sampling from these distribution, they will generate two outputs of
+the same size as the image: $\^{X}_{k}$, which is the $k$'th model
+reconstruction of the image, and $\^{m}_{k}$, which is a confidence mask.
+
+This confidence mask represents how sure a VAE is about its output for a given
+pixel. Higher confidence means that the pixel is part of an object which is of
+the type the VAE is modelling.
+
+These confidence masks are produced by first having the models generate some
+``raw'' confidence values, and then taking a pixel-wise softmax across all of
+the $k$ models.
+
+Thus, the masks are a probability distribution, where for each pixel we have
+what is the probability that it belongs to an object modelled by a VAE:
+
+$\sum_{i = 1}^{k} \^{m}_{k} = \textbf{1}$.
+
+Our loss function is
+
+\[
+  \mathcal{L(\theta_1, ..., \theta_k)} =
+  \sum_{i = 1}^{k} (\^{X}_{i} - X)^2 \cdot \^{m}_{i}
+  +
+  \beta \sum_{i = 1}^{k}
+\]
+
+\begin{figure}[htbp]
+  \includegraphics[natwidth=610,natheight=642]{./images/model.pdf}
+\end{figure}
+
+This is version \verb-v1.4- of the template.
+
+We assume that you found this template on our institute's website, so
+we do not repeat everything stated there.  Consult the website again
+for pointers to further reading about \LaTeX{}.  This chapter only
+gives a brief overview of the files you are looking at.
+
+\section{Features}
+\label{sec:features}
+
+The rest of this document shows off a few features of the template
+files.  Look at the source code to see which macros we used!
+
+The template is divided into \TeX{} files as follows:
+\begin{enumerate}
+\item \texttt{thesis.tex} is the main file.
+\item \texttt{extrapackages.tex} holds extra package includes.
+\item \texttt{layoutsetup.tex} defines the style used in this document.
+\item \texttt{theoremsetup.tex} declares the theorem-like environments.
+\item \texttt{macrosetup.tex} defines extra macros that you may find
+  useful.
+\item \texttt{introduction.tex} contains this text.
+\item \texttt{sections.tex} is a quick demo of each sectioning level
+  available.
+\item \texttt{refs.bib} is an example bibliography file.  You can use
+  Bib\TeX{} to quote references.  For example, read
+  \cite{bringhurst1996ets} if you can get a hold of it.
+\end{enumerate}
+
+
+\subsection{Extra package includes}
+
+The file \texttt{extrapackages.tex} lists some packages that usually
+come in handy.  Simply have a look at the source code.  We have
+added the following comments based on our experiences:
+\begin{description}
+\item[REC] This package is recommended.
+\item[OPT] This package is optional.  It usually solves a specific
+  problem in a clever way.
+\item[ADV] This package is for the advanced user, but solves a problem
+  frequent enough that we mention it. Consult the package's
+  documentation.
+\end{description}
+
+As a small example, here is a reference to the Section \emph{Features}
+typeset with the recommended \package{varioref} package:
+\begin{quote}
+  See Section~\vref{sec:features}.
+\end{quote}
+
+
+\subsection{Layout setup}
+
+This defines the overall look of the document -- for example, it
+changes the chapter and section heading appearance.  We consider this
+a `do not touch' area.  Take a look at the excellent \emph{Memoir}
+documentation before changing it.
+
+In fact, take a look at the excellent \emph{Memoir} documentation,
+full stop.
+
+
+\subsection{Theorem setup}
+
+This file defines a bunch of theorem-like environments.
+
+\begin{theorem}
+  An example theorem.
+\end{theorem}
+
+\begin{proof}
+  Proof text goes here.
+\end{proof}
+
+Note that the q.e.d.\ symbol moves to the correct place automatically
+if you end the proof with an \texttt{enumerate} or
+\texttt{displaymath}.  You do not need to use \verb-\qedhere- as with
+\package{amsthm}.
+
+\begin{theorem}[Some Famous Guy]
+  Another example theorem.
+\end{theorem}
+
+\begin{proof}
+  This proof
+  \begin{enumerate}
+  \item ends in an enumerate.
+  \end{enumerate}
+\end{proof}
+
+\begin{proposition}
+  Note that all theorem-like environments are by default numbered on
+  the same counter.
+\end{proposition}
+
+\begin{proof}
+  This proof ends in a display like so:
+  \begin{displaymath}
+    f(x) = x^2.
+  \end{displaymath}
+\end{proof}
+
+
+\subsection{Macro setup}
+
+For now the macro setup only shows how to define some basic macros,
+and how to use a neat feature of the \package{mathtools} package:
+\begin{displaymath}
+  \abs{a}, \quad \abs*{\frac{a}{b}}, \quad \abs[\big]{\frac{a}{b}}.
+\end{displaymath}
+
+\message{ !name(introduction.tex) !offset(-190) }

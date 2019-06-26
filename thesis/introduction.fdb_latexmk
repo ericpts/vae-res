@@ -1,0 +1,15 @@
+# Fdb version 3
+["pdflatex"] 1561538554 "introduction.tex" "introduction.pdf" "introduction" 1561538554
+  "/etc/texmf/web2c/texmf.cnf" 1552305421 475 c0e671620eb5563b2130f56340a5fde8 ""
+  "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1511824771 3332 103109f5612ad95229751940c61aada0 ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm" 1136768653 1328 c834bbb027764024c09d3d2bf908b5f0 ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmti10.tfm" 1136768653 1480 aa8e34af0eb6a2941b776984cf1dfdc4 ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmtt10.tfm" 1136768653 768 1321e9409b4137d6fb428ac9dc956269 ""
+  "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1551493644 34566 ab5be96bde1a5acfd4f881dbe566b5fb ""
+  "/usr/share/texmf/web2c/texmf.cnf" 1551493644 34566 ab5be96bde1a5acfd4f881dbe566b5fb ""
+  "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1556178531 929472 786c9dbc11eb26d5e0346617d5e3f4c2 ""
+  "introduction.aux" 1561538554 8 a94a2480d3289e625eea47cd1b285758 ""
+  "introduction.tex" 1561538507 6390 9f52c5a702a72853ee08d0567efd8090 ""
+  (generated)
+  "introduction.log"
+  "introduction.pdf"
