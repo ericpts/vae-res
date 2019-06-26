@@ -39,7 +39,13 @@
     "hyperref")
    (LaTeX-add-labels
     "fig:2mnist"
-    "fig:5mnist")
+    "fig:5mnist"
+    "fig:5mnist-together"
+    "fig:fashion-mnist"
+    "fig:clevr-deconv"
+    "fig:clevr-spatial"
+    "fig:clevr-spatial-bwhite"
+    "fig:clevr-tandem")
    (LaTeX-add-bibliographies
     "refs"))
  :latex)

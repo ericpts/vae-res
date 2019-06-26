@@ -6,5 +6,12 @@
 \BOOKMARK [1][-]{section.3.1}{MNIST}{chapter.3}% 6
 \BOOKMARK [2][-]{subsection.3.1.1}{2-MNIST}{section.3.1}% 7
 \BOOKMARK [2][-]{subsection.3.1.2}{5-MNIST}{section.3.1}% 8
-\BOOKMARK [0][-]{appendix.A}{Dummy Appendix}{}% 9
-\BOOKMARK [0][-]{appendix*.2}{Bibliography}{}% 10
+\BOOKMARK [2][-]{subsection.3.1.3}{Together training}{section.3.1}% 9
+\BOOKMARK [1][-]{section.3.2}{Fashion MNIST}{chapter.3}% 10
+\BOOKMARK [1][-]{section.3.3}{Clevr}{chapter.3}% 11
+\BOOKMARK [2][-]{subsection.3.3.1}{Spatial Broadcast Decoder}{section.3.3}% 12
+\BOOKMARK [2][-]{subsection.3.3.2}{Tandem VAE's on Clevr}{section.3.3}% 13
+\BOOKMARK [1][-]{section.3.4}{KL loss as information}{chapter.3}% 14
+\BOOKMARK [0][-]{chapter.4}{Conclusions \046 Future work}{}% 15
+\BOOKMARK [0][-]{appendix.A}{Dummy Appendix}{}% 16
+\BOOKMARK [0][-]{appendix*.2}{Bibliography}{}% 17

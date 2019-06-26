@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2019/dev/Debian) (preloaded format=pdflatex 2019.4.25)  26 JUN 2019 13:04
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2019/dev/Debian) (preloaded format=pdflatex 2019.4.25)  26 JUN 2019 17:24
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1268,10 +1268,10 @@ Package scrbase Warning: \ifpdftex was redefined
 (scrbase)                a look at the description of this command at
 (scrbase)                the manual of every package you are using.
 
-<ETHlogo.pdf, id=44, 179.67125pt x 45.16875pt>
+<ETHlogo.pdf, id=72, 179.67125pt x 45.16875pt>
 File: ETHlogo.pdf Graphic file (type pdf)
 <use ETHlogo.pdf>
-Package pdftex.def Info: ETHlogo.pdf  used on input line 105.
+Package pdftex.def Info: ETHlogo.pdf  used on input line 106.
 (pdftex.def)             Requested size: 179.67079pt x 45.16862pt.
 [1
 
@@ -1283,12 +1283,12 @@ Package pdftex.def Info: ETHlogo.pdf  used on input line 105.
 me{page.i}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.112 \cleartorecto
+l.113 \cleartorecto
                     [1]pdfTeX warning (ext4): destination with the same identif
 ier (name{page.ii}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.112 \cleartorecto
+l.113 \cleartorecto
                     [2
 
 ] (./thesis.toc
@@ -1341,14 +1341,14 @@ File: uesvect.fd
 
 ]
 LaTeX Font Info:    Font shape `OT1/pplx/bx/n' in size <14.4> not available
-(Font)              Font shape `OT1/pplx/b/n' tried instead on input line 144.
-<./images/model.png, id=100, 502.87875pt x 633.36626pt>
+(Font)              Font shape `OT1/pplx/b/n' tried instead on input line 145.
+<./images/model.png, id=135, 502.87875pt x 633.36626pt>
 File: ./images/model.png Graphic file (type png)
 <use ./images/model.png>
-Package pdftex.def Info: ./images/model.png  used on input line 178.
+Package pdftex.def Info: ./images/model.png  used on input line 179.
 (pdftex.def)             Requested size: 352.01273pt x 443.35336pt.
 
-Overfull \hbox (96.8083pt too wide) detected at line 198
+Overfull \hbox (96.8083pt too wide) detected at line 199
 \OMS/zplm/m/n/10.95 L\OT1/zplm/m/n/10.95 (\OML/zplm/m/it/10.95 X\OT1/pplx/m/n/1
 0.95 ; \OML/zplm/m/it/10.95 ^^R[]\OT1/pplx/m/n/10.95 , ..., \OML/zplm/m/it/10.9
 5 ^^R[]\OT1/zplm/m/n/10.95 ) = []\OMS/zplm/m/n/10.95 k\OT1/zplm/m/n/10.95 ([] \
@@ -1364,46 +1364,160 @@ x/m/n/10.95 0, \OT1/zplm/b/n/10.95 I\OT1/zplm/m/n/10.95 )] + \OML/zplm/m/it/10.
 [3] [4 <./images/model.png>] [5] [6
 
 ]
+
+LaTeX Warning: No positions in optional float specifier.
+               Default added (so using `tbp') on input line 261.
+
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
-(Font)              scaled to size 9.37807pt on input line 267.
+(Font)              scaled to size 9.37807pt on input line 268.
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
-(Font)              scaled to size 7.29405pt on input line 267.
+(Font)              scaled to size 7.29405pt on input line 268.
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
-(Font)              scaled to size 5.21004pt on input line 267.
+(Font)              scaled to size 5.21004pt on input line 268.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
-(Font)              scaled to size 9.37807pt on input line 267.
+(Font)              scaled to size 9.37807pt on input line 268.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
-(Font)              scaled to size 7.29405pt on input line 267.
+(Font)              scaled to size 7.29405pt on input line 268.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
-(Font)              scaled to size 5.21004pt on input line 267.
-<./images/init_progress.png, id=130, 1156.32pt x 2312.64pt>
+(Font)              scaled to size 5.21004pt on input line 268.
+<./images/init_progress.png, id=165, 1156.32pt x 2312.64pt>
 File: ./images/init_progress.png Graphic file (type png)
 <use ./images/init_progress.png>
-Package pdftex.def Info: ./images/init_progress.png  used on input line 269.
+Package pdftex.def Info: ./images/init_progress.png  used on input line 270.
 (pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
 
-Underfull \vbox (badness 4132) has occurred while \output is active []
+LaTeX Warning: Float too large for page by 134.82909pt on input line 271.
 
- [7]
-Overfull \vbox (134.82909pt too high) has occurred while \output is active []
+[7] [8 <./images/init_progress.png>]
 
+LaTeX Warning: No positions in optional float specifier.
+               Default added (so using `tbp') on input line 300.
 
-[8 <./images/init_progress.png>]
-<./images/5-mnist.png, id=145, 1156.32pt x 2312.64pt>
+<./images/5-mnist.png, id=181, 1156.32pt x 2312.64pt>
 File: ./images/5-mnist.png Graphic file (type png)
 <use ./images/5-mnist.png>
-Package pdftex.def Info: ./images/5-mnist.png  used on input line 311.
+Package pdftex.def Info: ./images/5-mnist.png  used on input line 312.
 (pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+LaTeX Warning: Float too large for page by 156.7471pt on input line 313.
 
- [9]
-Overfull \vbox (156.7471pt too high) has occurred while \output is active []
+[9] [10 <./images/5-mnist.png>]
+LaTeX Font Info:    Try loading font information for OMS+pplx on input line 350
+.
+LaTeX Font Info:    No file OMSpplx.fd. on input line 350.
 
 
-[10 <./images/5-mnist.png>] (./appendix.tex [11] [12
+LaTeX Font Warning: Font shape `OMS/pplx/m/n' undefined
+(Font)              using `OMS/cmsy/m/n' instead
+(Font)              for symbol `textbullet' on input line 350.
 
-]) [13] [14
+
+LaTeX Warning: No positions in optional float specifier.
+               Default added (so using `tbp') on input line 366.
+
+<./images/5-mnist-together.png, id=193, 1156.32pt x 2312.64pt>
+File: ./images/5-mnist-together.png Graphic file (type png)
+<use ./images/5-mnist-together.png>
+Package pdftex.def Info: ./images/5-mnist-together.png  used on input line 373.
+
+(pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
+
+LaTeX Warning: Float too large for page by 123.7471pt on input line 374.
+
+
+LaTeX Warning: Citation `bib:fashion-mnist' on page 11 undefined on input line 
+390.
+
+
+LaTeX Warning: No positions in optional float specifier.
+               Default added (so using `tbp') on input line 397.
+
+<./images/fashion_mnist.png, id=195, 1156.32pt x 2312.64pt>
+File: ./images/fashion_mnist.png Graphic file (type png)
+<use ./images/fashion_mnist.png>
+Package pdftex.def Info: ./images/fashion_mnist.png  used on input line 403.
+(pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
+
+LaTeX Warning: Float too large for page by 124.2471pt on input line 404.
+
+
+LaTeX Warning: Citation `bib:clevr' on page 11 undefined on input line 413.
+
+[11] [12 <./images/5-mnist-together.png>] [13 <./images/fashion_mnist.png>]
+
+LaTeX Warning: No positions in optional float specifier.
+               Default added (so using `tbp') on input line 422.
+
+<./images/clevr_deconv.png, id=214, 1156.32pt x 2312.64pt>
+File: ./images/clevr_deconv.png Graphic file (type png)
+<use ./images/clevr_deconv.png>
+Package pdftex.def Info: ./images/clevr_deconv.png  used on input line 428.
+(pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
+
+LaTeX Warning: Float too large for page by 123.7471pt on input line 429.
+
+
+LaTeX Warning: Citation `fig:clevr-deconv' on page 14 undefined on input line 4
+31.
+
+
+LaTeX Warning: Citation `bib:spatial-broadcast-decoder' on page 14 undefined on
+ input line 437.
+
+
+LaTeX Warning: Citation `bib:iodide' on page 14 undefined on input line 443.
+
+
+LaTeX Warning: No positions in optional float specifier.
+               Default added (so using `tbp') on input line 449.
+
+<./images/clevr_spatial.png, id=216, 1156.32pt x 2312.64pt>
+File: ./images/clevr_spatial.png Graphic file (type png)
+<use ./images/clevr_spatial.png>
+Package pdftex.def Info: ./images/clevr_spatial.png  used on input line 454.
+(pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
+
+LaTeX Warning: Float too large for page by 112.7471pt on input line 455.
+
+
+LaTeX Warning: No positions in optional float specifier.
+               Default added (so using `tbp') on input line 467.
+
+<./images/clevr_spatial_bwhite.png, id=218, 1156.32pt x 2312.64pt>
+File: ./images/clevr_spatial_bwhite.png Graphic file (type png)
+<use ./images/clevr_spatial_bwhite.png>
+Package pdftex.def Info: ./images/clevr_spatial_bwhite.png  used on input line 
+472.
+(pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
+
+LaTeX Warning: Float too large for page by 112.7471pt on input line 473.
+
+[14] [15 <./images/clevr_deconv.png>] [16 <./images/clevr_spatial.png>]
+[17 <./images/clevr_spatial_bwhite.png>]
+(/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2018/09/02 1.7 listings language file
+)
+LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <10.95> not available
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 490.
+
+
+LaTeX Warning: No positions in optional float specifier.
+               Default added (so using `tbp') on input line 508.
+
+<./images/clevr_tandem.png, id=243, 1156.32pt x 2312.64pt>
+File: ./images/clevr_tandem.png Graphic file (type png)
+<use ./images/clevr_tandem.png>
+Package pdftex.def Info: ./images/clevr_tandem.png  used on input line 514.
+(pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
+
+LaTeX Warning: Float too large for page by 112.7471pt on input line 515.
+
+[18] [19 <./images/clevr_tandem.png>] [20
+
+] (./appendix.tex [21] [22
+
+]) [23]
+[24
 
 ] (./thesis.bbl
 bibitemlist
@@ -1417,44 +1531,52 @@ rs, Rishabh
 \tf@thm=\write5
 \openout5 = `thesis.thm'.
 
- [15
+ [25
 
 ]
 \tf@toc=\write6
 \openout6 = `thesis.toc'.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 336.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 336.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 538.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 538.
  (./thesis.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 336.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 336.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 538.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 538.
 Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: F0FAB196A9E0523DB6C76007A209F68C;499.
+(rerunfilecheck)             Checksum: 99484A6CDC70E8E63DB5DE5D4E859E4E;969.
+
+
+LaTeX Font Warning: Some font shapes were not available, defaults substituted.
+
+
+LaTeX Warning: There were undefined references.
+
  ) 
 Here is how much of TeX's memory you used:
- 16197 strings out of 494518
- 236268 string characters out of 6176313
- 532806 words of memory out of 5000000
- 19447 multiletter control sequences out of 15000+600000
- 53531 words of font info for 152 fonts, out of 8000000 for 9000
+ 16713 strings out of 494518
+ 241668 string characters out of 6176313
+ 620965 words of memory out of 5000000
+ 19923 multiletter control sequences out of 15000+600000
+ 53956 words of font info for 154 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
- 62i,11n,122p,1010b,380s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 62i,12n,122p,1010b,1305s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
 e/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf
 -dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/share/texlive/texmf-dist/
 fonts/type1/public/amsfonts/cm/cmss12.pfb></usr/share/texlive/texmf-dist/fonts/
 type1/public/amsfonts/cm/cmss9.pfb></usr/share/texlive/texmf-dist/fonts/type1/p
 ublic/amsfonts/cm/cmssbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/math
-pazo/fplmr.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/mathpazo/fplmr
-i.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/fpl/fplrc8a.pfb></usr/s
-hare/texlive/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/share/texlive
-/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/share/texlive/texmf-dist/
-fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on thesis.pdf (21 pages, 1014680 bytes).
+c/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsf
+onts/cm/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/mathpazo/f
+plmr.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb>
+</usr/share/texlive/texmf-dist/fonts/type1/public/fpl/fplrc8a.pfb></usr/share/t
+exlive/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/share/texlive/texmf
+-dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/share/texlive/texmf-dist/fonts/
+type1/urw/palatino/uplri8a.pfb>
+Output written on thesis.pdf (31 pages, 4079650 bytes).
 PDF statistics:
- 231 PDF objects out of 1000 (max. 8388607)
- 187 compressed objects within 2 object streams
- 39 named destinations out of 1000 (max. 500000)
- 12389 words of extra memory for PDF output out of 14400 (max. 10000000)
+ 348 PDF objects out of 1000 (max. 8388607)
+ 280 compressed objects within 3 object streams
+ 68 named destinations out of 1000 (max. 500000)
+ 12475 words of extra memory for PDF output out of 14400 (max. 10000000)
 
