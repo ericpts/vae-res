@@ -45,6 +45,9 @@
 %% LaTeX' own graphics handling
 \usepackage{graphicx}
 
+%% Better arrange figures.
+\usepackage{float}
+
 %% Be able to draw svg's.
 \usepackage{svg}
 
@@ -254,7 +257,8 @@ In order to accomplish this, we split the training into two stages:
     by VAE-0, and so VAE-1 will learn them.
 \end{enumerate}
 
-\begin{figure}
+\begin{figure}[H]
+  \label{fig:2mnist}
   \caption{Results of training on 2-MNIST.
     Each picture has 6 rows: first row is input image $X$, second row is
     confidence mask of VAE-0 $\hat{m}_{0}$, third row is reconstruction of VAE-0
@@ -265,6 +269,60 @@ In order to accomplish this, we split the training into two stages:
   \includegraphics[scale=0.3]{init_progress.png}
 \end{figure}
 
+As we can see in figure \ref{fig:2mnist}, we have the desired effect: VAE 0 has
+high confidences (indicated by very white portions of the confidence mask) where
+the digit 0 appears, and has VAE 1 has high confidences where the digit 1 appears.
+
+We note that there are cases when, even though VAE 0 has low confidence, it
+still draws a 0. This is because it was trained only on zeroes, so when
+encountering a digit 1 it does the only thing it knows how to do: output a 0.
+Similarly, VAE 1 draws very generic zeroes when the input digit is a 0. Since it
+was trained on both images of 0 and 1, it has had a chance to learn how a
+generic 0 looks like. Furthermore, it only takes one bit of information to store
+if the input is a $0$ (which is then included in the KL-loss), but it has a lot
+to gain by making its reproduction closer to the original image (which is the
+first term in the overall loss function).
+
+After this experiment, we then proceeded to see what would happen with $5$ VAE's
+in parallel.
+
+\subsection{5-MNIST}
+
+For this dataset, we again have the same two digit side-by-side training data.
+However, we now have $5$ VAE's wired up together, where again we would want that
+VAE $i$ learns to model digit $i$.
+
+The training is done analogous to 2-MNIST, in $5$ stages, where in stage $k$
+model $k$ is learning by looking at images containing digits $0, 1, ..., k$, and
+all of the other models are frozen (but still contributing to the confidences).
+
+\begin{figure}[H]
+  \label{fig:5mnist}
+  \caption{Results of training on 5-MNIST.
+    Each picture has 12 rows: first row is input image $X$, last row is
+    reconstructed image.
+    In between, each adjacent pair of rows represents the confidences
+    $\hat{m}_k$ and the reconstructions $\hat{X}_k$ for each of the $K = 5$ VAE's.
+    Note that even though the digit $5$ appears as part of the input, none of
+    the models were trained on it: this is just test data. We include it only to
+    see how models generalize to unseen digits.
+  }
+  \centering
+  \includegraphics[scale=0.3]{5-mnist.png}
+\end{figure}
+
+From figure \ref{fig:5mnist}, we can see that the model achieves good
+reconstructions on the digits which it was trained on.
+
+Again, we observe that when a digit $4$ appears, only the last model has high
+confidences, and produces a good reconstruction; the other models generate a
+digit which they have learned, which minimizes the $L_2$ loss.
+
+For digit $5$, we observe that the model with the closest digit (in $L_2$ norm)
+has high confidence: sometimes the model for $2$, and sometimes the model for
+$3$.
+
+\subsection{Alternative training}
 
 \appendix
 

@@ -32,10 +32,14 @@
     "mathrsfs"
     "ntheorem"
     "graphicx"
+    "float"
     "svg"
     "soul"
     "pdfpages"
     "hyperref")
+   (LaTeX-add-labels
+    "fig:2mnist"
+    "fig:5mnist")
    (LaTeX-add-bibliographies
     "refs"))
  :latex)
