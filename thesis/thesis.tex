@@ -373,12 +373,50 @@ case digit $k$ is in the input.
   \includegraphics[scale=0.3]{5-mnist-together.png}
 \end{figure}
 
+\subsection{KL loss as information}
+
+One interesting consequence of the way our model works is that, since each VAE
+models a separate type of object, we are able to infer if an object of that type
+is present in a picture by looking at the KL loss of the corresponding VAE.
+
+\begin{table}[t]
+  \centering
+  \begin{tabular} {||c|c|c|c|c||}
+    \hline
+    Digits & KL-0 & KL-1 & KL-2 & KL-3 \\
+    \hline
+    ee & 0.63403076 & 0.6190877 & 1.4198456 & 0.480307 \\
+    00 & 33.911064 & 0.7044331 & 20.23064 & 0.5375141 \\
+    11 & 0.6985266 & 15.11555 & 1.8148736 & 0.84338933 \\
+    22 & 1.9036595 & 0.99384606 & 30.392303 & 1.0314183 \\
+    33 & 1.6360512 & 2.186792 & 28.371572 & 7.6027184 \\
+    \hline
+    01 & 17.265297 & 7.5015736 & 11.151404 & 0.8603339 \\
+    12 & 0.8505232 & 8.492853 & 14.917055 & 0.3921642 \\
+    \hline
+  \end{tabular}
+  \caption{KL losses for different scenes.
+    Digit ``e'' refers to nothing (i.e., empty).
+  }
+  \label{tab:kl-loss}
+\end{table}
+
+When generating an empty image, all of the models have a KL-loss close to $0$,
+indicating that they did not need to store any information.
+However, when a digit that a VAE has learned is present in the input, then its
+KL loss increases to reflect that, as can be seen in table \ref{tab:kl-loss}.
+
+
+\subsection{Conclusions from MNIST}
+
 When looking at figure \ref{fig:5mnist-together}, we can see that the model
 responsible for digit $2$ (so the third pair in one picture) also learns digit
 $3$, but not any others.
 Our explanation for this is that digits $2$ and $3$ are fairly similar to one
 another (at least when compared to $0$ and $1$), and so VAE 2 ``competes'' with
 VAE 3 for representing the digit $3$.
+Indeed, this is also supported by the results in table \ref{tab:kl-loss}, where model $2$
+has high kl-loss both when the digits $2$ and $3$ are present.
 
 If this hypothesis is correct, then the problem should disappear if the object
 types (digits, in this case) were to be sufficiently different from one another.
@@ -513,12 +551,6 @@ elaborate approach than ours.
   \centering
   \includegraphics[scale=0.3]{clevr_tandem.png}
 \end{figure}
-
-\section{KL loss as information}
-
-One interesting consequence of the way our model works is that, since each VAE
-models a separate type of object, we are able to infer if an object of that type
-is present in a picture by looking at the KL loss of the corresponding VAE.
 
 \chapter{Conclusions \& Future work}
 

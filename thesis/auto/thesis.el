@@ -41,6 +41,7 @@
     "fig:2mnist"
     "fig:5mnist"
     "fig:5mnist-together"
+    "tab:kl-loss"
     "fig:fashion-mnist"
     "fig:clevr-deconv"
     "fig:clevr-spatial"
