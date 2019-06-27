@@ -18,7 +18,8 @@ from pathlib import Path
 import tensorflow as tf
 import shutil
 from supervae import SuperVAE
-import util
+import data_util
+import plot_util
 import config
 from config import global_config
 from vae import VAE
@@ -33,10 +34,13 @@ def sample_digit(D_init: tf.data.Dataset, d: int) -> tf.data.Dataset:
 
 
 def generate_data(digits: str):
-    (D_init_train, D_init_test, image_size, train_size, test_size) = util.load_data()
+    big_ds = data_util.load_data()
+    D_train, D_test = big_ds
+
+    image_size = 28
 
     # Since the training samples were already observed, we will only make use of the test ones.
-    D_init = D_init_test.shuffle(test_size)
+    D_init = D_test
     D = None
 
     for _ in range(global_config.num_examples):
@@ -46,14 +50,14 @@ def generate_data(digits: str):
                 D_cur = sample_digit(D_init, d)
             else:
                 assert d == 'e'
-                D_cur = util.make_empty_windows(image_size, 1)
+                D_cur = data_util.make_empty_windows(image_size, 1)
 
             if D:
                 D = D.concatenate(D_cur)
             else:
                 D = D_cur
 
-    D = util.combine_into_windows(D)
+    D = data_util.combine_into_windows(D)
     D = D.batch(global_config.num_examples)
 
     (X, y) = next(iter(D))
@@ -133,13 +137,13 @@ def main():
 
     epoch = args.epoch
     if epoch == 'latest':
-        epoch = util.get_latest_epoch(model.name)
+        epoch = data_util.get_latest_epoch(model.name)
     else:
         epoch = int(epoch)
 
     (X, y) = load_data(args.digits)
 
-    model.load_weights(util.checkpoint_for_epoch(model.name, epoch))
+    model.load_weights(data_util.checkpoint_for_epoch(model.name, epoch))
 
     (softmax_confidences, vae_images) = model.run_on_input(X)
 
@@ -170,7 +174,7 @@ def main():
     shutil.rmtree(str(Path(sample_log_dir).parent))
 
     X_output = tf.reduce_sum(softmax_confidences * vae_images, axis=0)
-    util.save_pictures(X, softmax_confidences, vae_images, X_output, None)
+    plot_util.save_pictures(X, softmax_confidences, vae_images, X_output, None)
 
 
 if __name__ == '__main__':

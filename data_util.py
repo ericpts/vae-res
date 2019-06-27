@@ -171,7 +171,6 @@ def remap_labels(d: Dict[int, int], big_ds: BigDataset) -> BigDataset:
 
 
 def load_data() -> BigDataset:
-
     return shuffle_big_dataset(
         chain_big_datasets(
             filter_big_dataset(
@@ -213,4 +212,13 @@ def combine_into_windows(
 
     D = D.map(map_fn)
 
+    return D
+
+
+def make_empty_windows(img_size: int,
+                       n: int) -> tf.data.Dataset:
+
+    X = np.zeros((n, img_size, img_size, 1), dtype=np.float32)
+    y = np.array([-1] * n, dtype=np.uint8)
+    D = tf.data.Dataset.from_tensor_slices((X, y))
     return D
