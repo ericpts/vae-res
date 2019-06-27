@@ -21,7 +21,6 @@ digit 0, and the other one learn to represent the digit 1.
    which is supposed to learn a different concept.
 
 
-
 How to run:
 
 All options can either be given on the command line, or they can be provided via a config file.
@@ -64,10 +63,25 @@ In order to see a list of the possible options, take a look at `cfg_sample.yaml`
 
 Once the model has started training, it will save all configuration parameters to `cfg_all.yaml`.
  
-Training example:
 
+## clevr
+In order to train on clevr, you need to download the dataset from [Stanford](https://cs.stanford.edu/people/jcjohns/clevr/), and extract it.
+
+Training example:
 ```bash
-python3 train.py --name leonhard --config cfg.yaml --epochs 10 --clevr ../clevr/ --nvaes 1
+python3 train.py --name leonhard --config cfg.yaml --clevr <clevr_root_path> --nvaes 1
 ```
 
-Currently, the model is adapted to work only for the `clevr` dataset.
+# mnist
+
+First, you should checkout the mnist branch:
+
+```bash
+git checkout mnist
+```
+
+The model can download the mnist and fashion mnist datasets by themselves, so you only need to pass the training options:
+
+```bash
+python3 train.py --name leonhard --config cfg.yaml --epochs 10 --nvaes 2
+```
