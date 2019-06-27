@@ -16,5 +16,4 @@
 \contentsline {subsection}{\numberline {3.3.1}Spatial Broadcast Decoder}{13}{subsection.3.3.1}% 
 \contentsline {subsection}{\numberline {3.3.2}Tandem VAE's on Clevr}{16}{subsection.3.3.2}% 
 \contentsline {chapter}{\chapternumberline {4}Conclusions \& Future work}{21}{chapter.4}% 
-\contentsline {appendix}{\chapternumberline {A}Dummy Appendix}{23}{appendix.A}% 
-\contentsline {chapter}{Bibliography}{25}{appendix*.2}% 
+\contentsline {chapter}{Bibliography}{23}{appendix*.2}% 

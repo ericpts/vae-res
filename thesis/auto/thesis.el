@@ -18,8 +18,6 @@
     "layoutsetup"
     "theoremsetup"
     "macrosetup"
-    "abstract"
-    "appendix"
     "memoir"
     "memoir11"
     "fontenc"

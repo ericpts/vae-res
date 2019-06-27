@@ -85,9 +85,9 @@
 %% Document information
 %% ====================
 
-\title{Multi-model disentanglement of object representation}
+\title{Multi-model disentanglement of object representations}
 \author{Eric Stavarache}
-\thesistype{Master Thesis}
+\thesistype{Research Project Thesis}
 \advisors{Advisors: Frederik Benzing, Asier Mujika}
 \department{Department of Computer Science}
 \date{July 19, 2019}
@@ -107,7 +107,12 @@
 \end{titlingpage}
 
 %% The abstract of your thesis.  Edit the file as needed.
-\input{abstract}
+\begin{abstract}
+  Being able to decompose a scene into elementary components is a mark of
+intelligence. In this work we present a novel approach to learning a
+disentangled representation of scenes, by having several VAE's wired up in
+parallel, with each of them representing a different type of object.
+\end{abstract}
 
 %% TOC with the proper setup, do not change.
 \cleartorecto
@@ -181,22 +186,24 @@ $\sum_{i = 1}^{k} \hat{m}_{k} = \textbf{1}$.
 
 Our loss function is
 
-\[
+\begin{align*}
   \mathcal{L}(X; \theta _1, ..., \theta_k) =
-  \sum_{i = 1}^{k}
+  & \sum_{i = 1}^{k}
   \norm {
     (\hat{X}_{i} - X)
     \odot \hat{m}_{i}
   }^2_F
-  +
+  \\
+  & +
   \beta \sum_{i = 1}^{k} D_{KL} [ q_{\theta_k} (\textbf{z}_k | \textbf{X}) ||
   \mathcal{N}(0, \mathbf{I}) ]
-  +
+  \\
+  & +
   \gamma \cdot - \log (
   \frac{1} {\log{K}}
   \cdot - \hat{m} \log {\hat{m}}
   )
-\]
+\end{align*}
 
 The first term of the loss is a $L_2$ loss weighted by each model's confidence.
 The intuition behind this is that the more responsability a VAE takes for
@@ -554,11 +561,21 @@ elaborate approach than ours.
 
 \chapter{Conclusions \& Future work}
 
-We found that our approach was capable of
+We found that our approach was capable of learning disentangled objects in
+simple datasets such as MNIST, but it did not produce good results on Clevr.
+It would be interesting to further investigate this failure, and see if the
+model can be adapted to work.
+
+Furhtermore, we took a supervised approach to learning, based on different
+stages. We expect that it should be possible to have an unsupervised learning
+process, where a model's weights are costlier to update the higher its KL loss
+is (so that after a VAE's has learned an object type, it does not learn anymore,
+but instead lets other VAE's learn).
 
 \appendix
 
-\input{appendix}
+You can defer lengthy calculations that would otherwise only interrupt
+the flow of your thesis to an appendix.
 
 \backmatter
 

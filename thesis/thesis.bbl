@@ -20,9 +20,28 @@ Klaus Greff, Rapha{\"{e}}l~Lopez Kaufmann, Rishabh Kabra, Nick Watters,
   inference.
 \newblock {\em CoRR}, abs/1903.00450, 2019.
 
+\bibitem{bib:clevr}
+Justin Johnson, Bharath Hariharan, Laurens van~der Maaten, Li~Fei{-}Fei,
+  C.~Lawrence Zitnick, and Ross~B. Girshick.
+\newblock {CLEVR:} {A} diagnostic dataset for compositional language and
+  elementary visual reasoning.
+\newblock {\em CoRR}, abs/1612.06890, 2016.
+
 \bibitem{bib:vae_paper}
 Diederik~P {Kingma} and Max {Welling}.
 \newblock {Auto-Encoding Variational Bayes}.
 \newblock {\em arXiv e-prints}, page arXiv:1312.6114, Dec 2013.
+
+\bibitem{bib:spatial-broadcast-decoder}
+Nicholas Watters, Lo{\"{\i}}c Matthey, Christopher~P. Burgess, and Alexander
+  Lerchner.
+\newblock Spatial broadcast decoder: {A} simple architecture for learning
+  disentangled representations in vaes.
+\newblock {\em CoRR}, abs/1901.07017, 2019.
+
+\bibitem{bib:fashion-mnist}
+Han Xiao, Kashif Rasul, and Roland Vollgraf.
+\newblock Fashion-mnist: a novel image dataset for benchmarking machine
+  learning algorithms, 2017.
 
 \end{thebibliography}
