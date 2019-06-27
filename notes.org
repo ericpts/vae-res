@@ -13,13 +13,6 @@
   digit 0, and the other one learn to represent the digit 1.
 
 
-* Project structure
-** ~generate.py~ -- once a model has been trained, use this to sample images.
-** ~train.py~ -- run this in order to train the model.
-** ~vae.py~ -- this is the base variational autoencoder model/
-** ~supervae.py~ -- this is the model which contains multiple vae's inside, each of
-   which is supposed to learn a different concept.
-
 
 * Tasks
 ** DONE Implement Beta-VAE.
