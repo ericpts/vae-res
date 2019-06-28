@@ -131,11 +131,11 @@ Variational Autoencoders (VAE) \cite{bib:vae_paper} are a powerful framework for
 learning latent representations. Much work has already been done on disentangled
 representations, where we require that any two latent variables are uncorrelated.
 
-Our work focuses on model-based disentanglement of objects. In particular, we
-would like to have one individual VAE which is trained to recognise and
-represent a single type of object: in a normal setting, we could have one VAE
-which represents chairs, another VAE which represents tables, and so on.
-We will call our approach the \textbf{SuperVAE}.
+Our work focuses on model-based disentanglement of objects. In particular, for
+each type of object we would like to have a VAE which is trained to recognise
+it: in a normal setting, we could have one VAE which represents chairs, another
+VAE which represents tables, and so on. We will call our approach the
+\textbf{SuperVAE}.
 
 Most similar in spirit is the \cite{bib:monet}, where a single VAE model
 iteratively recognises objects from a scene by using attention masks.
@@ -162,7 +162,7 @@ each of them.
 Each VAE will then model a distribution over the latent variables,
 $q_{\theta_k}(\textbf{z}_k | \textbf{X})$.
 
-By sampling from these distribution, they will generate two outputs of
+By sampling from these distributions, they will generate two outputs of
 the same size as the image: $\hat{X}_k$, which is the $k$'th model
 reconstruction of the image, and $\hat{m}_{k}$, which is a confidence mask.
 
@@ -189,10 +189,9 @@ Our loss function is
 \begin{align*}
   \mathcal{L}(X; \theta _1, ..., \theta_k) =
   & \sum_{i = 1}^{k}
-  \norm {
     (\hat{X}_{i} - X)
+    ^2
     \odot \hat{m}_{i}
-  }^2_F
   \\
   & +
   \beta \sum_{i = 1}^{k} D_{KL} [ q_{\theta_k} (\textbf{z}_k | \textbf{X}) ||
@@ -207,7 +206,7 @@ Our loss function is
 
 The first term of the loss is a $L_2$ loss weighted by each model's confidence.
 The intuition behind this is that the more responsability a VAE takes for
-drawing certain pixel, the more it should be penalized for making mistakes.
+drawing a certain pixel, the more it should be penalized for making mistakes.
 
 The second term is the standard KL loss term, weighted by a $\beta$
 hyperparameter, as first introduced in \cite{bib:betavae}.
@@ -242,7 +241,11 @@ For our experiments, we have taken a supervised approach to training the models.
 
 In order to test our idea, we began with the MNIST dataset.
 To make the task more challenging, and to allow decomposition via objects, we
-construct our training data by putting two digits side-by-side.
+construct our training data by putting two digits side-by-side, where the digits
+that we use are the same as the number of VAE's (so for 4 VAE's, we will use the
+digits $0, 1, 2, 3$).
+We also include the ``empty digit'' (which is just an empty black square). This
+is so that the VAE's also encounter scenarios when it is optimal to not output anything.
 
 \subsection{2-MNIST}
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2019/dev/Debian) (preloaded format=pdflatex 2019.4.25)  27 JUN 2019 11:40
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2019/dev/Debian) (preloaded format=pdflatex 2019.4.25)  28 JUN 2019 11:53
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1351,144 +1351,144 @@ Package pdftex.def Info: ./images/model.png  used on input line 184.
 ]
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 268.
+               Default added (so using `tbp') on input line 271.
 
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
-(Font)              scaled to size 9.37807pt on input line 275.
+(Font)              scaled to size 9.37807pt on input line 278.
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
-(Font)              scaled to size 7.29405pt on input line 275.
+(Font)              scaled to size 7.29405pt on input line 278.
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
-(Font)              scaled to size 5.21004pt on input line 275.
+(Font)              scaled to size 5.21004pt on input line 278.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
-(Font)              scaled to size 9.37807pt on input line 275.
+(Font)              scaled to size 9.37807pt on input line 278.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
-(Font)              scaled to size 7.29405pt on input line 275.
+(Font)              scaled to size 7.29405pt on input line 278.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
-(Font)              scaled to size 5.21004pt on input line 275.
+(Font)              scaled to size 5.21004pt on input line 278.
 <./images/init_progress.png, id=165, 1156.32pt x 2312.64pt>
 File: ./images/init_progress.png Graphic file (type png)
 <use ./images/init_progress.png>
-Package pdftex.def Info: ./images/init_progress.png  used on input line 277.
+Package pdftex.def Info: ./images/init_progress.png  used on input line 280.
 (pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
 
-LaTeX Warning: Float too large for page by 134.82909pt on input line 278.
+LaTeX Warning: Float too large for page by 134.82909pt on input line 281.
 
 [7] [8 <./images/init_progress.png>]
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 307.
+               Default added (so using `tbp') on input line 310.
 
 <./images/5-mnist.png, id=181, 1156.32pt x 2312.64pt>
 File: ./images/5-mnist.png Graphic file (type png)
 <use ./images/5-mnist.png>
-Package pdftex.def Info: ./images/5-mnist.png  used on input line 319.
+Package pdftex.def Info: ./images/5-mnist.png  used on input line 322.
 (pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
 
-LaTeX Warning: Float too large for page by 156.7471pt on input line 320.
+LaTeX Warning: Float too large for page by 156.7471pt on input line 323.
 
 [9] [10 <./images/5-mnist.png>]
-LaTeX Font Info:    Try loading font information for OMS+pplx on input line 357
+LaTeX Font Info:    Try loading font information for OMS+pplx on input line 360
 .
-LaTeX Font Info:    No file OMSpplx.fd. on input line 357.
+LaTeX Font Info:    No file OMSpplx.fd. on input line 360.
 
 
 LaTeX Font Warning: Font shape `OMS/pplx/m/n' undefined
 (Font)              using `OMS/cmsy/m/n' instead
-(Font)              for symbol `textbullet' on input line 357.
+(Font)              for symbol `textbullet' on input line 360.
 
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 373.
+               Default added (so using `tbp') on input line 376.
 
 <./images/5-mnist-together.png, id=193, 1156.32pt x 2312.64pt>
 File: ./images/5-mnist-together.png Graphic file (type png)
 <use ./images/5-mnist-together.png>
-Package pdftex.def Info: ./images/5-mnist-together.png  used on input line 380.
+Package pdftex.def Info: ./images/5-mnist-together.png  used on input line 383.
 
 (pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
 
-LaTeX Warning: Float too large for page by 123.7471pt on input line 381.
+LaTeX Warning: Float too large for page by 123.7471pt on input line 384.
 
 [11] [12 <./images/5-mnist-together.png>]
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 442.
+               Default added (so using `tbp') on input line 445.
 
 <./images/fashion_mnist.png, id=209, 1156.32pt x 2312.64pt>
 File: ./images/fashion_mnist.png Graphic file (type png)
 <use ./images/fashion_mnist.png>
-Package pdftex.def Info: ./images/fashion_mnist.png  used on input line 448.
+Package pdftex.def Info: ./images/fashion_mnist.png  used on input line 451.
 (pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
 
-LaTeX Warning: Float too large for page by 124.2471pt on input line 449.
+LaTeX Warning: Float too large for page by 124.2471pt on input line 452.
 
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 467.
+               Default added (so using `tbp') on input line 470.
 
 <./images/clevr_deconv.png, id=212, 1156.32pt x 2312.64pt>
 File: ./images/clevr_deconv.png Graphic file (type png)
 <use ./images/clevr_deconv.png>
-Package pdftex.def Info: ./images/clevr_deconv.png  used on input line 473.
+Package pdftex.def Info: ./images/clevr_deconv.png  used on input line 476.
 (pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
 
-LaTeX Warning: Float too large for page by 123.7471pt on input line 474.
+LaTeX Warning: Float too large for page by 123.7471pt on input line 477.
 
 
 LaTeX Warning: Citation `fig:clevr-deconv' on page 13 undefined on input line 4
-76.
-
-
-LaTeX Warning: Citation `bib:iodide' on page 13 undefined on input line 488.
+79.
 
 [13] [14 <./images/fashion_mnist.png>] [15 <./images/clevr_deconv.png>]
 
-LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 494.
+LaTeX Warning: Citation `bib:iodide' on page 16 undefined on input line 491.
 
-<./images/clevr_spatial.png, id=235, 1156.32pt x 2312.64pt>
+
+LaTeX Warning: No positions in optional float specifier.
+               Default added (so using `tbp') on input line 497.
+
+<./images/clevr_spatial.png, id=234, 1156.32pt x 2312.64pt>
 File: ./images/clevr_spatial.png Graphic file (type png)
 <use ./images/clevr_spatial.png>
-Package pdftex.def Info: ./images/clevr_spatial.png  used on input line 499.
+Package pdftex.def Info: ./images/clevr_spatial.png  used on input line 502.
 (pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
 
-LaTeX Warning: Float too large for page by 112.7471pt on input line 500.
+LaTeX Warning: Float too large for page by 112.7471pt on input line 503.
 
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 512.
+               Default added (so using `tbp') on input line 515.
 
-<./images/clevr_spatial_bwhite.png, id=237, 1156.32pt x 2312.64pt>
+<./images/clevr_spatial_bwhite.png, id=236, 1156.32pt x 2312.64pt>
 File: ./images/clevr_spatial_bwhite.png Graphic file (type png)
 <use ./images/clevr_spatial_bwhite.png>
 Package pdftex.def Info: ./images/clevr_spatial_bwhite.png  used on input line 
-517.
+520.
 (pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
 
-LaTeX Warning: Float too large for page by 112.7471pt on input line 518.
+LaTeX Warning: Float too large for page by 112.7471pt on input line 521.
 
 (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2018/09/02 1.7 listings language file
 )
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 535.
-
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 538.
+ [16] [17 <./images/clevr_spatial.png>] [18 <./images/clevr_spatial_bwhite.png>
+]
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 553.
+               Default added (so using `tbp') on input line 556.
 
-<./images/clevr_tandem.png, id=240, 1156.32pt x 2312.64pt>
+<./images/clevr_tandem.png, id=263, 1156.32pt x 2312.64pt>
 File: ./images/clevr_tandem.png Graphic file (type png)
 <use ./images/clevr_tandem.png>
-Package pdftex.def Info: ./images/clevr_tandem.png  used on input line 559.
+Package pdftex.def Info: ./images/clevr_tandem.png  used on input line 562.
 (pdftex.def)             Requested size: 346.89868pt x 693.79736pt.
 
-LaTeX Warning: Float too large for page by 112.7471pt on input line 560.
+LaTeX Warning: Float too large for page by 112.7471pt on input line 563.
 
-[16] [17 <./images/clevr_spatial.png>] [18 <./images/clevr_spatial_bwhite.png>]
-[19 <./images/clevr_tandem.png>] [20
+[19] [20 <./images/clevr_tandem.png>] [21
 
-] [21] [22
+] [22
 
 ] (./thesis.bbl
 bibitemlist
@@ -1508,11 +1508,11 @@ rs, Rishabh
 \tf@toc=\write6
 \openout6 = `thesis.toc'.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 587.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 587.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 590.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 590.
  (./thesis.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 587.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 587.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 590.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 590.
 Package rerunfilecheck Info: File `thesis.out' has not changed.
 (rerunfilecheck)             Checksum: 4D4FB36379EA0464CBBB70A5F62FE17C;1001.
 
@@ -1526,7 +1526,7 @@ LaTeX Warning: There were undefined references.
 Here is how much of TeX's memory you used:
  16715 strings out of 494518
  241776 string characters out of 6176313
- 626648 words of memory out of 5000000
+ 627194 words of memory out of 5000000
  19927 multiletter control sequences out of 15000+600000
  53956 words of font info for 154 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
@@ -1544,7 +1544,7 @@ plmr.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb>
 exlive/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/share/texlive/texmf
 -dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/share/texlive/texmf-dist/fonts/
 type1/urw/palatino/uplri8a.pfb>
-Output written on thesis.pdf (29 pages, 4081532 bytes).
+Output written on thesis.pdf (29 pages, 4081644 bytes).
 PDF statistics:
  348 PDF objects out of 1000 (max. 8388607)
  282 compressed objects within 3 object streams
