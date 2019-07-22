@@ -134,8 +134,10 @@ representations, where we require that any two latent variables are uncorrelated
 Our work focuses on model-based disentanglement of objects. In particular, for
 each type of object we would like to have a VAE which is trained to recognise
 it: in a normal setting, we could have one VAE which represents chairs, another
-VAE which represents tables, and so on. We will call our approach the
-\textbf{SuperVAE}.
+VAE which represents tables, and so on.
+We will call our approach the \textbf{ParallelVAE}.
+
+\chapter{Related work}
 
 Most similar in spirit is the \cite{bib:monet}, where a single VAE model
 iteratively recognises objects from a scene by using attention masks.
@@ -145,14 +147,13 @@ Another similar idea is contained in \cite{bib:iodine}, where they have a single
 VAE which tries to model the scene, and where they iteratively refine the latent
 parameters.
 
-\chapter{Method}
+\chapter{Model}
 
-\section{SuperVAE}
+\section{ParallelVAE}
 
 
-The SuperVAE network tries to reconstructor a scene by feeding the image to some
-VAE's connected in parallel, whereby every VAE models a separate part of the scene.
-
+The ParallelVAE network tries to reconstruct a scene by feeding the image to some
+VAE's connected in parallel, whereby each VAE models a separate part of the scene.
 
 Let us say that there are $K$ VAE's, where each of them tries to model a
 different object.
@@ -210,6 +211,12 @@ drawing a certain pixel, the more it should be penalized for making mistakes.
 
 The second term is the standard KL loss term, weighted by a $\beta$
 hyperparameter, as first introduced in \cite{bib:betavae}.
+We note that the KL loss can be interpreted as how much information is stored in
+the bottleneck; the presence of this term means that in an optimal solution, no
+information should be duplicated between VAE's: if one of them remembers that
+there is a chair in the picture, then another VAE remembering the same thing
+would only increase the KL loss, while not providing any additional
+reconstruction gains.
 
 The last term is our original contribution, which is a cross-entropy loss.
 The idea is that the VAE's should try to be unassuming, and they should incur a
@@ -222,6 +229,11 @@ We want to penalize situations where one VAE takes over everything, and in these
 situations the cross-entropy would be close to $0$. As such, we take the
 negative log of the normalized cross-entropy.
 This whole term is weighted by another hyperparameter, $\gamma$.
+One reason for our introduction of this loss is that, without it, if a VAE
+would ``take over'' a part of the image (have really high confidence), then the
+other VAE's would have really small gradients, and they would never have the
+chance to learn. With this loss, VAE's are very heavily penalized for being
+overly confident.
 
 
 We compare this with the approach of \cite{bib:monet}, where they have a single
@@ -231,6 +243,54 @@ Furthermore, in their model, the VAE is instructed what to model by the U-Net
 attention mask, whereas in our approach each VAE decides ``independently'' what
 to learn. In our approach, the only communication happening between the VAE's is
 via the softmax operation of the confidence masks.
+
+\subsection{Training}
+
+In order to train our ParallelVAE, we split the training into multiple stages.
+Let us suppose that we know there are $K$ item types, and also our ParallelVAE
+is composed of $K$ VAE's.
+Then the training program is:
+
+\begin{enumerate}
+\item In stage 0, VAE-0 trains on reconstructing images containing
+  only the item $0$. The other models is active (so they are contributing
+  to the confidence masks), but their weights are frozen, and only
+  VAE-0 is learning.
+\item In stage 1, VAE-1 trains on images containing items $0$ and $1$ . In this
+time, VAE-0, VAE-2, ..., VAE-k are frozen, \textit{however} they are still
+contributing to the confidence masks.
+Because of this, places where the item $0$ appears are
+already assigned high confidence values by VAE-0, and so VAE-1 will not be
+motivated to learn them. On the other hand, places where item $1$ appears will
+not be recognised by VAE-0, and so VAE-1 will learn them.
+
+\item ...
+
+\item In stage $2n$, VAE-n trains on the item $n$, with the others frozen.
+\item In stage $2n + 1$, VAE-0, VAE-1, ..., VAE-n train together on images
+  of items $0$, $1$, ..., $n$.
+\end{enumerate}
+
+
+\subsection{Intuition}
+
+We will now try to provide some explanations for why the ParallelVAE model
+previously described should work.
+
+Because of the KL loss, an optimal model should not duplicate information. 
+One instance when this happen is if each VAE learns a different object.
+Another instance is that one VAE learns everything, and the others do nothing.
+This scenario can occur if, while training, one VAE just has very high
+confidence, and so the others never have enough gradients in order to learn
+anything.
+In order to avoid this happening, and to encourage the models to split, we
+introduced the entropy loss -- paying a price for taking responsability. This
+way, the solution when one model takes care of everything is no longer optimal.
+
+Multiple VAE's training all at the same time would pose great optimization
+instability, so in order to improve stability, we decided to go for the
+stage-based training approach, so that each VAE is given an opportunity to learn
+its object.
 
 
 \chapter{Results}
@@ -322,8 +382,9 @@ all of the other models are frozen (but still contributing to the confidences).
   \includegraphics[scale=0.3]{5-mnist.png}
 \end{figure}
 
-From figure \ref{fig:5mnist}, we can see that the model achieves good
-reconstructions on the digits which it was trained on.
+From figure \ref{fig:5mnist}, we can see that the model achieves decent
+reconstructions on the digits which it was trained on, although not as good as
+we would expect.
 
 Again, we observe that when a digit $4$ appears, only the last model has high
 confidences, and produces a good reconstruction; the other models generate a
@@ -334,6 +395,14 @@ has high confidence: sometimes the model for $2$, and sometimes the model for
 $3$.
 
 \subsection{Together training}
+
+
+Here we introduce ``together-training'', where we differentiate between two
+types of training stages: individual-training stages, and together-training
+stages. Our motivation for this modification is that, afer is that after VAE $k$
+has learned to represent the digit $k$ the other models should then learn to not
+activate in case digit $k$ is in the input.
+
 
 In the previous figures, a model which was trained for digits up to $k$ tends to
 have low confidence when it receives as input one of the digits $0$, ..., $k -
@@ -368,10 +437,6 @@ previous training schedule as such:
 
 Every other stage is a collective training on a prefix of length $k$ of the
 VAE's.
-The motivation is that after VAE $k$ has learned to represent the digit $k$
-while training by itself, the other models will then learn to not activate in
-case digit $k$ is in the input.
-
 
 \begin{figure}[]
   \label{fig:5mnist-together}
@@ -453,7 +518,7 @@ In this way, all $4$ types of objects will be very different from one another.
 
 Looking at figure \ref{fig:fashion-mnist}, we see that the last VAE is the only
 one which models shoes, and the VAE for dresses is the only one which handles
-dresses, and so our hypothesis was indeed correct.
+dresses, which is evidence for our hypothesis being correct.
 
 
 \section{Clevr}
@@ -577,8 +642,41 @@ but instead lets other VAE's learn).
 
 \appendix
 
-You can defer lengthy calculations that would otherwise only interrupt
-the flow of your thesis to an appendix.
+\chapter {Methods}
+
+The experiments were performed using the ADAM optimizer, with a learning rate of
+$1e-3$ for the individual learning stage, and a rateof $1e-4$ for the training
+together stage.
+
+The hyperparameters were $\beta = 0.5$ and $\gamma = 0.009$.
+
+\textbf{MNIST}
+
+For the MNIST experiments, the architecture consistend of a
+Convolutional-Deconvolutional autoencoder, with 2 layers on each side.
+The convolutions had a kernel size of $3$, a stride of $2$, and were followed by
+batch normalization and relu activation.
+
+The final convolutional layer would go into a dense fully connected with $64$
+units and relu activation,
+and then this dense layer would feed into two other dense fully connected
+layers, one for the mean and the other for the variance of the latent
+distribution,
+with a latent dimension of $32$.
+
+\textbf{CLEVR}
+
+For Clevr, we used the Convolutional - Spatial Broadcast Decoder architecture,
+with $4$ convolutional layers with a kernel size of $3$ and stride of $2$
+Each convolutional layer was followed by batch normalization, and then a
+LeakyReLU with $\alpha = 0.3$. The LeakyReLU was chosen because the normal ReLU
+version seemed to occasionally stagnate while training.
+The final convolutional layer would be followed by a dense fully connected with
+$256$ units, and then this would then go into two separate dense layers, one for
+the mean and one for the variance, with a latent dimension of $128$.
+
+For the decoding part, we had a spatial broadcast decoder, followed by $4$
+convolutiona layers with stride $1$.
 
 \backmatter
 
